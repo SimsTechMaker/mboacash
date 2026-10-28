@@ -1,0 +1,10 @@
+# Store text with LF in the repository; Git converts on checkout as configured.
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.png binary
+*.jpg binary
+*.ttf binary
+*.jar binary

@@ -1,0 +1,241 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:ui' show Color;
+
+import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
+
+import 'backup.dart';
+import 'format.dart';
+import 'models.dart';
+import 'security.dart';
+import 'state.dart';
+
+/// Local notifications only: nothing is sent to or from a server.
+///
+/// Reminders are scheduled ahead on the phone (Android's alarm service) and
+/// rebuilt whenever the data changes or the app comes back to the foreground,
+/// so no background task is needed:
+/// - daily reminder for the next 14 days, skipping today once something was entered;
+/// - debt due dates: 3 days before and on the day, at 9:00;
+/// - sync reminder 7 days after the last Google Drive backup, if connected.
+/// Budget alerts are immediate, when an expense crosses 80 % or 100 %.
+class Notifier extends ChangeNotifier {
+  static const _dailyBase = 1000, _debtBase = 2000, _syncId = 3000, _alertBase = 4000;
+  static const _accent = Color(0xFF1D6A56);
+
+  final AppState state;
+  final DriveBackup backup;
+  final LockService prefs;
+  Notifier(this.state, this.backup, this.prefs);
+
+  final _plugin = FlutterLocalNotificationsPlugin();
+  bool daily = true, budget = true, debts = true, sync = true;
+  int hour = 20, minute = 0;
+  bool ready = false;
+
+  int _rev = -1;
+  Timer? _debounce;
+  Set<String> _sent = {};
+
+  Future<void> init() async {
+    tzdata.initializeTimeZones();
+    try {
+      tz.setLocalLocation(tz.getLocation((await FlutterTimezone.getLocalTimezone()).identifier));
+    } catch (_) {
+      tz.setLocalLocation(tz.getLocation('Africa/Douala'));
+    }
+    await _plugin.initialize(settings: const InitializationSettings(android: AndroidInitializationSettings('ic_stat_carnet')));
+
+    daily = await prefs.readPref('n_daily') != '0';
+    budget = await prefs.readPref('n_budget') != '0';
+    debts = await prefs.readPref('n_debts') != '0';
+    sync = await prefs.readPref('n_sync') != '0';
+    final t = (await prefs.readPref('n_time'))?.split(':');
+    if (t != null && t.length == 2) {
+      hour = int.tryParse(t[0]) ?? 20;
+      minute = int.tryParse(t[1]) ?? 0;
+    }
+    try {
+      _sent = Set<String>.from(jsonDecode(await prefs.readPref('n_sent') ?? '[]') as List);
+    } catch (_) {
+      _sent = {};
+    }
+
+    _rev = state.rev;
+    state.addListener(_onData);
+    backup.onBackup = (_) => reschedule();
+    ready = true;
+    notifyListeners();
+    await reschedule();
+  }
+
+  /// Asks Android 13+ for the permission, once, after the first unlock.
+  Future<void> askPermissionOnce() async {
+    if (await prefs.readPref('n_asked') == '1') return;
+    await prefs.writePref('n_asked', '1');
+    await prefs.withoutLock(() async => _android?.requestNotificationsPermission());
+  }
+
+  Future<bool> get enabledInSystem async => await _android?.areNotificationsEnabled() ?? true;
+  Future<void> requestPermission() => prefs.withoutLock(() async => _android?.requestNotificationsPermission());
+
+  AndroidFlutterLocalNotificationsPlugin? get _android => _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+  void _onData() {
+    if (state.rev == _rev) return; // month or filter change, not data
+    _rev = state.rev;
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(seconds: 2), () async {
+      await _checkBudget();
+      await reschedule();
+    });
+  }
+
+  // ---------- settings ----------
+
+  Future<void> set({bool? daily, bool? budget, bool? debts, bool? sync, int? hour, int? minute}) async {
+    this.daily = daily ?? this.daily;
+    this.budget = budget ?? this.budget;
+    this.debts = debts ?? this.debts;
+    this.sync = sync ?? this.sync;
+    this.hour = hour ?? this.hour;
+    this.minute = minute ?? this.minute;
+    await prefs.writePref('n_daily', this.daily ? null : '0');
+    await prefs.writePref('n_budget', this.budget ? null : '0');
+    await prefs.writePref('n_debts', this.debts ? null : '0');
+    await prefs.writePref('n_sync', this.sync ? null : '0');
+    await prefs.writePref('n_time', '${this.hour}:${this.minute}');
+    notifyListeners();
+    await reschedule();
+  }
+
+  // ---------- scheduling ----------
+
+  NotificationDetails _details(String channel, String name, {bool high = false}) => NotificationDetails(
+    android: AndroidNotificationDetails(
+      channel,
+      name,
+      importance: high ? Importance.high : Importance.defaultImportance,
+      priority: high ? Priority.high : Priority.defaultPriority,
+      color: _accent,
+      // Amounts stay hidden on a locked screen.
+      visibility: NotificationVisibility.private,
+    ),
+  );
+
+  Future<void> _at(int id, DateTime when, String title, String body, NotificationDetails d) async {
+    final at = tz.TZDateTime(tz.local, when.year, when.month, when.day, when.hour, when.minute);
+    if (!at.isAfter(tz.TZDateTime.now(tz.local))) return;
+    await _plugin.zonedSchedule(
+      id: id,
+      scheduledDate: at,
+      notificationDetails: d,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      title: title,
+      body: body,
+    );
+  }
+
+  Future<void> reschedule() async {
+    if (!ready || !state.ready) return;
+    try {
+      for (final p in await _plugin.pendingNotificationRequests()) {
+        await _plugin.cancel(id: p.id);
+      }
+      final now = DateTime.now();
+      final f = Fmt(state.settings.currency);
+
+      if (daily) {
+        final d = _details('daily', 'Rappel quotidien');
+        final enteredToday = state.txs.any((t) => t.date == isoDate(now));
+        for (var i = 0; i < 14; i++) {
+          if (i == 0 && enteredToday) continue;
+          final day = DateTime(now.year, now.month, now.day + i, hour, minute);
+          await _at(_dailyBase + i, day, 'carnet237', _dailyText[(day.day) % _dailyText.length], d);
+        }
+      }
+
+      if (debts) {
+        final d = _details('debts', 'Échéances de dettes', high: true);
+        var i = 0;
+        for (final x in state.debts) {
+          final left = state.debtLeft(x);
+          if (x.due.isEmpty || left <= 0) continue;
+          final due = parseIso(x.due);
+          for (final (k, days, label) in [(0, 3, 'dans 3 jours'), (1, 0, "aujourd'hui")]) {
+            final body = x.owe ? 'Tu dois rembourser ${f.money(left)} à ${x.person} $label.' : '${x.person} doit te rembourser ${f.money(left)} $label.';
+            await _at(_debtBase + i * 2 + k, DateTime(due.year, due.month, due.day - days, 9), 'Échéance : ${x.person}', body, d);
+          }
+          if (++i >= 400) break;
+        }
+      }
+
+      if (sync && backup.connected) {
+        final base = backup.lastBackup ?? now;
+        var at = DateTime(base.year, base.month, base.day + 7, 10);
+        if (!at.isAfter(now)) at = DateTime(now.year, now.month, now.day + 1, 10);
+        await _at(
+          _syncId,
+          at,
+          'Pense à synchroniser',
+          backup.lastBackup == null
+              ? "Tu n'as pas encore sauvegardé tes données sur Google Drive."
+              : 'Ta dernière sauvegarde Google Drive date de plus de 7 jours.',
+          _details('sync', 'Rappel de synchronisation'),
+        );
+      }
+    } catch (_) {
+      // Permission refused or alarms unavailable: the app works without reminders.
+    }
+  }
+
+  static const _dailyText = [
+    'As-tu noté tes dépenses aujourd\'hui ?',
+    'Deux minutes pour mettre ton carnet à jour ?',
+    'Un taxi, un repas, une recharge ? Note-les avant d\'oublier.',
+    'Ton carnet t\'attend : note les opérations du jour.',
+  ];
+
+  // ---------- budget alerts ----------
+
+  Future<void> _checkBudget() async {
+    if (!budget) return;
+    final month = monthKey(DateTime.now());
+    final list = state.monthTxs(month).where((t) => t.type == TxType.expense);
+    final f = Fmt(state.settings.currency);
+    final d = _details('budget', 'Budget et plafonds', high: true);
+    var changed = false;
+    var n = 0;
+
+    Future<void> check(String key, String name, double spent, double cap) async {
+      if (cap <= 0) return;
+      final level = spent >= cap ? 100 : (spent >= cap * 0.8 ? 80 : 0);
+      if (level == 0 || _sent.contains('$month:$key:$level')) return;
+      _sent.add('$month:$key:$level');
+      if (level == 100) _sent.add('$month:$key:80');
+      changed = true;
+      final title = level == 100 ? '$name : dépassé' : '$name : 80 % atteint';
+      final body = level == 100
+          ? 'Tu as dépensé ${f.money(spent)} ce mois-ci pour un plafond de ${f.money(cap)}.'
+          : 'Déjà ${f.money(spent)} sur ${f.money(cap)}. Il reste ${f.money(cap - spent)} pour le mois.';
+      await _plugin.show(id: _alertBase + (n++ % 100), title: title, body: body, notificationDetails: d);
+    }
+
+    try {
+      await check('budget', 'Budget du mois', list.fold(0.0, (s, t) => s + t.amount), state.settings.budget);
+      for (final c in state.settings.cats.where((c) => !c.income && c.cap > 0)) {
+        await check('cat:${c.id}', c.name, list.where((t) => t.cat == c.id).fold(0.0, (s, t) => s + t.amount), c.cap);
+      }
+    } catch (_) {
+      // Notifications disabled: nothing to do.
+    }
+    if (changed) {
+      _sent.removeWhere((k) => !k.startsWith(month));
+      await prefs.writePref('n_sent', jsonEncode(_sent.toList()));
+    }
+  }
+}

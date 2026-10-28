@@ -1,0 +1,124 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../icons.dart';
+import '../notify.dart';
+import '../theme.dart';
+
+class NotificationsScreen extends StatefulWidget {
+  const NotificationsScreen({super.key});
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  bool? allowed;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final ok = await context.read<Notifier>().enabledInSystem;
+    if (mounted) setState(() => allowed = ok);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final n = context.watch<Notifier>();
+    final time = '${n.hour.toString().padLeft(2, '0')} h ${n.minute.toString().padLeft(2, '0')}';
+    return Scaffold(
+      appBar: AppBar(title: const Text('Notifications')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (allowed == false) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: context.c.warn.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(12)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Les notifications sont bloquées pour carnet237.',
+                    style: TextStyle(color: context.c.ink, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    "Autorise-les pour recevoir les rappels. Si rien ne s'affiche, va dans Réglages Android › Applications › carnet237 › Notifications.",
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () async {
+                      await n.requestPermission();
+                      await _refresh();
+                    },
+                    child: const Text('Autoriser'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  secondary: Icon(appIcon('bell')),
+                  title: const Text('Rappel quotidien'),
+                  subtitle: const Text("« As-tu noté tes dépenses ? », sauf si tu as déjà saisi quelque chose ce jour-là"),
+                  value: n.daily,
+                  onChanged: (v) => n.set(daily: v),
+                ),
+                ListTile(
+                  enabled: n.daily,
+                  leading: Icon(appIcon('clock')),
+                  title: const Text('Heure du rappel'),
+                  trailing: Text(time, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  onTap: () async {
+                    final t = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay(hour: n.hour, minute: n.minute),
+                    );
+                    if (t != null) await n.set(hour: t.hour, minute: t.minute);
+                  },
+                ),
+                const Divider(),
+                SwitchListTile(
+                  secondary: Icon(appIcon('gauge')),
+                  title: const Text('Budget et plafonds'),
+                  subtitle: const Text('Alerte à 80 %, puis en cas de dépassement'),
+                  value: n.budget,
+                  onChanged: (v) => n.set(budget: v),
+                ),
+                const Divider(),
+                SwitchListTile(
+                  secondary: Icon(appIcon('handshake')),
+                  title: const Text('Échéances de dettes'),
+                  subtitle: const Text("3 jours avant et le jour de l'échéance, à 9 h"),
+                  value: n.debts,
+                  onChanged: (v) => n.set(debts: v),
+                ),
+                const Divider(),
+                SwitchListTile(
+                  secondary: Icon(appIcon('cloud')),
+                  title: const Text('Rappel de synchronisation'),
+                  subtitle: const Text('Si ta dernière sauvegarde Google Drive date de plus de 7 jours'),
+                  value: n.sync,
+                  onChanged: (v) => n.set(sync: v),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Les notifications sont préparées sur le téléphone, sans internet. Sur un écran verrouillé, Android masque les montants.',
+            style: TextStyle(color: context.c.muted, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+}

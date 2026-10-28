@@ -1,0 +1,372 @@
+import 'package:flutter/foundation.dart' show ChangeNotifier;
+
+import 'db.dart';
+import 'models.dart';
+
+class Effect {
+  final String account;
+  final double delta;
+  const Effect(this.account, this.delta);
+}
+
+/// All app data in memory, written through to SQLite. Data sets stay small
+/// (a few thousand rows), so every screen computes from these lists directly.
+class AppState extends ChangeNotifier {
+  final Store store;
+  AppState(this.store);
+
+  Settings settings = Settings.defaults();
+  List<Tx> txs = [];
+  List<Goal> goals = [];
+  List<Debt> debts = [];
+  String month = monthKey(DateTime.now());
+  bool ready = false;
+
+  // Journal filters, shared between tabs (e.g. "Opérations" on an account card).
+  String? catFilter;
+  String? accFilter;
+
+  /// Bumped on every data change. All five tabs rebuild on each change (they
+  /// stay alive in an IndexedStack), so lookups and per-month lists are cached
+  /// per revision instead of being recomputed by every screen.
+  int rev = 0;
+  Map<String, Category>? _catIdx;
+  Map<String, Account>? _accIdx;
+  final _monthCache = <String, List<Tx>>{};
+  Map<String, double>? _balances;
+
+  void _changed() {
+    rev++;
+    _catIdx = null;
+    _accIdx = null;
+    _monthCache.clear();
+    _balances = null;
+    notifyListeners();
+  }
+
+  Future<void> load() async {
+    await store.open();
+    settings = await store.loadSettings();
+    txs = await store.loadTxs();
+    goals = await store.loadGoals();
+    debts = await store.loadDebts();
+    ready = true;
+    _changed();
+  }
+
+  // ---------- lookups ----------
+  Category? catById(String id) => (_catIdx ??= {for (final c in settings.cats) c.id: c})[id];
+  Account? accById(String id) => (_accIdx ??= {for (final a in settings.accounts) a.id: a})[id];
+
+  List<Category> activeCats(bool income) => settings.cats.where((c) => c.income == income && !c.archived).toList();
+  List<Account> get activeAccounts => settings.accounts.where((a) => !a.archived).toList();
+  Goal? goalById(String id) => goals.where((g) => g.id == id).firstOrNull;
+  Debt? debtById(String id) => debts.where((d) => d.id == id).firstOrNull;
+
+  /// The account a movement belongs to; falls back to the default account if
+  /// it was removed. Debts recorded "outside my accounts" have none.
+  String accountOf(Tx t) {
+    if (t.type == TxType.debt && t.account.isEmpty) return '';
+    return accById(t.account) != null ? t.account : settings.defaultAccount;
+  }
+
+  // ---------- computations ----------
+  List<Tx> monthTxs(String key) => _monthCache[key] ??= List.unmodifiable(txs.where((t) => t.date.startsWith(key)));
+
+  ({double income, double expense}) sums(Iterable<Tx> list) {
+    double i = 0, o = 0;
+    for (final t in list) {
+      if (t.type == TxType.income) i += t.amount;
+      if (t.type == TxType.expense) o += t.amount;
+    }
+    return (income: i, expense: o);
+  }
+
+  List<Effect> effects(Tx t) {
+    final a = accountOf(t);
+    switch (t.type) {
+      case TxType.income:
+        return [Effect(a, t.amount)];
+      case TxType.expense:
+        return [Effect(a, -t.amount)];
+      case TxType.transfer:
+        return [Effect(a, -t.amount), Effect(t.to, t.amount)];
+      default:
+        return a.isEmpty ? [] : [Effect(a, t.dir * t.amount)];
+    }
+  }
+
+  Map<String, double> balances() {
+    if (_balances != null) return _balances!;
+    final b = {for (final a in settings.accounts) a.id: a.initial};
+    for (final t in txs) {
+      for (final e in effects(t)) {
+        if (b.containsKey(e.account)) b[e.account] = b[e.account]! + e.delta;
+      }
+    }
+    return _balances = Map.unmodifiable(b);
+  }
+
+  double goalSaved(Goal g) => g.initial + txs.where((t) => t.type == TxType.save && t.goal == g.id).fold(0.0, (s, t) => s - t.dir * t.amount);
+  double debtPaid(Debt d) => txs.where((t) => t.type == TxType.debt && t.debt == d.id && !t.init).fold(0.0, (s, t) => s + t.amount);
+  double debtLeft(Debt d) => (d.amount - debtPaid(d)).clamp(0, double.infinity).toDouble();
+
+  double get totalSaved => goals.fold(0.0, (s, g) => s + goalSaved(g));
+  double get totalOwed => debts.where((d) => d.owe).fold(0.0, (s, d) => s + debtLeft(d));
+  double get totalLent => debts.where((d) => !d.owe).fold(0.0, (s, d) => s + debtLeft(d));
+
+  // ---------- navigation helpers ----------
+  void setMonth(String m) {
+    month = m;
+    catFilter = null;
+    notifyListeners();
+  }
+
+  void setFilters({String? cat, String? acc}) {
+    catFilter = cat;
+    accFilter = acc;
+    notifyListeners();
+  }
+
+  // ---------- writes ----------
+  Future<void> saveTx(Tx t) async {
+    await store.saveTx(t);
+    final i = txs.indexWhere((x) => x.id == t.id);
+    if (i >= 0) {
+      txs[i] = t;
+    } else {
+      txs.add(t);
+    }
+    _changed();
+  }
+
+  Future<void> deleteTx(String id) async {
+    await store.deleteTx(id);
+    txs.removeWhere((t) => t.id == id);
+    _changed();
+  }
+
+  Future<void> saveSettings(Settings s) async {
+    s.normalize();
+    await store.saveSettings(s);
+    settings = s;
+    _changed();
+  }
+
+  Future<void> saveGoal(Goal g) async {
+    await store.saveGoal(g);
+    final i = goals.indexWhere((x) => x.id == g.id);
+    if (i >= 0) {
+      goals[i] = g;
+    } else {
+      goals.add(g);
+    }
+    _changed();
+  }
+
+  Future<void> deleteGoal(String id) async {
+    await store.deleteGoal(id);
+    goals.removeWhere((g) => g.id == id);
+    txs.removeWhere((t) => t.type == TxType.save && t.goal == id);
+    _changed();
+  }
+
+  Future<void> saveDebt(Debt d) async {
+    await store.saveDebt(d);
+    final i = debts.indexWhere((x) => x.id == d.id);
+    if (i >= 0) {
+      debts[i] = d;
+    } else {
+      debts.add(d);
+    }
+    _changed();
+  }
+
+  Future<void> deleteDebt(String id) async {
+    await store.deleteDebt(id);
+    debts.removeWhere((d) => d.id == id);
+    txs.removeWhere((t) => t.type == TxType.debt && t.debt == id);
+    _changed();
+  }
+
+  /// Adjust an account to its real balance with one "adjust" movement.
+  Future<double> adjustAccount(String accId, double real, String date, String note) async {
+    final cur = balances()[accId] ?? 0;
+    final diff = ((real - cur) * 100).roundToDouble() / 100;
+    if (diff == 0) return 0;
+    await saveTx(Tx(id: newId(), type: TxType.adjust, amount: diff.abs(), cat: 'adjust', account: accId, dir: diff > 0 ? 1 : -1, date: date, note: note));
+    return diff;
+  }
+
+  bool get hasSamples => txs.any((t) => t.sample) || goals.any((g) => g.sample) || debts.any((d) => d.sample);
+
+  Future<void> clearSamples() async {
+    await store.clearSamples();
+    txs.removeWhere((t) => t.sample);
+    goals.removeWhere((g) => g.sample);
+    debts.removeWhere((d) => d.sample);
+    _changed();
+  }
+
+  Future<void> wipeAll() async {
+    await store.wipe();
+    txs.clear();
+    goals.clear();
+    debts.clear();
+    _changed();
+  }
+
+  /// Everything the app stores, as plain JSON (what a backup contains).
+  Map<String, dynamic> snapshot() => {
+    'app': 'carnet237',
+    'format': 1,
+    'created': DateTime.now().toIso8601String(),
+    'settings': settings.toJson(),
+    'txs': txs.map((t) => t.toRow()).toList(),
+    'goals': goals.map((g) => g.toRow()).toList(),
+    'debts': debts.map((d) => d.toRow()).toList(),
+  };
+
+  /// Replaces all data with a [snapshot]. Parsing happens first, so a bad
+  /// file leaves the current data untouched.
+  Future<void> restore(Map<String, dynamic> data) async {
+    if (data['app'] != 'carnet237') throw const FormatException('not a carnet237 backup');
+    List<Map<String, Object?>> rows(String k) => [for (final r in (data[k] as List? ?? const [])) Map<String, Object?>.from(r as Map)];
+    final s = Settings.fromJson(Map<String, dynamic>.from(data['settings'] as Map));
+    final t = rows('txs').map(Tx.fromRow).toList();
+    final g = rows('goals').map(Goal.fromRow).toList();
+    final d = rows('debts').map(Debt.fromRow).toList();
+    await store.replaceAll(s, t, g, d);
+    settings = s;
+    txs = t;
+    goals = g;
+    debts = d;
+    catFilter = null;
+    accFilter = null;
+    _changed();
+  }
+
+  Future<void> loadSamples() async {
+    final now = DateTime.now();
+    String a(String id) => accById(id) != null && !accById(id)!.archived ? id : settings.defaultAccount;
+    String c(String id, bool income) => catById(id) != null && !catById(id)!.archived ? id : activeCats(income).first.id;
+    String d(int mBack, int day) => isoDate(DateTime(now.year, now.month - mBack, day));
+
+    final goal = Goal(
+      id: newId('g-'),
+      name: "Fonds d'urgence",
+      icon: 'shield',
+      color: 'c2',
+      target: 600000,
+      deadline: isoDate(DateTime(now.year, now.month + 8, 1)),
+      sample: true,
+    );
+    final lent = Debt(
+      id: newId('d-'),
+      owe: false,
+      person: 'Moussa',
+      amount: 50000,
+      date: d(1, 10),
+      due: isoDate(DateTime(now.year, now.month, 1)),
+      note: 'Avance pour son loyer',
+      sample: true,
+    );
+    final owe = Debt(
+      id: newId('d-'),
+      owe: true,
+      person: 'Tontine du quartier',
+      amount: 120000,
+      date: d(2, 5),
+      due: isoDate(DateTime(now.year, now.month + 3, 1)),
+      sample: true,
+    );
+    for (final g in [goal]) {
+      await store.saveGoal(g);
+    }
+    for (final x in [lent, owe]) {
+      await store.saveDebt(x);
+    }
+    goals.add(goal);
+    debts.addAll([lent, owe]);
+
+    final list = <Tx>[];
+    var n = 0;
+    void add(
+      int mBack,
+      int day,
+      TxType type,
+      double amount, {
+      String cat = '',
+      String acc = 'cash',
+      String to = '',
+      String note = '',
+      Debt? debt,
+      bool init = false,
+    }) {
+      if (mBack == 0 && day > now.day) return;
+      final account = a(acc);
+      final toAcc = type == TxType.transfer ? a(to) : '';
+      if (type == TxType.transfer && toAcc == account) return;
+      int dir = 1;
+      if (type == TxType.save) dir = -1;
+      if (type == TxType.debt) dir = debt!.owe == init ? 1 : -1;
+      list.add(
+        Tx(
+          id: newId(),
+          type: type,
+          amount: amount,
+          cat: type == TxType.income || type == TxType.expense ? c(cat, type == TxType.income) : typeCode(type),
+          account: account,
+          to: toAcc,
+          dir: dir,
+          goal: type == TxType.save ? goal.id : '',
+          debt: debt?.id ?? '',
+          init: init,
+          date: d(mBack, day),
+          note: note,
+          sample: true,
+          created: now.millisecondsSinceEpoch + n++,
+        ),
+      );
+    }
+
+    const inc = TxType.income, exp = TxType.expense, tr = TxType.transfer;
+    for (final m in [0, 1, 2]) {
+      add(m, 1, inc, 450000, cat: 'salaire', acc: 'bank', note: 'Salaire');
+      add(m, 2, exp, 150000, cat: 'logement', acc: 'bank', note: 'Loyer');
+      add(m, 3, tr, m == 0 ? 60000 : 120000, acc: 'bank', to: 'cash', note: 'Retrait au guichet');
+    }
+    add(0, 3, exp, 18500, cat: 'alim', note: 'Marché de la semaine');
+    add(0, 4, exp, 3500, cat: 'transport', note: 'Moto-taxi');
+    add(0, 5, tr, 30000, acc: 'bank', to: 'momo', note: 'Recharge');
+    add(0, 5, TxType.save, 50000, acc: 'bank');
+    add(0, 6, exp, 22000, cat: 'factures', acc: 'momo', note: 'Électricité ENEO');
+    add(0, 8, exp, 9200, cat: 'alim', note: 'Supermarché');
+    add(0, 9, exp, 6500, cat: 'resto', note: 'Déjeuner au tourne-dos');
+    add(0, 10, TxType.debt, 20000, acc: 'momo', debt: owe);
+    add(0, 12, exp, 12000, cat: 'loisirs', note: 'Cinéma et sortie');
+    add(0, 13, exp, 7500, cat: 'sante', note: 'Pharmacie');
+    add(0, 14, inc, 85000, cat: 'activite', acc: 'momo', note: 'Mission freelance');
+    add(0, 15, exp, 25000, cat: 'famille', acc: 'momo', note: 'Aide aux parents');
+    add(0, 16, TxType.debt, 20000, debt: lent);
+    add(0, 18, exp, 15000, cat: 'transport', note: 'Carburant');
+    add(0, 20, exp, 19900, cat: 'shopping', acc: 'bank', note: 'Chaussures');
+    add(0, 22, exp, 10000, cat: 'telephone', acc: 'momo', note: 'Forfait internet');
+    add(0, 24, exp, 30000, cat: 'education', acc: 'bank', note: "Cours d'anglais");
+    add(1, 5, TxType.save, 75000, acc: 'bank');
+    add(1, 6, exp, 61000, cat: 'alim', note: 'Courses du mois');
+    add(1, 10, TxType.debt, 50000, debt: lent, init: true);
+    add(1, 12, exp, 31000, cat: 'factures', acc: 'momo', note: 'Électricité et eau');
+    add(1, 19, exp, 28000, cat: 'transport', note: 'Carburant');
+    add(1, 25, exp, 22000, cat: 'loisirs', acc: 'bank', note: 'Week-end');
+    add(2, 5, TxType.debt, 120000, acc: 'bank', debt: owe, init: true);
+    add(2, 9, exp, 72000, cat: 'alim', note: 'Courses du mois');
+    add(2, 16, exp, 40000, cat: 'sante', acc: 'bank', note: 'Consultation');
+    add(2, 22, exp, 55000, cat: 'shopping', acc: 'bank', note: 'Téléphone');
+
+    await store.saveMany(list);
+    txs.addAll(list);
+    month = monthKey(now);
+    _changed();
+  }
+}

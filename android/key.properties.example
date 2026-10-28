@@ -1,0 +1,7 @@
+# Copy this file to android/key.properties (ignored by git) and fill it in.
+# Keep the .jks file and these passwords in a safe place: without them you can
+# no longer publish updates under your upload key (Google can reset it, slowly).
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=upload
+storeFile=C:/Users/NDI/cles/carnet237-upload.jks

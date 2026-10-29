@@ -5,7 +5,8 @@ d'autre n'y a accès, pas même la personne qui t'a donné l'application.
 
 ## Installer
 
-1. Ouvre le fichier `carnet237.apk` reçu.
+1. Ouvre le fichier reçu : `carnet237-arm64.apk` pour la plupart des téléphones, `carnet237-arm32.apk`
+   pour les modèles anciens ou d'entrée de gamme si le premier refuse de s'installer.
 2. Android demande d'**autoriser l'installation d'applications inconnues** pour l'appli qui ouvre le fichier
    (WhatsApp, Fichiers…). Accepte, puis touche **Installer**.
 3. Ouvre **carnet237**. L'app propose d'autoriser les notifications : accepte si tu veux des rappels.
@@ -16,8 +17,23 @@ d'autre n'y a accès, pas même la personne qui t'a donné l'application.
 - **Comptes** : Espèces, Banque, Mobile Money. Touche **Ajuster le solde** pour corriger un montant.
 - **Plus › Paramètres** : tes catégories et leurs icônes, tes comptes, ta devise, ton budget mensuel
   et le mode nuit.
-- **Plus › Épargne** et **Plus › Dettes** : tes objectifs, et l'argent prêté ou emprunté.
+- **Plus › Épargne** et **Plus › Dettes** : tes objectifs, et l'argent prêté ou emprunté. Mettre de
+  côté, prêter ou rembourser compte comme une dépense ; retirer de l'épargne, emprunter ou être
+  remboursé compte comme un revenu. Ces mouvements ne comptent pas dans le budget.
 - **Plus › Relevé PDF** : un relevé imprimable ou à partager.
+- **Plus › Exporter / Importer un CSV** : sauvegarde tes opérations dans un fichier, et récupère-les
+  plus tard ou sur un autre téléphone. Ce qui est déjà dans l'app n'est pas importé une deuxième fois.
+
+## Un carnet qui t'aide
+
+- En tapant la note (« taxi », « ENEO », « marché »…), la **catégorie se choisit toute seule**.
+  Touche une autre catégorie si elle ne convient pas.
+- L'accueil affiche une **prévision de fin de mois**, des **conseils** (« +25 % en Transport ») et
+  tes **dépenses habituelles** pas encore notées, à ajouter en un geste.
+- **Plus › Assistant budget** : indique tes revenus, l'app propose un budget, un plafond par
+  catégorie et ce qu'il faut mettre de côté pour chaque objectif.
+
+Tout est calculé sur ton téléphone, sans internet.
 
 ## Protéger l'app
 

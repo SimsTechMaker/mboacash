@@ -3,13 +3,15 @@ import 'package:provider/provider.dart';
 
 import '../format.dart';
 import '../icons.dart';
+import '../insights.dart';
 import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/sheets.dart';
-import 'settings_screen.dart';
+import 'budget_assistant_screen.dart';
 
+/// Home: month summary, forecast, advice, upcoming recurring movements, journal.
 class OpsScreen extends StatelessWidget {
   const OpsScreen({super.key});
 
@@ -18,75 +20,56 @@ class OpsScreen extends StatelessWidget {
     final s = context.watch<AppState>();
     final f = fmtOf(context);
     final month = s.monthTxs(s.month);
-    final sum = s.sums(month);
-    final bal = sum.income - sum.expense;
+    final current = s.month == monthKey(DateTime.now());
+    final ins = Insights.of(s);
 
     final scoped = month.where((t) => s.accFilter == null || s.accountOf(t) == s.accFilter || t.to == s.accFilter).toList();
-    final usedCats = scoped.map((t) => t.cat).toSet().toList();
-    final catFilter = usedCats.contains(s.catFilter) ? s.catFilter : null;
-    final list = scoped.where((t) => catFilter == null || t.cat == catFilter).toList()
+    final usedKeys = scoped.map(s.flowKey).toSet().toList();
+    final catFilter = usedKeys.contains(s.catFilter) ? s.catFilter : null;
+    final list = scoped.where((t) => catFilter == null || s.flowKey(t) == catFilter).toList()
       ..sort((a, b) => b.date.compareTo(a.date) != 0 ? b.date.compareTo(a.date) : b.created.compareTo(a.created));
     final byDay = <String, List<Tx>>{};
     for (final t in list) {
       byDay.putIfAbsent(t.date, () => []).add(t);
     }
+    final advice = s.txs.isEmpty ? <Insight>[] : ins.advice(s.month, (v) => f.money(v));
+    final due = current ? ins.dueThisMonth : <Recurring>[];
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
       children: [
-        Center(child: const MonthNav()),
+        const Center(child: MonthNav()),
         const SizedBox(height: 14),
-        Card(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Label('Solde du mois'),
-                          const SizedBox(height: 4),
-                          FittedBox(
-                            child: Money(
-                              bal,
-                              signed: true,
-                              size: 26,
-                              color: bal < 0
-                                  ? context.c.expense
-                                  : bal > 0
-                                  ? context.c.income
-                                  : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _Total(label: 'Revenus', value: sum.income, color: context.c.income),
-                    ),
-                    VerticalDivider(width: 1, color: context.c.line),
-                    Expanded(
-                      child: _Total(label: 'Dépenses', value: sum.expense, color: context.c.expense),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              _Budget(spent: sum.expense),
-            ],
+        _Hero(month: month),
+        if (current && s.txs.isNotEmpty) ...[const SizedBox(height: 12), _ForecastCard(forecast: ins.forecast())],
+        if (advice.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          _SectionTitle(icon: 'sparkles', text: 'Conseils'),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 128,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: advice.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 10),
+              itemBuilder: (_, i) => _AdviceCard(insight: advice[i]),
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
+        ],
+        if (due.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          _SectionTitle(icon: 'repeat', text: 'Habituels pas encore saisis'),
+          const SizedBox(height: 8),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                for (var i = 0; i < due.length && i < 5; i++) ...[if (i > 0) const Divider(), _RecurringTile(r: due[i])],
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 18),
         Panel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -98,7 +81,7 @@ class OpsScreen extends StatelessWidget {
                   if (list.isNotEmpty) Label(plural(list.length, 'opération')),
                 ],
               ),
-              if (s.accFilter != null || usedCats.length > 1) ...[
+              if (s.accFilter != null || usedKeys.length > 1) ...[
                 const SizedBox(height: 10),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -113,7 +96,7 @@ class OpsScreen extends StatelessWidget {
                             onDeleted: () => s.setFilters(cat: s.catFilter, acc: null),
                           ),
                         ),
-                      if (usedCats.length > 1) ...[
+                      if (usedKeys.length > 1) ...[
                         Padding(
                           padding: const EdgeInsets.only(right: 6),
                           child: ChoiceChip(
@@ -122,12 +105,12 @@ class OpsScreen extends StatelessWidget {
                             onSelected: (_) => s.setFilters(cat: null, acc: s.accFilter),
                           ),
                         ),
-                        for (final id in usedCats)
+                        for (final id in usedKeys)
                           Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: ChoiceChip(
-                              avatar: Icon(appIcon(_catIcon(s, id)), size: 16, color: slot(s.catById(id)?.color ?? 'c10')),
-                              label: Text(_catName(s, id)),
+                              avatar: Icon(appIcon(s.group(id).icon), size: 16, color: slot(s.group(id).color)),
+                              label: Text(s.group(id).name),
                               selected: catFilter == id,
                               onSelected: (_) => s.setFilters(cat: id, acc: s.accFilter),
                             ),
@@ -162,16 +145,7 @@ class OpsScreen extends StatelessWidget {
                       const Spacer(),
                       Builder(
                         builder: (_) {
-                          final net = e.value.fold<double>(
-                            0,
-                            (a, t) =>
-                                a +
-                                (t.type == TxType.income
-                                    ? t.amount
-                                    : t.type == TxType.expense
-                                    ? -t.amount
-                                    : 0),
-                          );
+                          final net = e.value.fold<double>(0, (a, t) => a + s.flow(t));
                           return net == 0 ? const SizedBox() : Text(f.money(net, signed: true), style: numStyle.copyWith(color: context.c.muted, fontSize: 13));
                         },
                       ),
@@ -191,74 +165,303 @@ class OpsScreen extends StatelessWidget {
       ],
     );
   }
-
-  static String _catName(AppState s, String id) =>
-      const {'transfer': 'Transfert', 'adjust': 'Ajustement', 'save': 'Épargne', 'debt': 'Dettes'}[id] ?? s.catById(id)?.name ?? 'Sans catégorie';
-  static String _catIcon(AppState s, String id) =>
-      const {'transfer': 'arrow-left-right', 'adjust': 'sliders-horizontal', 'save': 'piggy-bank', 'debt': 'handshake'}[id] ?? s.catById(id)?.icon ?? 'package';
 }
 
-class _Total extends StatelessWidget {
-  final String label;
-  final double value;
-  final Color color;
-  const _Total({required this.label, required this.value, required this.color});
+class _SectionTitle extends StatelessWidget {
+  final String icon, text;
+  const _SectionTitle({required this.icon, required this.text});
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Label(label),
-        const SizedBox(height: 4),
-        FittedBox(child: Money(value, size: 18, color: color)),
-      ],
-    ),
+  Widget build(BuildContext context) => Row(
+    children: [
+      Icon(appIcon(icon), size: 18, color: context.c.accent),
+      const SizedBox(width: 8),
+      Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+    ],
   );
 }
 
-class _Budget extends StatelessWidget {
-  final double spent;
-  const _Budget({required this.spent});
+/// Gradient summary card: month balance, income and expenses, budget.
+class _Hero extends StatelessWidget {
+  final List<Tx> month;
+  const _Hero({required this.month});
 
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
     final f = fmtOf(context);
+    final sum = s.sums(month);
+    final bal = sum.income - sum.expense;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final top = dark ? const Color(0xFF1F5E4D) : const Color(0xFF1D6A56);
+    final bottom = dark ? const Color(0xFF123B30) : const Color(0xFF124A3C);
+    const white = Colors.white;
+    final soft = Colors.white.withValues(alpha: 0.72);
     final b = s.settings.budget;
-    if (b <= 0) {
-      return ListTile(
-        dense: true,
-        title: const Label('Budget'),
-        trailing: TextButton(
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen(initialTab: 3))),
-          child: const Text('Fixer un budget mensuel'),
-        ),
-      );
-    }
-    final pct = spent / b;
-    final color = pct > 1
-        ? context.c.expense
-        : pct >= 0.8
-        ? context.c.warn
-        : context.c.accent;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      child: Column(
+    final spent = s.budgetSpent(month);
+    final pct = b > 0 ? spent / b : 0.0;
+
+    Widget total(String label, String icon, double v) => Expanded(
+      child: Row(
         children: [
-          Row(
-            children: [
-              const Label('Budget'),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text('${f.money(spent)} / ${f.money(b)}', style: numStyle.copyWith(fontSize: 13), overflow: TextOverflow.ellipsis),
-              ),
-              Pill(pct > 1 ? 'Dépassé de ${f.money(spent - b)}' : 'Reste ${f.money(b - spent)}', color: color),
-            ],
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(9)),
+            child: Icon(appIcon(icon), size: 16, color: white),
           ),
-          const SizedBox(height: 8),
-          Gauge(value: pct, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(color: soft, fontSize: 12)),
+                FittedBox(
+                  alignment: Alignment.centerLeft,
+                  child: AnimatedMoney(v, size: 15, color: white),
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [top, bottom]),
+        boxShadow: [
+          BoxShadow(
+            color: top.withValues(alpha: dark ? 0.0 : 0.25),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'SOLDE DU MOIS',
+            style: TextStyle(color: soft, fontSize: 11, letterSpacing: 1, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            alignment: Alignment.centerLeft,
+            child: AnimatedMoney(bal, signed: true, size: 30, color: white, weight: FontWeight.w600),
+          ),
+          const SizedBox(height: 16),
+          Row(children: [total('Revenus', 'arrow-down-left', sum.income), const SizedBox(width: 10), total('Dépenses', 'arrow-up-right', sum.expense)]),
+          const SizedBox(height: 16),
+          if (b > 0) ...[
+            Row(
+              children: [
+                Text('Budget', style: TextStyle(color: soft, fontSize: 12.5)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '${f.money(spent)} / ${f.money(b)}',
+                    style: numStyle.copyWith(color: white, fontSize: 12.5),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  pct > 1 ? 'Dépassé de ${f.money(spent - b)}' : 'Reste ${f.money(b - spent)}',
+                  style: TextStyle(color: pct > 1 ? const Color(0xFFFFC2B3) : white, fontSize: 12.5, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: pct.clamp(0, 1).toDouble()),
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOutCubic,
+                builder: (_, v, _) => LinearProgressIndicator(
+                  value: v,
+                  minHeight: 8,
+                  backgroundColor: Colors.white.withValues(alpha: 0.18),
+                  valueColor: AlwaysStoppedAnimation(
+                    pct > 1
+                        ? const Color(0xFFFF8A70)
+                        : pct >= 0.8
+                        ? const Color(0xFFF5C451)
+                        : const Color(0xFF9BE3C6),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text("L'épargne et les dettes ne comptent pas dans le budget.", style: TextStyle(color: soft, fontSize: 11.5)),
+          ] else
+            InkWell(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BudgetAssistantScreen())),
+              child: Row(
+                children: [
+                  Icon(appIcon('wand-sparkles'), size: 16, color: white),
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      'Préparer mon budget avec l\'assistant',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Icon(appIcon('chevron-right'), size: 16, color: white),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ForecastCard extends StatelessWidget {
+  final Forecast forecast;
+  const _ForecastCard({required this.forecast});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.read<AppState>();
+    final f = fmtOf(context);
+    final fc = forecast;
+    final b = s.settings.budget;
+    final over = b > 0 && fc.budgetProjected > b;
+    final bal = fc.projectedBalance;
+    return Panel(
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
+          IconBadge(icon: 'telescope', color: over ? context.c.warn : context.c.accent),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Prévision de fin de mois', style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+                const SizedBox(height: 2),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(text: 'Dépenses ≈ '),
+                      TextSpan(
+                        text: f.money(fc.projectedExpense),
+                        style: numStyle.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const TextSpan(text: ' · solde ≈ '),
+                      TextSpan(
+                        text: f.money(bal, signed: true),
+                        style: numStyle.copyWith(fontWeight: FontWeight.w600, color: bal < 0 ? context.c.expense : context.c.income),
+                      ),
+                    ],
+                  ),
+                  style: const TextStyle(fontSize: 14),
+                ),
+                if (over)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Text(
+                      'À ce rythme, le budget serait dépassé de ${f.money(fc.budgetProjected - b)}.',
+                      style: TextStyle(color: context.c.warn, fontSize: 12.5),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Text('Jour ${fc.day} sur ${fc.days}, d\'après ton rythme et tes habitudes.', style: TextStyle(color: context.c.muted, fontSize: 12)),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdviceCard extends StatelessWidget {
+  final Insight insight;
+  const _AdviceCard({required this.insight});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.read<AppState>();
+    final color = switch (insight.tone) {
+      Tone.good => context.c.income,
+      Tone.warn => context.c.warn,
+      Tone.info => context.c.accent,
+    };
+    return SizedBox(
+      width: 250,
+      child: Card(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: insight.cat == null ? null : () => s.setFilters(cat: insight.cat, acc: null),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    IconBadge(icon: insight.icon, color: color, size: 32),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        insight.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.w700, color: color),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Text(
+                    insight.text,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: context.c.muted, fontSize: 12.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RecurringTile extends StatelessWidget {
+  final Recurring r;
+  const _RecurringTile({required this.r});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.read<AppState>();
+    final f = fmtOf(context);
+    final g = s.group(r.cat);
+    final late = r.nextDate.compareTo(todayIso()) < 0;
+    return ListTile(
+      contentPadding: const EdgeInsets.fromLTRB(14, 4, 8, 4),
+      leading: IconBadge(icon: g.icon, color: slot(g.color), size: 38),
+      title: Text(
+        r.note,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        '${r.income ? '+' : '−'}${f.money(r.amount)} · ${late ? 'habituellement vers le ${parseIso(r.nextDate).day}' : 'prévu le ${longDate(r.nextDate)}'}',
+        style: TextStyle(color: context.c.muted, fontSize: 12.5),
+      ),
+      trailing: TextButton(
+        onPressed: () => openTxSheet(context, from: r),
+        child: const Text('Ajouter'),
       ),
     );
   }

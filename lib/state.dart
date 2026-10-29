@@ -73,14 +73,43 @@ class AppState extends ChangeNotifier {
   // ---------- computations ----------
   List<Tx> monthTxs(String key) => _monthCache[key] ??= List.unmodifiable(txs.where((t) => t.date.startsWith(key)));
 
+  /// What a movement adds to the month's income (> 0) or expenses (< 0).
+  /// Savings and debts count by direction when real money moves: putting
+  /// aside or lending is an expense, taking back, borrowing or being repaid is
+  /// income. Transfers, adjustments and debts kept "outside my accounts" don't.
+  double flow(Tx t) => switch (t.type) {
+    TxType.income => t.amount,
+    TxType.expense => -t.amount,
+    TxType.save => t.dir * t.amount,
+    TxType.debt => accountOf(t).isEmpty ? 0 : t.dir * t.amount,
+    _ => 0,
+  };
+
+  /// Grouping key for per-category totals: the category id, or 'save'/'debt'.
+  String flowKey(Tx t) => t.type == TxType.income || t.type == TxType.expense ? t.cat : typeCode(t.type);
+
   ({double income, double expense}) sums(Iterable<Tx> list) {
     double i = 0, o = 0;
     for (final t in list) {
-      if (t.type == TxType.income) i += t.amount;
-      if (t.type == TxType.expense) o += t.amount;
+      final f = flow(t);
+      if (f > 0) i += f;
+      if (f < 0) o -= f;
     }
     return (income: i, expense: o);
   }
+
+  /// Spending measured against the monthly budget: ordinary expenses only,
+  /// savings and debt repayments stay outside it.
+  double budgetSpent(Iterable<Tx> list) => list.where((t) => t.type == TxType.expense).fold(0.0, (s, t) => s + t.amount);
+
+  /// Name, icon and palette slot of a [flowKey] group.
+  ({String name, String icon, String color}) group(String key) => switch (key) {
+    'save' => (name: 'Épargne', icon: 'piggy-bank', color: 'c2'),
+    'debt' => (name: 'Dettes', icon: 'handshake', color: 'c9'),
+    'transfer' => (name: 'Transfert', icon: 'arrow-left-right', color: 'c10'),
+    'adjust' => (name: 'Ajustement', icon: 'sliders-horizontal', color: 'c10'),
+    _ => (name: catById(key)?.name ?? 'Sans catégorie', icon: catById(key)?.icon ?? 'package', color: catById(key)?.color ?? 'c10'),
+  };
 
   List<Effect> effects(Tx t) {
     final a = accountOf(t);
@@ -213,6 +242,27 @@ class AppState extends ChangeNotifier {
     txs.clear();
     goals.clear();
     debts.clear();
+    _changed();
+  }
+
+  /// Adds the result of a CSV import, with the categories, accounts, goals
+  /// and debts it had to create.
+  Future<void> importData({
+    required List<Tx> txs,
+    List<Category> cats = const [],
+    List<Account> accounts = const [],
+    List<Goal> goals = const [],
+    List<Debt> debts = const [],
+  }) async {
+    final s = settings.copy()
+      ..cats.addAll(cats)
+      ..accounts.addAll(accounts);
+    s.normalize();
+    await store.importAll(s, txs, goals, debts);
+    settings = s;
+    this.txs = [...this.txs, ...txs];
+    this.goals = [...this.goals, ...goals];
+    this.debts = [...this.debts, ...debts];
     _changed();
   }
 

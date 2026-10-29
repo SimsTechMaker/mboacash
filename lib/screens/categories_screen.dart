@@ -22,18 +22,25 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
     final f = fmtOf(context);
-    final type = income ? TxType.income : TxType.expense;
-    final list = s.monthTxs(s.month).where((t) => t.type == type);
+    // Savings and debts appear as two extra groups on whichever side their
+    // money went this month.
     final by = <String, double>{}, count = <String, int>{};
-    for (final t in list) {
-      by[t.cat] = (by[t.cat] ?? 0) + t.amount;
-      count[t.cat] = (count[t.cat] ?? 0) + 1;
+    for (final t in s.monthTxs(s.month)) {
+      final f = s.flow(t);
+      if (income ? f <= 0 : f >= 0) continue;
+      final k = s.flowKey(t);
+      by[k] = (by[k] ?? 0) + f.abs();
+      count[k] = (count[k] ?? 0) + 1;
     }
     final total = by.values.fold<double>(0, (a, b) => a + b);
     final cats = [...s.activeCats(income)];
     for (final id in by.keys) {
       final c = s.catById(id);
       if (c != null && !cats.contains(c)) cats.add(c);
+      if (c == null) {
+        final g = s.group(id);
+        cats.add(Category(id: id, name: g.name, icon: g.icon, income: income, color: g.color));
+      }
     }
     cats.sort((a, b) => (by[b.id] ?? 0).compareTo(by[a.id] ?? 0));
 

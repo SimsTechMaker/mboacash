@@ -8,8 +8,11 @@ internet n'est utilisé que lorsque l'utilisateur lance une synchronisation Goog
 - Dépenses, revenus et transferts entre comptes (Espèces, Banque, Mobile Money…), avec ajustement de solde
 - Catégories personnalisables (icônes Lucide, couleurs, plafonds mensuels), budget mensuel
 - Statistiques : répartition par catégorie, six derniers mois, plus grosses dépenses
-- Objectifs d'épargne et suivi des dettes (« je dois » / « on me doit »)
-- Relevé PDF imprimable, export CSV
+- Objectifs d'épargne et suivi des dettes (« je dois » / « on me doit ») ; l'épargne et les dettes
+  comptent comme revenus ou dépenses selon le sens, hors budget
+- Assistant local : catégorie devinée d'après la note, opérations récurrentes, conseils mensuels,
+  prévision de fin de mois, assistant budget (50/30/20, 70/20/10 ou d'après l'historique)
+- Relevé PDF imprimable, export CSV et réimport (sans doublons)
 - Verrouillage par code (PBKDF2) et biométrie
 - Sauvegarde chiffrée (AES-256-GCM) dans le dossier privé `appDataFolder` du Google Drive de l'utilisateur
 - Notifications locales : rappel quotidien, budget, échéances de dettes, rappel de synchronisation
@@ -26,7 +29,8 @@ flutter analyze
 flutter test
 ```
 
-Compiler l'APK : `flutter build apk --release` → `build/app/outputs/flutter-apk/app-release.apk`.
+Compiler l'APK : `flutter build apk --release --split-per-abi` → un APK par type de processeur
+dans `build/app/outputs/flutter-apk/` (`arm64-v8a` pour la plupart des téléphones récents).
 
 Projet sur un autre disque que le cache pub (par exemple `D:` et `C:`) : la compilation incrémentale
 de Kotlin est désactivée dans `android/gradle.properties`, car elle échoue dans ce cas.
@@ -42,6 +46,8 @@ de Kotlin est désactivée dans `android/gradle.properties`, car elle échoue da
 | `lib/backup.dart` | Sauvegarde chiffrée Google Drive (à la demande uniquement) |
 | `lib/notify.dart` | Notifications locales programmées |
 | `lib/export.dart` | Export CSV et relevé PDF |
+| `lib/csv_import.dart` | Lecture et import d'un CSV exporté |
+| `lib/insights.dart` | Suggestions, récurrences, conseils, prévision, préréglages de budget |
 | `lib/screens/`, `lib/widgets/` | Interface |
 | `lib/icons.dart` | Table des icônes Lucide utilisées (générée) |
 

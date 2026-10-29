@@ -19,7 +19,9 @@ te demande quand même une vérification au moment de publier, suis ses indicati
 
 ## Ce que tes proches reçoivent
 
-- Le fichier `build\carnet237.apk`, à envoyer par WhatsApp, câble USB, Bluetooth ou clé USB.
+- `build\distribution\carnet237-arm64.apk` : pour presque tous les téléphones de moins de 8 ans.
+- `build\distribution\carnet237-arm32.apk` : pour les modèles anciens ou d'entrée de gamme, si le premier ne s'installe pas.
+- À envoyer par WhatsApp, câble USB, Bluetooth ou clé USB.
 - Le guide [guide-utilisateur.md](guide-utilisateur.md), à leur transmettre si besoin.
 
 ## Ce qui ne te concerne plus après l'installation

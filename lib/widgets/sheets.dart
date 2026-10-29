@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../format.dart';
 import '../icons.dart';
+import '../insights.dart';
 import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -12,7 +13,7 @@ import 'common.dart';
 // Income / expense / transfer
 // ---------------------------------------------------------------------------
 
-Future<void> openTxSheet(BuildContext context, {Tx? tx}) {
+Future<void> openTxSheet(BuildContext context, {Tx? tx, Recurring? from}) {
   final s = context.read<AppState>();
   if (tx != null && !{TxType.income, TxType.expense, TxType.transfer}.contains(tx.type)) {
     return openMovementDetails(context, tx);
@@ -20,14 +21,15 @@ Future<void> openTxSheet(BuildContext context, {Tx? tx}) {
   return showFormSheet(
     context,
     title: tx == null ? 'Nouvelle opération' : "Modifier l'opération",
-    builder: (_) => _TxForm(tx: tx, state: s),
+    builder: (_) => _TxForm(tx: tx, from: from, state: s),
   );
 }
 
 class _TxForm extends StatefulWidget {
   final Tx? tx;
+  final Recurring? from; // prefill from a recurring movement
   final AppState state;
-  const _TxForm({this.tx, required this.state});
+  const _TxForm({this.tx, this.from, required this.state});
   @override
   State<_TxForm> createState() => _TxFormState();
 }
@@ -37,22 +39,45 @@ class _TxFormState extends State<_TxForm> {
   late String cat, account, to, date;
   final amount = TextEditingController();
   final note = TextEditingController();
+  bool catChosen = false; // the user picked a category: stop suggesting
+  bool suggested = false;
 
   @override
   void initState() {
     super.initState();
     final s = widget.state;
     final t = widget.tx;
-    type = t?.type ?? TxType.expense;
-    account = t != null ? s.accountOf(t) : (s.accFilter ?? s.settings.defaultAccount);
+    final r = widget.from;
+    type = t?.type ?? (r != null && r.income ? TxType.income : TxType.expense);
+    account = t != null ? s.accountOf(t) : (r != null && s.accById(r.account) != null ? r.account : (s.accFilter ?? s.settings.defaultAccount));
     final other = s.activeAccounts.where((a) => a.id != account).firstOrNull;
     to = t?.to.isNotEmpty == true ? t!.to : (other?.id ?? account);
-    cat = t?.cat ?? s.activeCats(false).first.id;
+    cat = t?.cat ?? r?.cat ?? s.activeCats(false).first.id;
     final today = todayIso();
-    date = t?.date ?? (today.startsWith(s.month) ? today : '${s.month}-01');
-    if (t != null) {
-      amount.text = Fmt(s.settings.currency).number(t.amount);
-      note.text = t.note;
+    date = t?.date ?? (r != null || today.startsWith(s.month) ? today : '${s.month}-01');
+    if (t != null || r != null) {
+      amount.text = Fmt(s.settings.currency).number(t?.amount ?? r!.amount);
+      note.text = t?.note ?? r!.note;
+      catChosen = true;
+    }
+    note.addListener(_suggest);
+  }
+
+  @override
+  void dispose() {
+    note.removeListener(_suggest);
+    super.dispose();
+  }
+
+  /// Picks the category from the note as the user types, until they choose one.
+  void _suggest() {
+    if (catChosen || type == TxType.transfer) return;
+    final id = Insights.of(widget.state).suggestCategory(note.text, income: type == TxType.income);
+    if (id != null && id != cat) {
+      setState(() {
+        cat = id;
+        suggested = true;
+      });
     }
   }
 
@@ -130,9 +155,32 @@ class _TxFormState extends State<_TxForm> {
           const SizedBox(height: 12),
           accountDropdown(context, label: 'Vers le compte', value: to, extra: [to], onChanged: (v) => setState(() => to = v)),
         ],
+        const SizedBox(height: 12),
+        TextField(
+          controller: note,
+          maxLength: 120,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(labelText: 'Note', hintText: 'Marché, taxi, facture ENEO…', counterText: ''),
+        ),
         if (!isT) ...[
           const SizedBox(height: 14),
-          Text('Catégorie', style: TextStyle(color: context.c.muted, fontSize: 13)),
+          Row(
+            children: [
+              Text('Catégorie', style: TextStyle(color: context.c.muted, fontSize: 13)),
+              const SizedBox(width: 8),
+              AnimatedOpacity(
+                opacity: suggested && !catChosen ? 1 : 0,
+                duration: const Duration(milliseconds: 250),
+                child: Row(
+                  children: [
+                    Icon(appIcon('sparkles'), size: 14, color: context.c.accent),
+                    const SizedBox(width: 4),
+                    Text("suggérée d'après la note", style: TextStyle(color: context.c.accent, fontSize: 12.5)),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 6),
           Wrap(
             spacing: 6,
@@ -141,7 +189,10 @@ class _TxFormState extends State<_TxForm> {
               for (final c in cats)
                 ChoiceChip(
                   selected: c.id == cat,
-                  onSelected: (_) => setState(() => cat = c.id),
+                  onSelected: (_) => setState(() {
+                    cat = c.id;
+                    catChosen = true;
+                  }),
                   avatar: Icon(appIcon(c.icon), size: 17, color: slot(c.color)),
                   label: Text(c.name),
                   side: BorderSide(color: c.id == cat ? context.c.ink : context.c.line),
@@ -149,12 +200,6 @@ class _TxFormState extends State<_TxForm> {
             ],
           ),
         ],
-        const SizedBox(height: 12),
-        TextField(
-          controller: note,
-          maxLength: 120,
-          decoration: const InputDecoration(labelText: 'Note', hintText: 'Marché, taxi, facture ENEO…', counterText: ''),
-        ),
         const SizedBox(height: 18),
         Row(
           children: [

@@ -95,6 +95,8 @@ ThemeData buildTheme(Brightness b) {
   return base.copyWith(
     scaffoldBackgroundColor: c.bg,
     extensions: [c],
+    // Material 3 "fade forwards" transition between screens.
+    pageTransitionsTheme: const PageTransitionsTheme(builders: {TargetPlatform.android: FadeForwardsPageTransitionsBuilder()}),
     appBarTheme: AppBarTheme(
       backgroundColor: c.bg,
       foregroundColor: c.ink,

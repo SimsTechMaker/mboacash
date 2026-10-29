@@ -22,15 +22,19 @@ class StatsScreen extends StatelessWidget {
     final first = parseIso('${s.month}-01');
     final daysInMonth = DateTime(first.year, first.month + 1, 0).day;
     final days = s.month == monthKey(DateTime.now()) ? DateTime.now().day : daysInMonth;
-    final rate = sum.income > 0 ? (sum.income - sum.expense) / sum.income : null;
+    // Money put into savings counts as an expense in the totals, but it is
+    // still saved: add it back for the savings rate.
+    final savedNet = list.where((t) => t.type == TxType.save).fold<double>(0, (a, t) => a - t.dir * t.amount);
+    final rate = sum.income > 0 ? (sum.income - sum.expense + savedNet) / sum.income : null;
 
-    final out = list.where((t) => t.type == TxType.expense).toList();
+    final out = list.where((t) => s.flow(t) < 0).toList();
     final by = <String, double>{};
     for (final t in out) {
-      by[t.cat] = (by[t.cat] ?? 0) + t.amount;
+      by[s.flowKey(t)] = (by[s.flowKey(t)] ?? 0) - s.flow(t);
     }
     final rows = by.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final top = [...out]..sort((a, b) => b.amount.compareTo(a.amount));
+    final ordinary = s.budgetSpent(list);
 
     final months = [for (var k = 5; k >= 0; k--) shiftMonth(s.month, -k)];
     final bars = months.map((m) {
@@ -71,7 +75,7 @@ class StatsScreen extends StatelessWidget {
           children: [
             kpi("Taux d'épargne", rate == null ? '—' : '${(rate * 100).round()} %', rate != null && rate < 0 ? context.c.expense : null),
             const SizedBox(width: 10),
-            kpi('Moyenne par jour', f.money(sum.expense / days)),
+            kpi('Dépense courante par jour', f.money(ordinary / days)),
           ],
         ),
         const SizedBox(height: 16),
@@ -86,7 +90,7 @@ class StatsScreen extends StatelessWidget {
               else ...[
                 Center(
                   child: Donut(
-                    slices: [for (final r in rows) DonutSlice(r.value, slot(s.catById(r.key)?.color ?? 'c10'))],
+                    slices: [for (final r in rows) DonutSlice(r.value, slot(s.group(r.key).color))],
                     centerTop: 'Dépenses',
                     centerValue: f.compact(sum.expense),
                   ),
@@ -97,7 +101,7 @@ class StatsScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: Row(
                       children: [
-                        Icon(appIcon(s.catById(r.key)?.icon ?? 'package'), size: 18, color: slot(s.catById(r.key)?.color ?? 'c10')),
+                        Icon(appIcon(s.group(r.key).icon), size: 18, color: slot(s.group(r.key).color)),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
@@ -109,7 +113,7 @@ class StatsScreen extends StatelessWidget {
                                     child: Text.rich(
                                       TextSpan(
                                         children: [
-                                          TextSpan(text: s.catById(r.key)?.name ?? 'Sans catégorie'),
+                                          TextSpan(text: s.group(r.key).name),
                                           TextSpan(
                                             text: '  ${(r.value / sum.expense * 100).round()} %',
                                             style: TextStyle(color: context.c.muted, fontSize: 12),
@@ -122,7 +126,7 @@ class StatsScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              Gauge(value: r.value / rows.first.value, color: slot(s.catById(r.key)?.color ?? 'c10'), height: 4),
+                              Gauge(value: r.value / rows.first.value, color: slot(s.group(r.key).color), height: 4),
                             ],
                           ),
                         ),

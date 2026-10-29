@@ -32,8 +32,10 @@ Future<void> exportCsv(BuildContext context) async {
     TxType.save: 'epargne',
     TxType.debt: 'dette',
   };
+  // The first 8 columns are the original layout; the rest make the file
+  // re-importable without guessing (see csv_import.dart, which reads both).
   final rows = [
-    ['date', 'type', 'libelle', 'compte', 'vers_compte', 'montant', 'devise', 'note'],
+    ['date', 'type', 'libelle', 'compte', 'vers_compte', 'montant', 'devise', 'note', 'categorie', 'objectif', 'personne', 'sens', 'role', 'id'],
   ];
   final txs = [...s.txs]..sort((a, b) => a.date.compareTo(b.date));
   for (final t in txs) {
@@ -44,6 +46,7 @@ Future<void> exportCsv(BuildContext context) async {
         ? t.amount
         : t.dir * t.amount;
     final acc = s.accountOf(t);
+    final d = t.type == TxType.debt ? s.debtById(t.debt) : null;
     rows.add([
       t.date,
       types[t.type]!,
@@ -53,6 +56,12 @@ Future<void> exportCsv(BuildContext context) async {
       f.number(signed).replaceAll(' ', ''),
       s.settings.currency,
       t.note,
+      t.type == TxType.income || t.type == TxType.expense ? s.catById(t.cat)?.name ?? '' : '',
+      t.type == TxType.save ? s.goalById(t.goal)?.name ?? '' : '',
+      d?.person ?? '',
+      d == null ? '' : (d.owe ? 'je_dois' : 'on_me_doit'),
+      t.type == TxType.debt ? (t.init ? 'pret_initial' : 'remboursement') : '',
+      t.id,
     ]);
   }
   String cell(String v) => RegExp(r'[";\n]').hasMatch(v) ? '"${v.replaceAll('"', '""')}"' : v;
@@ -135,10 +144,7 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
     final catName = (t.type == TxType.income || t.type == TxType.expense) ? (s.catById(t.cat)?.name ?? '') : v.title.split(' :').first;
     rows.add([slashDate(t.date), label, catName, accName, e < 0 ? m(-e) : '', e > 0 ? m(e) : '', m(run)]);
   }
-  final period = txs.where(
-    (t) =>
-        t.date.compareTo(o.from) >= 0 && t.date.compareTo(o.to) <= 0 && (t.type == TxType.income || t.type == TxType.expense) && scope.contains(s.accountOf(t)),
-  );
+  final period = txs.where((t) => t.date.compareTo(o.from) >= 0 && t.date.compareTo(o.to) <= 0 && s.flow(t) != 0 && scope.contains(s.accountOf(t)));
   final sums = s.sums(period);
 
   const accent = PdfColor.fromInt(0xFF1D6A56);
@@ -212,8 +218,8 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
   );
 
   final byCat = <String, double>{};
-  for (final t in period.where((t) => t.type == TxType.expense)) {
-    byCat[t.cat] = (byCat[t.cat] ?? 0) + t.amount;
+  for (final t in period.where((t) => s.flow(t) < 0)) {
+    byCat[s.flowKey(t)] = (byCat[s.flowKey(t)] ?? 0) - s.flow(t);
   }
   final catRows = byCat.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
@@ -323,7 +329,7 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
             [
               for (final r in catRows)
                 [
-                  s.catById(r.key)?.name ?? 'Sans catégorie',
+                  s.group(r.key).name,
                   m(r.value),
                   '${(r.value / sums.expense * 100).round()} %',
                   (s.catById(r.key)?.cap ?? 0) > 0 ? m(s.catById(r.key)!.cap) : '-',

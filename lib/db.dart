@@ -79,6 +79,20 @@ class Store {
     await t.delete('debts');
   });
 
+  /// Adds imported data in one transaction: all of it or nothing.
+  Future<void> importAll(Settings s, List<Tx> txs, List<Goal> goals, List<Debt> debts) => _db.transaction((t) async {
+    await t.insert('kv', {'k': 'settings', 'v': jsonEncode(s.toJson())}, conflictAlgorithm: ConflictAlgorithm.replace);
+    for (final g in goals) {
+      await t.insert('goals', g.toRow());
+    }
+    for (final d in debts) {
+      await t.insert('debts', d.toRow());
+    }
+    for (final x in txs) {
+      await t.insert('txs', x.toRow(), conflictAlgorithm: ConflictAlgorithm.ignore);
+    }
+  });
+
   /// Swaps every table for the given data in one transaction (backup restore).
   Future<void> replaceAll(Settings s, List<Tx> txs, List<Goal> goals, List<Debt> debts) => _db.transaction((t) async {
     await t.delete('txs');

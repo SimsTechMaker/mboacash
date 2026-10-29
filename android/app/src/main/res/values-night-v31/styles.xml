@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: the system splash screen, green with the adaptive icon. -->
+<resources>
+    <style name="LaunchTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/splash_green</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_green</item>
+    </style>
+    <style name="NormalTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>

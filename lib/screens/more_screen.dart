@@ -10,7 +10,9 @@ import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import 'backup_screen.dart';
+import 'budget_assistant_screen.dart';
 import 'debts_screen.dart';
+import 'import_screen.dart';
 import 'notifications_screen.dart';
 import 'savings_screen.dart';
 import 'security_screen.dart';
@@ -44,8 +46,16 @@ class MoreScreen extends StatelessWidget {
         openDebts.isEmpty ? "Suis ce que tu dois et ce qu'on te doit" : 'Je dois ${f.money(s.totalOwed)} · On me doit ${f.money(s.totalLent)}',
         () => go(const DebtsScreen()),
       ),
+      (
+        'wand-sparkles',
+        'c7',
+        'Assistant budget',
+        'Un budget et des plafonds proposés selon tes revenus et tes objectifs',
+        () => go(const BudgetAssistantScreen()),
+      ),
       ('file-text', 'c3', 'Relevé PDF', 'Un relevé imprimable par mois, par période ou par compte', () => go(const StatementScreen())),
       ('download', 'c8', 'Exporter en CSV', 'Toutes tes opérations dans un fichier pour Excel', () => exportCsv(context)),
+      ('file-up', 'c8', 'Importer un CSV', 'Récupérer un export carnet237, sans doublons', () => go(const ImportScreen())),
       (
         'cloud',
         'c5',

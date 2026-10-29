@@ -96,6 +96,31 @@ class Money extends StatelessWidget {
   );
 }
 
+/// Amount that counts up or down to its new value (balance, totals).
+class AnimatedMoney extends StatelessWidget {
+  final double value;
+  final bool signed;
+  final double size;
+  final Color? color;
+  final FontWeight weight;
+  const AnimatedMoney(this.value, {super.key, this.signed = false, this.size = 15, this.color, this.weight = FontWeight.w500});
+
+  @override
+  Widget build(BuildContext context) {
+    final f = fmtOf(context);
+    return TweenAnimationBuilder<double>(
+      // Counts up from 0 on first display, then from the previous value.
+      tween: Tween(begin: 0, end: value),
+      duration: const Duration(milliseconds: 650),
+      curve: Curves.easeOutCubic,
+      builder: (_, v, _) => Text(
+        f.money(v, signed: signed),
+        style: numStyle.copyWith(fontSize: size, color: color ?? context.c.ink, fontWeight: weight),
+      ),
+    );
+  }
+}
+
 class Panel extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;

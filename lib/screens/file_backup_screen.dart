@@ -162,7 +162,7 @@ Future<String?> _askPassword(BuildContext context, {required bool confirm}) {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (confirm) Text(l.fileBackupPasswordHelp, style: TextStyle(color: ctx.c.muted, fontSize: 13)),
+              if (confirm) ...[Text(l.fileBackupPasswordHelp, style: TextStyle(color: ctx.c.muted, fontSize: 13)), const SizedBox(height: 16)],
               TextField(
                 controller: a,
                 obscureText: true,
@@ -172,6 +172,7 @@ Future<String?> _askPassword(BuildContext context, {required bool confirm}) {
                 decoration: InputDecoration(labelText: l.fileBackupPassword),
                 onSubmitted: (_) => confirm ? null : submit(),
               ),
+              if (confirm) const SizedBox(height: 12),
               if (confirm)
                 TextField(
                   controller: b,

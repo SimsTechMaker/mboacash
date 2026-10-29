@@ -71,5 +71,6 @@ de Kotlin est désactivée dans `android/gradle.properties`, car elle échoue da
 - [docs/distribution.md](docs/distribution.md) : distribuer l'APK à la main, mettre à jour
 - [docs/google-drive-setup.md](docs/google-drive-setup.md) : créer le projet Google Cloud
 - [docs/play-store.md](docs/play-store.md) : publier sur le Play Store
+- [docs/production.md](docs/production.md) : ce qu'il reste à faire avant la mise en production
 - `docs/logo/make_logo.py` : génère le logo (`python docs/logo/make_logo.py .`), puis `dart run flutter_launcher_icons`
 - `prototype_web/` : le prototype web d'origine

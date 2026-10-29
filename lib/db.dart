@@ -14,12 +14,16 @@ class Store {
     final dir = await getDatabasesPath();
     _db = await openDatabase(
       p.join(dir, 'carnet237.db'),
-      version: 1,
+      version: 2,
+      // v2: proof photo file name on movements.
+      onUpgrade: (db, from, _) async {
+        if (from < 2) await db.execute('ALTER TABLE txs ADD COLUMN proof TEXT');
+      },
       onCreate: (db, _) async {
         await db.execute('CREATE TABLE kv (k TEXT PRIMARY KEY, v TEXT NOT NULL)');
         await db.execute('''CREATE TABLE txs (
           id TEXT PRIMARY KEY, type TEXT NOT NULL, amount REAL NOT NULL, cat TEXT, account TEXT, to_acc TEXT,
-          dir INTEGER, goal TEXT, debt TEXT, init INTEGER, date TEXT NOT NULL, note TEXT, sample INTEGER, created INTEGER)''');
+          dir INTEGER, goal TEXT, debt TEXT, init INTEGER, date TEXT NOT NULL, note TEXT, proof TEXT, sample INTEGER, created INTEGER)''');
         await db.execute('CREATE INDEX txs_date ON txs(date)');
         await db.execute('''CREATE TABLE goals (
           id TEXT PRIMARY KEY, name TEXT NOT NULL, icon TEXT, color TEXT, target REAL, initial REAL,

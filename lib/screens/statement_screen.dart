@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../export.dart';
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../models.dart';
 import '../security.dart';
@@ -65,7 +66,7 @@ class _StatementScreenState extends State<StatementScreen> {
     final s = context.read<AppState>();
     final lock = context.read<LockService>();
     final o = _options(s);
-    if (o == null) return toast(context, 'Choisis une période valide.');
+    if (o == null) return toast(context, context.l.statementPickPeriod);
     setState(() => busy = true);
     try {
       final bytes = await buildStatement(s, o);
@@ -78,7 +79,7 @@ class _StatementScreenState extends State<StatementScreen> {
         }
       });
     } catch (e) {
-      if (mounted) toast(context, 'La création du PDF a échoué.');
+      if (mounted) toast(context, context.l.statementPdfFailed);
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -88,17 +89,15 @@ class _StatementScreenState extends State<StatementScreen> {
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
     final prev = shiftMonth(s.month, -1);
+    final l = context.l;
     return Scaffold(
-      appBar: AppBar(title: const Text('Relevé PDF')),
+      appBar: AppBar(title: Text(l.statementTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            "Un document A4 prêt à imprimer : soldes d'ouverture et de clôture, toutes les opérations de la période avec le solde après chaque ligne, puis les dépenses par catégorie.",
-            style: TextStyle(color: context.c.muted),
-          ),
+          Text(l.statementIntro, style: TextStyle(color: context.c.muted)),
           const SizedBox(height: 16),
-          const Label('Période'),
+          Label(l.statementPeriod),
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
@@ -111,8 +110,8 @@ class _StatementScreenState extends State<StatementScreen> {
                   label: Text(switch (p) {
                     _Period.current => monthLabel(s.month),
                     _Period.previous => monthLabel(prev),
-                    _Period.year => 'Année ${s.month.substring(0, 4)}',
-                    _Period.custom => 'Dates au choix',
+                    _Period.year => l.statementYear(s.month.substring(0, 4)),
+                    _Period.custom => l.statementCustom,
                   }),
                 ),
             ],
@@ -122,11 +121,11 @@ class _StatementScreenState extends State<StatementScreen> {
             Row(
               children: [
                 Expanded(
-                  child: DateField(label: 'Du', value: from, onChanged: (d) => setState(() => from = d)),
+                  child: DateField(label: l.statementFrom, value: from, onChanged: (d) => setState(() => from = d)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: DateField(label: 'Au', value: to, onChanged: (d) => setState(() => to = d)),
+                  child: DateField(label: l.statementTo, value: to, onChanged: (d) => setState(() => to = d)),
                 ),
               ],
             ),
@@ -134,9 +133,9 @@ class _StatementScreenState extends State<StatementScreen> {
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: account,
-            decoration: const InputDecoration(labelText: 'Comptes'),
+            decoration: InputDecoration(labelText: l.statementAccounts),
             items: [
-              const DropdownMenuItem(value: '', child: Text('Tous les comptes')),
+              DropdownMenuItem(value: '', child: Text(l.exportAllAccounts)),
               for (final a in s.activeAccounts) DropdownMenuItem(value: a.id, child: Text(a.name)),
             ],
             onChanged: (v) => setState(() => account = v ?? ''),
@@ -146,14 +145,14 @@ class _StatementScreenState extends State<StatementScreen> {
             contentPadding: EdgeInsets.zero,
             value: categories,
             onChanged: (v) => setState(() => categories = v),
-            title: const Text('Inclure les dépenses par catégorie'),
+            title: Text(l.statementIncludeCats),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             value: plans,
             onChanged: account.isEmpty ? (v) => setState(() => plans = v) : null,
-            title: const Text("Inclure l'épargne et les dettes"),
-            subtitle: account.isEmpty ? null : const Text('Seulement pour le relevé de tous les comptes'),
+            title: Text(l.statementIncludePlans),
+            subtitle: account.isEmpty ? null : Text(l.statementPlansAllOnly),
           ),
           const SizedBox(height: 20),
           if (busy)
@@ -161,15 +160,12 @@ class _StatementScreenState extends State<StatementScreen> {
               child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator()),
             ),
           if (!busy) ...[
-            FilledButton.icon(icon: Icon(appIcon('printer')), label: const Text('Aperçu et impression'), onPressed: () => run(print: true)),
+            FilledButton.icon(icon: Icon(appIcon('printer')), label: Text(l.statementPreview), onPressed: () => run(print: true)),
             const SizedBox(height: 10),
-            OutlinedButton.icon(icon: Icon(appIcon('share-2')), label: const Text('Partager le PDF'), onPressed: () => run(print: false)),
+            OutlinedButton.icon(icon: Icon(appIcon('share-2')), label: Text(l.statementShare), onPressed: () => run(print: false)),
           ],
           const SizedBox(height: 16),
-          Text(
-            "« Aperçu et impression » ouvre l'impression Android, qui permet aussi d'enregistrer en PDF. « Partager » l'envoie par WhatsApp, e-mail ou vers tes fichiers.",
-            style: TextStyle(color: context.c.muted, fontSize: 13),
-          ),
+          Text(l.statementHelp, style: TextStyle(color: context.c.muted, fontSize: 13)),
         ],
       ),
     );

@@ -1,6 +1,7 @@
-# carnet237
+# my-nkap
 
-Carnet de dépenses personnel pour Android, en Flutter. Les données restent sur le téléphone ;
+« Où va mon argent ? » — carnet de dépenses personnel pour Android, en Flutter (anciennement carnet237 ;
+l'identifiant Android reste `com.ndi.carnet237` pour que les mises à jour gardent les données). Les données restent sur le téléphone ;
 internet n'est utilisé que lorsque l'utilisateur lance une synchronisation Google Drive.
 
 ## Fonctions
@@ -12,11 +13,15 @@ internet n'est utilisé que lorsque l'utilisateur lance une synchronisation Goog
   comptent comme revenus ou dépenses selon le sens, hors budget
 - Assistant local : catégorie devinée d'après la note, opérations récurrentes, conseils mensuels,
   prévision de fin de mois, assistant budget (50/30/20, 70/20/10 ou d'après l'historique)
+- Justificatif photo (reçu, facture) sur une opération, pris à l'appareil photo ou dans la galerie
 - Relevé PDF imprimable, export CSV et réimport (sans doublons)
+- Sauvegarde complète dans un fichier chiffré par mot de passe (justificatifs compris), à garder où l'on veut,
+  sans compte Google
 - Verrouillage par code (PBKDF2) et biométrie
-- Sauvegarde chiffrée (AES-256-GCM) dans le dossier privé `appDataFolder` du Google Drive de l'utilisateur
+- Sauvegarde chiffrée (AES-256-GCM) dans le dossier privé `appDataFolder` du Google Drive de l'utilisateur,
+  justificatifs compris
 - Notifications locales : rappel quotidien, budget, échéances de dettes, rappel de synchronisation
-- Thèmes clair, sombre et automatique ; interface en français ; devise par défaut FCFA (XAF)
+- Thèmes clair, sombre et automatique ; interface en français et en anglais (suit la langue du téléphone, modifiable dans Paramètres › Apparence) ; devise par défaut FCFA (XAF)
 
 ## Développer
 

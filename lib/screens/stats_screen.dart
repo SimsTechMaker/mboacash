@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../models.dart';
 import '../state.dart';
@@ -18,6 +19,7 @@ class StatsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
     final f = fmtOf(context);
+    final l = context.l;
     final list = s.monthTxs(s.month);
     final sum = s.sums(list);
     final first = parseIso('${s.month}-01');
@@ -80,9 +82,9 @@ class StatsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HeroStat(label: 'Revenus', icon: 'arrow-down-left', value: sum.income),
+                    HeroStat(label: l.totalsIncome, icon: 'arrow-down-left', value: sum.income),
                     const SizedBox(height: 12),
-                    HeroStat(label: 'Dépenses', icon: 'arrow-up-right', value: sum.expense),
+                    HeroStat(label: l.totalsExpenses, icon: 'arrow-up-right', value: sum.expense),
                   ],
                 ),
               ),
@@ -95,12 +97,12 @@ class StatsScreen extends StatelessWidget {
                     size: 84,
                     stroke: 9,
                     child: Text(
-                      rate == null ? '—' : '${(rate * 100).round()} %',
+                      rate == null ? '—' : l.statsPercent('${(rate * 100).round()}'),
                       style: numStyle.copyWith(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600),
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text("taux d'épargne", style: TextStyle(color: heroSoft, fontSize: 11.5)),
+                  Text(l.statsSavingsRate, style: const TextStyle(color: heroSoft, fontSize: 11.5)),
                 ],
               ),
             ],
@@ -109,14 +111,14 @@ class StatsScreen extends StatelessWidget {
         const SizedBox(height: 12),
         Row(
           children: [
-            tile('calendar', 'dépense courante par jour', f.money(ordinary / days)),
+            tile('calendar', l.statsDailySpend, f.money(ordinary / days)),
             const SizedBox(width: 10),
-            tile('receipt', 'opérations ce mois-ci', '${list.length}'),
+            tile('receipt', l.statsOpsThisMonth, '${list.length}'),
             const SizedBox(width: 10),
             tile(
               delta != null && delta > 0 ? 'trending-up' : 'trending-down',
-              'dépenses vs mois précédent',
-              delta == null ? '—' : '${delta > 0 ? '+' : ''}${(delta * 100).round()} %',
+              l.statsVsPrevMonth,
+              delta == null ? '—' : l.statsPercent('${delta > 0 ? '+' : ''}${(delta * 100).round()}'),
               color: delta == null
                   ? null
                   : delta > 0
@@ -126,18 +128,18 @@ class StatsScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 18),
-        const SectionTitle(icon: 'chart-pie', text: "Où part l'argent"),
+        SectionTitle(icon: 'chart-pie', text: l.statsWhereMoneyGoes),
         Panel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (rows.isEmpty)
-                Text('Les dépenses du mois apparaîtront ici, réparties par catégorie.', style: TextStyle(color: context.c.muted))
+                Text(l.statsWhereEmpty, style: TextStyle(color: context.c.muted))
               else ...[
                 Center(
                   child: Donut(
                     slices: [for (final r in rows) DonutSlice(r.value, slot(s.group(r.key).color))],
-                    centerTop: 'Dépenses',
+                    centerTop: l.totalsExpenses,
                     centerValue: f.compact(sum.expense),
                   ),
                 ),
@@ -161,7 +163,7 @@ class StatsScreen extends StatelessWidget {
                                         children: [
                                           TextSpan(text: s.group(r.key).name),
                                           TextSpan(
-                                            text: '  ${(r.value / sum.expense * 100).round()} %',
+                                            text: '  ${l.statsPercent('${(r.value / sum.expense * 100).round()}')}',
                                             style: TextStyle(color: context.c.muted, fontSize: 12),
                                           ),
                                         ],
@@ -186,13 +188,13 @@ class StatsScreen extends StatelessWidget {
         const SizedBox(height: 18),
         SectionTitle(
           icon: 'chart-column',
-          text: 'Six derniers mois',
+          text: l.statsSixMonths,
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _Key(color: context.c.income, label: 'Revenus'),
+              _Key(color: context.c.income, label: l.totalsIncome),
               const SizedBox(width: 10),
-              _Key(color: context.c.expense, label: 'Dépenses'),
+              _Key(color: context.c.expense, label: l.totalsExpenses),
             ],
           ),
         ),
@@ -201,19 +203,19 @@ class StatsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (bars.every((b) => b.a == 0 && b.b == 0))
-                Text("Rien à comparer pour l'instant.", style: TextStyle(color: context.c.muted))
+                Text(l.statsNothingToCompare, style: TextStyle(color: context.c.muted))
               else
                 PairBars(data: bars, axis: f.compact),
             ],
           ),
         ),
         const SizedBox(height: 18),
-        const SectionTitle(icon: 'flame', text: 'Plus grosses dépenses'),
+        SectionTitle(icon: 'flame', text: l.statsTopExpenses),
         Panel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (top.isEmpty) Text('Aucune dépense ce mois-ci.', style: TextStyle(color: context.c.muted)),
+              if (top.isEmpty) Text(l.statsNoExpenses, style: TextStyle(color: context.c.muted)),
               for (final t in top.take(5))
                 TxTile(
                   tx: t,

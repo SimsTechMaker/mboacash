@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../csv_import.dart';
-import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../security.dart';
 import '../state.dart';
@@ -31,7 +31,7 @@ class _ImportScreenState extends State<ImportScreen> {
       if (files.isEmpty) return;
       final bytes = await files.first.readAsBytes();
       if (bytes.length > 20 * 1024 * 1024) {
-        if (mounted) toast(context, 'Fichier trop volumineux (plus de 20 Mo).');
+        if (mounted) toast(context, context.l.importTooBig);
         return;
       }
       final p = planImport(s, decodeCsvBytes(bytes));
@@ -40,7 +40,7 @@ class _ImportScreenState extends State<ImportScreen> {
         fileName = files.first.name;
       });
     } catch (_) {
-      if (mounted) toast(context, 'Impossible de lire ce fichier.');
+      if (mounted) toast(context, context.l.importCantRead);
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -53,9 +53,9 @@ class _ImportScreenState extends State<ImportScreen> {
       await context.read<AppState>().importData(txs: p.txs, cats: p.newCats, accounts: p.newAccounts, goals: p.newGoals, debts: p.newDebts);
       if (!mounted) return;
       Navigator.pop(context);
-      toast(context, '${plural(p.txs.length, 'opération')} importée${p.txs.length > 1 ? 's' : ''}');
+      toast(context, context.l.importDone(p.txs.length));
     } catch (_) {
-      if (mounted) toast(context, "L'import a échoué ; rien n'a été modifié.");
+      if (mounted) toast(context, context.l.importFailed);
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -64,6 +64,7 @@ class _ImportScreenState extends State<ImportScreen> {
   @override
   Widget build(BuildContext context) {
     final p = plan;
+    final l = context.l;
     Widget fact(String icon, Color color, String text) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -76,20 +77,13 @@ class _ImportScreenState extends State<ImportScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Importer un CSV')),
+      appBar: AppBar(title: Text(l.importTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            "Choisis un fichier exporté par carnet237 (Plus › Exporter en CSV), même modifié dans Excel. Les opérations déjà présentes sont ignorées, et les catégories, comptes, objectifs et dettes manquants sont créés.",
-            style: TextStyle(color: context.c.muted),
-          ),
+          Text(l.importIntro, style: TextStyle(color: context.c.muted)),
           const SizedBox(height: 16),
-          OutlinedButton.icon(
-            icon: Icon(appIcon('file-up')),
-            label: Text(p == null ? 'Choisir un fichier' : 'Choisir un autre fichier'),
-            onPressed: busy ? null : pick,
-          ),
+          OutlinedButton.icon(icon: Icon(appIcon('file-up')), label: Text(p == null ? l.importPick : l.importPickOther), onPressed: busy ? null : pick),
           if (busy)
             const Padding(
               padding: EdgeInsets.all(16),
@@ -103,28 +97,21 @@ class _ImportScreenState extends State<ImportScreen> {
                 children: [
                   Text(fileName ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
-                  fact('circle-check', context.c.income, '${plural(p.txs.length, 'opération')} à importer'),
-                  if (p.duplicates > 0)
-                    fact('copy', context.c.muted, '${plural(p.duplicates, 'doublon')} ignoré${p.duplicates > 1 ? 's' : ''} (déjà dans l\'app)'),
-                  if (p.errors.isNotEmpty)
-                    fact('triangle-alert', context.c.warn, '${plural(p.errors.length, 'ligne')} illisible${p.errors.length > 1 ? 's' : ''}'),
-                  if (p.newCats.isNotEmpty) fact('tags', context.c.accent, 'Catégories créées : ${p.newCats.map((c) => c.name).join(', ')}'),
-                  if (p.newAccounts.isNotEmpty) fact('wallet', context.c.accent, 'Comptes créés : ${p.newAccounts.map((a) => a.name).join(', ')}'),
-                  if (p.newGoals.isNotEmpty) fact('piggy-bank', context.c.accent, 'Objectifs créés : ${p.newGoals.map((g) => g.name).join(', ')}'),
-                  if (p.newDebts.isNotEmpty) fact('handshake', context.c.accent, 'Dettes créées : ${p.newDebts.map((d) => d.person).join(', ')}'),
-                  if (p.currency != null)
-                    fact(
-                      'coins',
-                      context.c.warn,
-                      'Le fichier est en ${p.currency}, l\'app en ${context.read<AppState>().settings.currency} : les montants sont importés tels quels, sans conversion.',
-                    ),
+                  fact('circle-check', context.c.income, l.importToImport(p.txs.length)),
+                  if (p.duplicates > 0) fact('copy', context.c.muted, l.importDuplicates(p.duplicates)),
+                  if (p.errors.isNotEmpty) fact('triangle-alert', context.c.warn, l.importBadLines(p.errors.length)),
+                  if (p.newCats.isNotEmpty) fact('tags', context.c.accent, l.importNewCats(p.newCats.map((c) => c.name).join(', '))),
+                  if (p.newAccounts.isNotEmpty) fact('wallet', context.c.accent, l.importNewAccounts(p.newAccounts.map((a) => a.name).join(', '))),
+                  if (p.newGoals.isNotEmpty) fact('piggy-bank', context.c.accent, l.importNewGoals(p.newGoals.map((g) => g.name).join(', '))),
+                  if (p.newDebts.isNotEmpty) fact('handshake', context.c.accent, l.importNewDebts(p.newDebts.map((d) => d.person).join(', '))),
+                  if (p.currency != null) fact('coins', context.c.warn, l.importCurrencyWarn(p.currency!, context.read<AppState>().settings.currency)),
                   if (p.errors.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     for (final e in p.errors.take(5)) Text('• $e', style: TextStyle(color: context.c.muted, fontSize: 12.5)),
-                    if (p.errors.length > 5) Text('• … et ${p.errors.length - 5} autres', style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+                    if (p.errors.length > 5) Text('• ${l.importMoreErrors(p.errors.length - 5)}', style: TextStyle(color: context.c.muted, fontSize: 12.5)),
                   ],
                   const SizedBox(height: 14),
-                  FilledButton(onPressed: p.isEmpty ? null : run, child: Text(p.isEmpty ? 'Rien à importer' : 'Importer ${plural(p.txs.length, 'opération')}')),
+                  FilledButton(onPressed: p.isEmpty ? null : run, child: Text(p.isEmpty ? l.importNothing : l.importButton(p.txs.length))),
                 ],
               ),
             ),

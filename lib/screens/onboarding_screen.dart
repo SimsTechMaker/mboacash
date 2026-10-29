@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n.dart';
 import '../icons.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -18,22 +19,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final pager = PageController();
   int page = 0;
 
-  static const pages = [
-    (
-      'notebook-pen',
-      'Bienvenue dans carnet237',
-      'Note tes dépenses et tes revenus en quelques secondes : marché, taxi, ENEO, Mobile Money… Tu vois où part ton argent, mois après mois.',
-    ),
-    (
-      'shield-check',
-      'Tes données restent chez toi',
-      "Tout est enregistré sur ce téléphone, sans compte et sans internet. Tu peux protéger l'app par un code ou ton empreinte, et la sauvegarder chiffrée sur ton propre Google Drive.",
-    ),
-    (
-      'sparkles',
-      'Un carnet qui t\'aide',
-      "L'app devine la catégorie à partir de la note, repère tes dépenses habituelles, te prévient avant de dépasser ton budget et propose un budget adapté à tes revenus.",
-    ),
+  static List<(String, String, String)> pagesOf(AppLocalizations l) => [
+    ('notebook-pen', l.onboardingTitle1, l.onboardingText1),
+    ('shield-check', l.onboardingTitle2, l.onboardingText2),
+    ('sparkles', l.onboardingTitle3, l.onboardingText3),
   ];
 
   @override
@@ -46,6 +35,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final pages = pagesOf(context.l);
     final last = page == pages.length - 1;
     return Scaffold(
       backgroundColor: context.c.bg,
@@ -57,7 +47,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: AnimatedOpacity(
                 opacity: last ? 0 : 1,
                 duration: const Duration(milliseconds: 200),
-                child: TextButton(onPressed: last ? null : () => pager.jumpToPage(pages.length - 1), child: const Text('Passer')),
+                child: TextButton(onPressed: last ? null : () => pager.jumpToPage(pages.length - 1), child: Text(context.l.onboardingSkip)),
               ),
             ),
             Expanded(
@@ -107,7 +97,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             onPressed: () async {
                               widget.onDone();
                             },
-                            child: const Text('Commencer'),
+                            child: Text(context.l.onboardingStart),
                           ),
                           const SizedBox(height: 8),
                           Row(
@@ -119,7 +109,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     widget.onDone();
                                     await s.loadSamples();
                                   },
-                                  child: const Text('Voir avec des exemples'),
+                                  child: Text(context.l.onboardingSamples),
                                 ),
                               ),
                               Expanded(
@@ -129,7 +119,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     widget.onDone();
                                     nav.push(MaterialPageRoute(builder: (_) => const BudgetAssistantScreen()));
                                   },
-                                  child: const Text('Préparer mon budget'),
+                                  child: Text(context.l.onboardingBudget),
                                 ),
                               ),
                             ],
@@ -140,7 +130,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         key: const ValueKey('next'),
                         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
                         onPressed: next,
-                        child: const Text('Suivant'),
+                        child: Text(context.l.next),
                       ),
               ),
             ),

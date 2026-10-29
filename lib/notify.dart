@@ -10,6 +10,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'backup.dart';
 import 'format.dart';
+import 'i18n.dart';
 import 'models.dart';
 import 'security.dart';
 import 'state.dart';
@@ -180,25 +181,25 @@ class Notifier extends ChangeNotifier {
       final f = Fmt(state.settings.currency);
 
       if (daily) {
-        final d = _details('daily', 'Rappel quotidien');
+        final d = _details('daily', tr.notifyChDaily);
         final enteredToday = state.txs.any((t) => t.date == isoDate(now));
         for (var i = 0; i < 14; i++) {
           if (i == 0 && enteredToday) continue;
           final day = DateTime(now.year, now.month, now.day + i, hour, minute);
-          await _at(_dailyBase + i, day, 'carnet237', _dailyText[(day.day) % _dailyText.length], d);
+          await _at(_dailyBase + i, day, tr.appTitle, _dailyText[(day.day) % _dailyText.length], d);
         }
       }
 
       if (debts) {
-        final d = _details('debts', 'Échéances de dettes', high: true);
+        final d = _details('debts', tr.notifyChDebts, high: true);
         var i = 0;
         for (final x in state.debts) {
           final left = state.debtLeft(x);
           if (x.due.isEmpty || left <= 0) continue;
           final due = parseIso(x.due);
-          for (final (k, days, label) in [(0, 3, 'dans 3 jours'), (1, 0, "aujourd'hui")]) {
-            final body = x.owe ? 'Tu dois rembourser ${f.money(left)} à ${x.person} $label.' : '${x.person} doit te rembourser ${f.money(left)} $label.';
-            await _at(_debtBase + i * 2 + k, DateTime(due.year, due.month, due.day - days, 9), 'Échéance : ${x.person}', body, d);
+          for (final (k, days, label) in [(0, 3, tr.notifyIn3Days), (1, 0, tr.notifyToday)]) {
+            final body = x.owe ? tr.notifyDebtIOwe(f.money(left), x.person, label) : tr.notifyDebtOwedToMe(x.person, f.money(left), label);
+            await _at(_debtBase + i * 2 + k, DateTime(due.year, due.month, due.day - days, 9), tr.notifyDebtTitle(x.person), body, d);
           }
           if (++i >= 400) break;
         }
@@ -208,27 +209,14 @@ class Notifier extends ChangeNotifier {
         final base = backup.lastBackup ?? now;
         var at = DateTime(base.year, base.month, base.day + 7, 10);
         if (!at.isAfter(now)) at = DateTime(now.year, now.month, now.day + 1, 10);
-        await _at(
-          _syncId,
-          at,
-          'Pense à synchroniser',
-          backup.lastBackup == null
-              ? "Tu n'as pas encore sauvegardé tes données sur Google Drive."
-              : 'Ta dernière sauvegarde Google Drive date de plus de 7 jours.',
-          _details('sync', 'Rappel de synchronisation'),
-        );
+        await _at(_syncId, at, tr.notifySyncTitle, backup.lastBackup == null ? tr.notifySyncNever : tr.notifySyncOld, _details('sync', tr.notifyChSync));
       }
     } catch (_) {
       // Permission refused or alarms unavailable: the app works without reminders.
     }
   }
 
-  static const _dailyText = [
-    'As-tu noté tes dépenses aujourd\'hui ?',
-    'Deux minutes pour mettre ton carnet à jour ?',
-    'Un taxi, un repas, une recharge ? Note-les avant d\'oublier.',
-    'Ton carnet t\'attend : note les opérations du jour.',
-  ];
+  static List<String> get _dailyText => [tr.notifyDaily1, tr.notifyDaily2, tr.notifyDaily3, tr.notifyDaily4];
 
   // ---------- budget alerts ----------
 
@@ -237,7 +225,7 @@ class Notifier extends ChangeNotifier {
     final month = monthKey(DateTime.now());
     final list = state.monthTxs(month).where((t) => t.type == TxType.expense);
     final f = Fmt(state.settings.currency);
-    final d = _details('budget', 'Budget et plafonds', high: true);
+    final d = _details('budget', tr.notifyChBudget, high: true);
     var changed = false;
     var n = 0;
 
@@ -248,15 +236,13 @@ class Notifier extends ChangeNotifier {
       _sent.add('$month:$key:$level');
       if (level == 100) _sent.add('$month:$key:80');
       changed = true;
-      final title = level == 100 ? '$name : dépassé' : '$name : 80 % atteint';
-      final body = level == 100
-          ? 'Tu as dépensé ${f.money(spent)} ce mois-ci pour un plafond de ${f.money(cap)}.'
-          : 'Déjà ${f.money(spent)} sur ${f.money(cap)}. Il reste ${f.money(cap - spent)} pour le mois.';
+      final title = level == 100 ? tr.notifyOverTitle(name) : tr.notifyNearTitle(name);
+      final body = level == 100 ? tr.notifyOverBody(f.money(spent), f.money(cap)) : tr.notifyNearBody(f.money(spent), f.money(cap), f.money(cap - spent));
       await _plugin.show(id: _alertBase + (n++ % 100), title: title, body: body, notificationDetails: d);
     }
 
     try {
-      await check('budget', 'Budget du mois', list.fold(0.0, (s, t) => s + t.amount), state.settings.budget);
+      await check('budget', tr.notifyMonthBudget, list.fold(0.0, (s, t) => s + t.amount), state.settings.budget);
       for (final c in state.settings.cats.where((c) => !c.income && c.cap > 0)) {
         await check('cat:${c.id}', c.name, list.where((t) => t.cat == c.id).fold(0.0, (s, t) => s + t.amount), c.cap);
       }

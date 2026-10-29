@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import 'i18n.dart';
 import 'models.dart';
 
 const _symbols = {'XAF': 'FCFA', 'XOF': 'FCFA', 'EUR': '€', 'USD': r'$', 'NGN': '₦', 'GHS': 'GH₵', 'MAD': 'MAD', 'GNF': 'GNF'};
@@ -8,7 +9,7 @@ const _zeroDecimals = {'XAF', 'XOF', 'GNF'};
 class Fmt {
   final String currency;
   final NumberFormat _n;
-  Fmt(this.currency) : _n = NumberFormat.decimalPatternDigits(locale: 'fr_FR', decimalDigits: _zeroDecimals.contains(currency) ? 0 : 2);
+  Fmt(this.currency) : _n = NumberFormat.decimalPatternDigits(locale: intlLocale, decimalDigits: _zeroDecimals.contains(currency) ? 0 : 2);
 
   String get symbol => _symbols[currency] ?? currency;
 
@@ -23,31 +24,33 @@ class Fmt {
   String plain(double v, {bool signed = false}) => money(v, signed: signed).replaceAll(' ', ' ').replaceAll(' ', ' ').replaceAll('−', '-');
 
   String number(double v) => NumberFormat.decimalPatternDigits(
-    locale: 'fr_FR',
+    locale: intlLocale,
     decimalDigits: _zeroDecimals.contains(currency) ? 0 : 2,
   ).format(v).replaceAll(' ', ' ').replaceAll(' ', ' ');
 
-  String compact(double v) => NumberFormat.compact(locale: 'fr_FR').format(v);
+  String compact(double v) => NumberFormat.compact(locale: intlLocale).format(v);
 }
 
-/// Accepts "12 500", "12500,50", "12.5".
+/// Accepts "12 500", "12500,50", "12.5", and in English "12,500.50".
 double? parseAmount(String s) {
-  final t = s.replaceAll(RegExp(r'[\s  ]'), '').replaceAll(',', '.');
+  var t = s.replaceAll(RegExp(r'[\s  ]'), '');
+  // With both separators, the last one is the decimal point.
+  if (t.contains(',') && t.contains('.')) {
+    t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replaceAll('.', '') : t.replaceAll(',', '');
+  } else if (lang == 'en' && RegExp(r'^\d{1,3}(,\d{3})+$').hasMatch(t)) {
+    t = t.replaceAll(',', ''); // "12,500" groups thousands in English
+  }
+  t = t.replaceAll(',', '.');
   if (t.isEmpty) return null;
   return double.tryParse(t);
 }
 
-String monthLabel(String key, {bool year = true}) {
-  final s = DateFormat(year ? 'MMMM yyyy' : 'MMMM', 'fr_FR').format(parseIso('$key-01'));
-  return s[0].toUpperCase() + s.substring(1);
-}
+String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-String shortMonth(String key) => DateFormat('MMM', 'fr_FR').format(parseIso('$key-01'));
-String longDate(String iso) => DateFormat('d MMMM yyyy', 'fr_FR').format(parseIso(iso));
-String dayLabel(String iso) {
-  final s = DateFormat('EEEE d MMMM', 'fr_FR').format(parseIso(iso));
-  return s[0].toUpperCase() + s.substring(1);
-}
+String monthLabel(String key, {bool year = true}) => _cap((year ? DateFormat.yMMMM(intlLocale) : DateFormat.MMMM(intlLocale)).format(parseIso('$key-01')));
+
+String shortMonth(String key) => DateFormat.MMM(intlLocale).format(parseIso('$key-01'));
+String longDate(String iso) => DateFormat.yMMMMd(intlLocale).format(parseIso(iso));
+String dayLabel(String iso) => _cap(DateFormat.MMMMEEEEd(intlLocale).format(parseIso(iso)));
 
 String slashDate(String iso) => DateFormat('dd/MM/yyyy').format(parseIso(iso));
-String plural(int n, String w) => '$n $w${n > 1 ? 's' : ''}';

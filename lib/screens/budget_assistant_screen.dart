@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../insights.dart';
 import '../models.dart';
@@ -21,10 +22,10 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
   final income = TextEditingController();
   Rule rule = Rule.r503020;
 
-  static const rules = {
-    Rule.r503020: ('50 / 30 / 20', 'La règle classique : 50 % pour les besoins, 30 % pour les envies, 20 % pour l\'épargne.'),
-    Rule.r702010: ('70 / 20 / 10', 'Plus réaliste quand le loyer et la nourriture pèsent lourd : 70 % besoins, 20 % envies, 10 % épargne.'),
-    Rule.history: ('Mes habitudes', 'Part de tes dépenses réelles des 3 derniers mois, et garde le reste pour l\'épargne.'),
+  static Map<Rule, (String, String)> rules(AppLocalizations l) => {
+    Rule.r503020: ('50 / 30 / 20', l.assistantRule503020Desc),
+    Rule.r702010: ('70 / 20 / 10', l.assistantRule702010Desc),
+    Rule.history: (l.assistantRuleHistory, l.assistantRuleHistoryDesc),
   };
 
   @override
@@ -54,7 +55,7 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
     await s.saveSettings(next);
     if (!mounted) return;
     Navigator.pop(context);
-    toast(context, 'Budget et plafonds appliqués');
+    toast(context, context.l.assistantApplied);
   }
 
   @override
@@ -64,6 +65,7 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
     final value = parseAmount(income.text) ?? 0;
     final p = value > 0 ? Insights.of(s).preset(rule, value) : null;
     final needIds = Insights.needs;
+    final l = context.l;
 
     Widget line(String icon, Color color, String label, double v, {String? sub}) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -86,25 +88,22 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Assistant budget')),
+      appBar: AppBar(title: Text(l.assistantTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            "Indique ce que tu gagnes par mois : l'assistant propose un budget, un plafond par catégorie et ce qu'il faut mettre de côté pour tes objectifs.",
-            style: TextStyle(color: context.c.muted),
-          ),
+          Text(l.assistantIntro, style: TextStyle(color: context.c.muted)),
           const SizedBox(height: 14),
-          AmountField(controller: income, label: 'Revenus mensuels'),
+          AmountField(controller: income, label: l.assistantIncomeLabel),
           if (Insights.of(s).avgIncome(monthKey(DateTime.now())) > 0)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text('Pré-rempli avec ta moyenne des 3 derniers mois.', style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+              child: Text(l.assistantPrefilled, style: TextStyle(color: context.c.muted, fontSize: 12.5)),
             ),
           const SizedBox(height: 16),
-          const Label('Méthode'),
+          Label(l.assistantMethod),
           const SizedBox(height: 8),
-          for (final e in rules.entries)
+          for (final e in rules(l).entries)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Card(
@@ -149,26 +148,26 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Proposition', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                    Text(l.assistantProposal, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
-                    line('wallet', context.c.accent, 'Budget mensuel (dépenses courantes)', p.budget),
+                    line('wallet', context.c.accent, l.assistantMonthlyBudget, p.budget),
                     line(
                       'house',
                       slot('c3'),
-                      'Besoins',
+                      l.assistantNeeds,
                       p.caps.entries.where((e) => needIds.contains(e.key)).fold(0.0, (a, e) => a + e.value),
-                      sub: 'Logement, factures, alimentation, transport…',
+                      sub: l.assistantNeedsSub,
                     ),
                     line(
                       'party-popper',
                       slot('c6'),
-                      'Envies',
+                      l.assistantWants,
                       p.caps.entries.where((e) => !needIds.contains(e.key)).fold(0.0, (a, e) => a + e.value),
-                      sub: 'Restaurant, loisirs, shopping…',
+                      sub: l.assistantWantsSub,
                     ),
-                    line('piggy-bank', slot('c2'), 'Épargne', p.saving),
+                    line('piggy-bank', slot('c2'), l.typeSave, p.saving),
                     const Divider(height: 24),
-                    const Label('Plafond par catégorie'),
+                    Label(l.assistantCapPerCat),
                     const SizedBox(height: 6),
                     for (final e in p.caps.entries)
                       Padding(
@@ -183,18 +182,15 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
                         ),
                       ),
                     const Divider(height: 24),
-                    const Label('Objectifs d\'épargne'),
+                    Label(l.assistantGoals),
                     const SizedBox(height: 6),
                     if (s.goals.isEmpty) ...[
-                      Text(
-                        "Aucun objectif pour l'instant. Commence par un fonds d'urgence d'environ 3 mois de dépenses, soit à peu près ${f.money(p.budget * 3)}.",
-                        style: TextStyle(color: context.c.muted),
-                      ),
+                      Text(l.assistantNoGoals(f.money(p.budget * 3)), style: TextStyle(color: context.c.muted)),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
                           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SavingsScreen())),
-                          child: const Text('Créer un objectif'),
+                          child: Text(l.assistantCreateGoal),
                         ),
                       ),
                     ],
@@ -206,18 +202,15 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
                             Icon(appIcon(g.icon), size: 18, color: slot(g.color)),
                             const SizedBox(width: 10),
                             Expanded(child: Text(g.name)),
-                            Text('${f.money(p.goals[g.id]!)} / mois', style: numStyle),
+                            Text(l.assistantPerMonth(f.money(p.goals[g.id]!)), style: numStyle),
                           ],
                         ),
                       ),
-                    if (s.goals.isNotEmpty && p.goals.isEmpty) Text('Tous tes objectifs sont atteints.', style: TextStyle(color: context.c.muted)),
+                    if (s.goals.isNotEmpty && p.goals.isEmpty) Text(l.assistantGoalsReached, style: TextStyle(color: context.c.muted)),
                     const SizedBox(height: 16),
-                    FilledButton.icon(icon: Icon(appIcon('check')), label: const Text('Appliquer ce budget'), onPressed: () => apply(p)),
+                    FilledButton.icon(icon: Icon(appIcon('check')), label: Text(l.assistantApply), onPressed: () => apply(p)),
                     const SizedBox(height: 6),
-                    Text(
-                      'Remplace ton budget mensuel et les plafonds de tes catégories de dépenses. Tu pourras les modifier ensuite dans Paramètres.',
-                      style: TextStyle(color: context.c.muted, fontSize: 12.5),
-                    ),
+                    Text(l.assistantApplyNote, style: TextStyle(color: context.c.muted, fontSize: 12.5)),
                   ],
                 ),
               ),

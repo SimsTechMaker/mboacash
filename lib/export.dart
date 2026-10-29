@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'format.dart';
+import 'i18n.dart';
 import 'models.dart';
 import 'security.dart';
 import 'state.dart';
@@ -53,7 +54,8 @@ Future<void> exportCsv(BuildContext context) async {
       v.title,
       acc.isEmpty ? '' : s.accById(acc)?.name ?? '',
       t.type == TxType.transfer ? s.accById(t.to)?.name ?? '' : '',
-      f.number(signed).replaceAll(' ', ''),
+      // No grouping, so the cell stays a number in Excel ("12500", "12500,5" / "12500.5").
+      f.number(signed).replaceAll(lang == 'en' ? ',' : ' ', ''),
       s.settings.currency,
       t.note,
       t.type == TxType.income || t.type == TxType.expense ? s.catById(t.cat)?.name ?? '' : '',
@@ -67,13 +69,13 @@ Future<void> exportCsv(BuildContext context) async {
   String cell(String v) => RegExp(r'[";\n]').hasMatch(v) ? '"${v.replaceAll('"', '""')}"' : v;
   final csv = '﻿${rows.map((r) => r.map(cell).join(';')).join('\n')}';
   final dir = await getTemporaryDirectory();
-  final file = File('${dir.path}/carnet237-${todayIso()}.csv');
+  final file = File('${dir.path}/my-nkap-${todayIso()}.csv');
   await file.writeAsString(csv, encoding: utf8);
   await lock.withoutLock(
     () => SharePlus.instance.share(
       ShareParams(
         files: [XFile(file.path, mimeType: 'text/csv')],
-        subject: 'Export carnet237',
+        subject: tr.exportCsvSubject,
       ),
     ),
   );
@@ -87,7 +89,7 @@ Future<void> cleanExportFiles() async {
     final dir = await getTemporaryDirectory();
     final limit = DateTime.now().subtract(const Duration(minutes: 10));
     await for (final e in dir.list(recursive: true, followLinks: false)) {
-      if (e is File && (e.path.endsWith('.csv') || e.path.endsWith('.pdf')) && (await e.lastModified()).isBefore(limit)) {
+      if (e is File && (e.path.endsWith('.csv') || e.path.endsWith('.pdf') || e.path.endsWith('.nkap')) && (await e.lastModified()).isBefore(limit)) {
         await e.delete();
       }
     }
@@ -137,11 +139,11 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
     final acc = s.accountOf(t);
     final accName = t.type == TxType.transfer ? '${s.accById(acc)?.name} -> ${s.accById(t.to)?.name}' : (acc.isEmpty ? '' : s.accById(acc)?.name ?? '');
     final label = switch (t.type) {
-      TxType.transfer => '${e == 0 ? 'Transfert interne' : 'Transfert'}${t.note.isNotEmpty ? ' - ${t.note}' : ''}',
+      TxType.transfer => '${e == 0 ? tr.exportTransferInternal : tr.exportTransfer}${t.note.isNotEmpty ? ' - ${t.note}' : ''}',
       TxType.income || TxType.expense => t.note.isNotEmpty ? t.note : v.title,
       _ => '${v.title}${t.note.isNotEmpty ? ' - ${t.note}' : ''}',
     };
-    final catName = (t.type == TxType.income || t.type == TxType.expense) ? (s.catById(t.cat)?.name ?? '') : v.title.split(' :').first;
+    final catName = (t.type == TxType.income || t.type == TxType.expense) ? (s.catById(t.cat)?.name ?? '') : v.title.split(RegExp(r'\s?:')).first.trim();
     rows.add([slashDate(t.date), label, catName, accName, e < 0 ? m(-e) : '', e > 0 ? m(e) : '', m(run)]);
   }
   final period = txs.where((t) => t.date.compareTo(o.from) >= 0 && t.date.compareTo(o.to) <= 0 && s.flow(t) != 0 && scope.contains(s.accountOf(t)));
@@ -157,8 +159,8 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
   const green = PdfColor.fromInt(0xFF2C7A4C);
 
   final theme = pw.ThemeData.withFont(base: regular, bold: bold);
-  final doc = pw.Document(title: 'Relevé carnet237', author: 'carnet237');
-  final accTitle = o.account.isNotEmpty ? s.accById(o.account)?.name ?? '' : 'Tous les comptes';
+  final doc = pw.Document(title: tr.exportPdfDocTitle, author: 'my-nkap');
+  final accTitle = o.account.isNotEmpty ? s.accById(o.account)?.name ?? '' : tr.exportAllAccounts;
 
   pw.Widget table(
     List<String> head,
@@ -241,11 +243,11 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          'Relevé de compte',
+                          tr.exportTitle,
                           style: pw.TextStyle(color: PdfColors.white, fontSize: 18, fontWeight: pw.FontWeight.bold),
                         ),
                         pw.SizedBox(height: 4),
-                        pw.Text('Du ${longDate(o.from)} au ${longDate(o.to)}', style: const pw.TextStyle(color: PdfColors.white, fontSize: 10)),
+                        pw.Text(tr.exportPeriod(longDate(o.from), longDate(o.to)), style: const pw.TextStyle(color: PdfColors.white, fontSize: 10)),
                         pw.Text(accTitle, style: const pw.TextStyle(color: PdfColors.white, fontSize: 10)),
                       ],
                     ),
@@ -254,11 +256,11 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        'carnet237',
+                        tr.appTitle,
                         style: pw.TextStyle(color: PdfColors.white, fontSize: 10, fontWeight: pw.FontWeight.bold),
                       ),
-                      pw.Text('Édité le ${longDate(todayIso())}', style: const pw.TextStyle(color: PdfColors.white, fontSize: 9)),
-                      pw.Text('Devise : ${s.settings.currency}', style: const pw.TextStyle(color: PdfColors.white, fontSize: 9)),
+                      pw.Text(tr.exportIssued(longDate(todayIso())), style: const pw.TextStyle(color: PdfColors.white, fontSize: 9)),
+                      pw.Text(tr.exportCurrency(s.settings.currency), style: const pw.TextStyle(color: PdfColors.white, fontSize: 9)),
                     ],
                   ),
                 ],
@@ -273,28 +275,25 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
         child: pw.Row(
           children: [
             pw.Expanded(
-              child: pw.Text(
-                'Relevé du ${longDate(o.from)} au ${longDate(o.to)} - document personnel, sans valeur bancaire officielle',
-                style: const pw.TextStyle(fontSize: 7, color: muted),
-              ),
+              child: pw.Text(tr.exportFooter(longDate(o.from), longDate(o.to)), style: const pw.TextStyle(fontSize: 7, color: muted)),
             ),
-            pw.Text('Page ${ctx.pageNumber} / ${ctx.pagesCount}', style: const pw.TextStyle(fontSize: 7, color: muted)),
+            pw.Text(tr.exportPage('${ctx.pageNumber}', '${ctx.pagesCount}'), style: const pw.TextStyle(fontSize: 7, color: muted)),
           ],
         ),
       ),
       build: (ctx) => [
         pw.Row(
           children: [
-            box("Solde d'ouverture", m(opening), false),
-            box('Total crédits', m(credit), false),
-            box('Total débits', m(debit), false),
-            box('Solde de clôture', m(run), true),
+            box(tr.exportOpening, m(opening), false),
+            box(tr.exportCredits, m(credit), false),
+            box(tr.exportDebits, m(debit), false),
+            box(tr.exportClosing, m(run), true),
           ],
         ),
         pw.Padding(
           padding: const pw.EdgeInsets.symmetric(vertical: 8),
           child: pw.Text(
-            'Revenus de la période : ${m(sums.income)}   ·   Dépenses de la période : ${m(sums.expense)}   ·   ${plural(rows.length, 'opération')}',
+            tr.exportPeriodSummary(m(sums.income), m(sums.expense), tr.opsCount(rows.length)),
             style: const pw.TextStyle(fontSize: 8.5, color: muted),
           ),
         ),
@@ -302,14 +301,14 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
           pw.Padding(
             padding: const pw.EdgeInsets.all(16),
             child: pw.Center(
-              child: pw.Text('Aucune opération sur cette période.', style: const pw.TextStyle(color: muted)),
+              child: pw.Text(tr.exportEmpty, style: const pw.TextStyle(color: muted)),
             ),
           )
         else
           table(
-            ['Date', 'Libellé', 'Catégorie', 'Compte', 'Débit', 'Crédit', 'Solde'],
+            [tr.exportColDate, tr.exportColLabel, tr.exportColCategory, tr.exportColAccount, tr.exportColDebit, tr.exportColCredit, tr.exportColBalance],
             rows,
-            footer: ['', 'Totaux', '', '', m(debit), m(credit), m(run)],
+            footer: ['', tr.exportTotals, '', '', m(debit), m(credit), m(run)],
             widths: {
               0: const pw.FixedColumnWidth(48),
               1: const pw.FlexColumnWidth(3),
@@ -323,33 +322,33 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
             colors: {4: red, 5: green},
           ),
         if (o.categories && catRows.isNotEmpty) ...[
-          section('Dépenses par catégorie'),
+          section(tr.exportByCategory),
           table(
-            ['Catégorie', 'Montant', 'Part', 'Plafond mensuel'],
+            [tr.exportColCategory, tr.exportColAmount, tr.exportColShare, tr.exportColCap],
             [
               for (final r in catRows)
                 [
                   s.group(r.key).name,
                   m(r.value),
-                  '${(r.value / sums.expense * 100).round()} %',
+                  tr.exportPercent('${(r.value / sums.expense * 100).round()}'),
                   (s.catById(r.key)?.cap ?? 0) > 0 ? m(s.catById(r.key)!.cap) : '-',
                 ],
             ],
-            footer: ['Total', m(sums.expense), '100 %', ''],
+            footer: [tr.exportTotal, m(sums.expense), tr.exportPercent('100'), ''],
             right: {1, 2, 3},
           ),
         ],
         if (o.plans && o.account.isEmpty && s.goals.isNotEmpty) ...[
-          section('Épargne'),
+          section(tr.typeSave),
           table(
-            ['Objectif', 'Épargné', 'Cible', 'Avancement', 'Date visée'],
+            [tr.exportColGoal, tr.exportColSaved, tr.exportColTarget, tr.exportColProgress, tr.exportColTargetDate],
             [
               for (final g in s.goals)
                 [
                   g.name,
                   m(s.goalSaved(g)),
                   g.target > 0 ? m(g.target) : '-',
-                  g.target > 0 ? '${(s.goalSaved(g) / g.target * 100).clamp(0, 100).round()} %' : '-',
+                  g.target > 0 ? tr.exportPercent('${(s.goalSaved(g) / g.target * 100).clamp(0, 100).round()}') : '-',
                   g.deadline.isEmpty ? '-' : longDate(g.deadline),
                 ],
             ],
@@ -357,17 +356,17 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
           ),
         ],
         if (o.plans && o.account.isEmpty && s.debts.isNotEmpty) ...[
-          section('Dettes et prêts'),
+          section(tr.exportDebtsLoans),
           table(
-            ['Personne', 'Sens', 'Montant', 'Remboursé', 'Reste', 'Échéance'],
+            [tr.exportColPerson, tr.exportColDirection, tr.exportColAmount, tr.exportColRepaid, tr.exportColLeft, tr.exportColDue],
             [
               for (final d in s.debts)
                 [
                   d.person,
-                  d.owe ? 'Je dois' : 'On me doit',
+                  d.owe ? tr.exportIOwe : tr.exportOwedToMe,
                   m(d.amount),
                   m(d.amount - s.debtLeft(d)),
-                  s.debtLeft(d) > 0 ? m(s.debtLeft(d)) : 'Soldée',
+                  s.debtLeft(d) > 0 ? m(s.debtLeft(d)) : tr.exportSettled,
                   d.due.isEmpty ? '-' : longDate(d.due),
                 ],
             ],
@@ -381,7 +380,7 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
 }
 
 String statementFileName(AppState s, StatementOptions o) {
-  var name = 'releve-${o.from}-au-${o.to}';
+  var name = tr.exportFileName(o.from, o.to);
   if (o.account.isNotEmpty) {
     final a = (s.accById(o.account)?.name ?? '').toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
     name += '-$a';

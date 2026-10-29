@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../format.dart';
+import '../i18n.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -21,6 +21,7 @@ class AccountsScreen extends StatelessWidget {
     final onAccounts = list.fold<double>(0, (a, x) => a + (b[x.id] ?? 0));
     final net = onAccounts + s.totalSaved + s.totalLent - s.totalOwed;
     final positive = list.fold<double>(0, (a, x) => a + ((b[x.id] ?? 0) > 0 ? b[x.id]! : 0));
+    final l = context.l;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
@@ -30,7 +31,7 @@ class AccountsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const HeroLabel('Patrimoine net'),
+              HeroLabel(l.accountsNetWorth),
               const SizedBox(height: 4),
               FittedBox(
                 alignment: Alignment.centerLeft,
@@ -40,11 +41,11 @@ class AccountsScreen extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: HeroStat(label: 'Sur mes comptes', icon: 'wallet', value: onAccounts),
+                    child: HeroStat(label: l.accountsOnAccounts, icon: 'wallet', value: onAccounts),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: HeroStat(label: 'Épargne', icon: 'piggy-bank', value: s.totalSaved),
+                    child: HeroStat(label: l.typeSave, icon: 'piggy-bank', value: s.totalSaved),
                   ),
                 ],
               ),
@@ -52,11 +53,11 @@ class AccountsScreen extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: HeroStat(label: 'On me doit', icon: 'arrow-up-right', value: s.totalLent),
+                    child: HeroStat(label: l.accountsOwedToMe, icon: 'arrow-up-right', value: s.totalLent),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: HeroStat(label: 'Je dois', icon: 'arrow-down-left', value: -s.totalOwed),
+                    child: HeroStat(label: l.accountsIOwe, icon: 'arrow-down-left', value: -s.totalOwed),
                   ),
                 ],
               ),
@@ -66,10 +67,10 @@ class AccountsScreen extends StatelessWidget {
         const SizedBox(height: 18),
         SectionTitle(
           icon: 'wallet',
-          text: 'Mes comptes',
+          text: l.accountsMine,
           trailing: TextButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen(initialTab: 2))),
-            child: const Text('Gérer'),
+            child: Text(l.catsManage),
           ),
         ),
         for (var i = 0; i < list.length; i++) ...[
@@ -96,6 +97,7 @@ class _AccountCard extends StatelessWidget {
     final a = s.accById(id)!;
     final bal = s.balances()[id] ?? 0;
     final count = s.txs.where((t) => s.accountOf(t) == id || t.to == id).length;
+    final l = context.l;
     return SoftCard(
       onTap: () {
         s.setFilters(cat: null, acc: id);
@@ -117,10 +119,10 @@ class _AccountCard extends StatelessWidget {
                         Flexible(
                           child: Text(a.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15.5)),
                         ),
-                        if (id == s.settings.defaultAccount) ...[const SizedBox(width: 6), Pill('par défaut', color: context.c.accent)],
+                        if (id == s.settings.defaultAccount) ...[const SizedBox(width: 6), Pill(l.accountsDefault, color: context.c.accent)],
                       ],
                     ),
-                    Text(plural(count, 'opération'), style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+                    Text(l.opsCount(count), style: TextStyle(color: context.c.muted, fontSize: 12.5)),
                   ],
                 ),
               ),
@@ -132,7 +134,7 @@ class _AccountCard extends StatelessWidget {
             const SizedBox(height: 12),
             Gauge(value: share, color: context.c.accent, height: 5),
             const SizedBox(height: 4),
-            Text('${(share * 100).round()} % de ton argent disponible', style: TextStyle(color: context.c.muted, fontSize: 11.5)),
+            Text(l.accountsShare((share * 100).round()), style: TextStyle(color: context.c.muted, fontSize: 11.5)),
           ],
           const SizedBox(height: 10),
           Wrap(
@@ -141,13 +143,13 @@ class _AccountCard extends StatelessWidget {
             children: [
               ActionChipButton(
                 icon: 'list',
-                label: 'Opérations',
+                label: l.accountsOps,
                 onPressed: () {
                   s.setFilters(cat: null, acc: id);
                   onShowOps();
                 },
               ),
-              ActionChipButton(icon: 'sliders-horizontal', label: 'Ajuster le solde', onPressed: () => openAdjustSheet(context, id)),
+              ActionChipButton(icon: 'sliders-horizontal', label: l.accountsAdjust, onPressed: () => openAdjustSheet(context, id)),
             ],
           ),
         ],

@@ -1,4 +1,7 @@
 import 'dart:math';
+import 'dart:ui' show Locale;
+
+import 'i18n.dart';
 
 /// Generates short unique ids (time + random), like the web prototype.
 String newId([String prefix = '']) {
@@ -76,63 +79,123 @@ class Account {
   );
 }
 
-List<Category> defaultCategories() => [
-  ['alim', 'Alimentation', 'shopping-cart', false, 'c1'],
-  ['resto', 'Restaurant', 'utensils', false, 'c6'],
-  ['transport', 'Transport', 'car', false, 'c2'],
-  ['logement', 'Logement', 'house', false, 'c3'],
-  ['factures', 'Factures', 'lightbulb', false, 'c4'],
-  ['telephone', 'Téléphone et internet', 'wifi', false, 'c5'],
-  ['sante', 'Santé', 'pill', false, 'c5'],
-  ['loisirs', 'Loisirs', 'film', false, 'c6'],
-  ['shopping', 'Shopping', 'shopping-bag', false, 'c7'],
-  ['education', 'Éducation', 'graduation-cap', false, 'c8'],
-  ['famille', 'Famille', 'users', false, 'c9'],
-  ['autre', 'Autre', 'package', false, 'c10'],
-  ['salaire', 'Salaire', 'briefcase', true, 'c8'],
-  ['activite', 'Activité', 'hand-coins', true, 'c2'],
-  ['cadeau', 'Cadeau', 'gift', true, 'c6'],
-  ['autre_in', 'Autre revenu', 'coins', true, 'c10'],
-].map((c) => Category(id: c[0] as String, name: c[1] as String, icon: c[2] as String, income: c[3] as bool, color: c[4] as String)).toList();
-
-List<Account> defaultAccounts() => [
-  Account(id: 'cash', name: 'Espèces', icon: 'wallet'),
-  Account(id: 'bank', name: 'Banque', icon: 'landmark'),
-  Account(id: 'momo', name: 'Mobile Money', icon: 'smartphone'),
+const _defaultCats = [
+  ('alim', 'shopping-cart', false, 'c1'),
+  ('resto', 'utensils', false, 'c6'),
+  ('transport', 'car', false, 'c2'),
+  ('logement', 'house', false, 'c3'),
+  ('factures', 'lightbulb', false, 'c4'),
+  ('telephone', 'wifi', false, 'c5'),
+  ('sante', 'pill', false, 'c5'),
+  ('loisirs', 'film', false, 'c6'),
+  ('shopping', 'shopping-bag', false, 'c7'),
+  ('education', 'graduation-cap', false, 'c8'),
+  ('famille', 'users', false, 'c9'),
+  ('autre', 'package', false, 'c10'),
+  ('salaire', 'briefcase', true, 'c8'),
+  ('activite', 'hand-coins', true, 'c2'),
+  ('cadeau', 'gift', true, 'c6'),
+  ('autre_in', 'coins', true, 'c10'),
 ];
 
-const currencies = {
-  'XAF': 'Franc CFA (XAF)',
-  'XOF': 'Franc CFA (XOF)',
-  'EUR': 'Euro (EUR)',
-  'USD': 'Dollar US (USD)',
-  'NGN': 'Naira (NGN)',
-  'GHS': 'Cedi (GHS)',
-  'MAD': 'Dirham marocain (MAD)',
-  'GNF': 'Franc guinéen (GNF)',
+/// Names of the built-in categories and accounts, by id, in language [l].
+Map<String, String> defaultLabels(AppLocalizations l) => {
+  'alim': l.defCatAlim,
+  'resto': l.defCatResto,
+  'transport': l.defCatTransport,
+  'logement': l.defCatLogement,
+  'factures': l.defCatFactures,
+  'telephone': l.defCatTelephone,
+  'sante': l.defCatSante,
+  'loisirs': l.defCatLoisirs,
+  'shopping': l.defCatShopping,
+  'education': l.defCatEducation,
+  'famille': l.defCatFamille,
+  'autre': l.defCatAutre,
+  'salaire': l.defCatSalaire,
+  'activite': l.defCatActivite,
+  'cadeau': l.defCatCadeau,
+  'autre_in': l.defCatAutreIn,
+  'cash': l.defAccCash,
+  'bank': l.defAccBank,
+  'momo': l.defAccMomo,
+};
+
+List<Category> defaultCategories() {
+  final names = defaultLabels(tr);
+  return [for (final c in _defaultCats) Category(id: c.$1, name: names[c.$1]!, icon: c.$2, income: c.$3, color: c.$4)];
+}
+
+List<Account> defaultAccounts() => [
+  Account(id: 'cash', name: tr.defAccCash, icon: 'wallet'),
+  Account(id: 'bank', name: tr.defAccBank, icon: 'landmark'),
+  Account(id: 'momo', name: tr.defAccMomo, icon: 'smartphone'),
+];
+
+/// Currency codes with their name in the current language.
+Map<String, String> get currencies => {
+  'XAF': tr.curXAF,
+  'XOF': tr.curXOF,
+  'EUR': tr.curEUR,
+  'USD': tr.curUSD,
+  'NGN': tr.curNGN,
+  'GHS': tr.curGHS,
+  'MAD': tr.curMAD,
+  'GNF': tr.curGNF,
 };
 
 class Settings {
   String currency;
   double budget;
   String theme; // auto | light | dark
+  String language; // auto | fr | en
+  /// Language the built-in category and account names are written in, so
+  /// they can be renamed when the language changes ('' for older data: fr).
+  String labelsLang;
   List<Category> cats;
   List<Account> accounts;
   String defaultAccount;
 
-  Settings({required this.currency, required this.budget, required this.theme, required this.cats, required this.accounts, required this.defaultAccount});
+  Settings({
+    required this.currency,
+    required this.budget,
+    required this.theme,
+    this.language = 'auto',
+    this.labelsLang = '',
+    required this.cats,
+    required this.accounts,
+    required this.defaultAccount,
+  });
 
   factory Settings.defaults() =>
-      Settings(currency: 'XAF', budget: 0, theme: 'auto', cats: defaultCategories(), accounts: defaultAccounts(), defaultAccount: 'cash');
+      Settings(currency: 'XAF', budget: 0, theme: 'auto', labelsLang: lang, cats: defaultCategories(), accounts: defaultAccounts(), defaultAccount: 'cash');
 
   Settings copy() => Settings(
     currency: currency,
     budget: budget,
     theme: theme,
+    language: language,
+    labelsLang: labelsLang,
     cats: cats.map((c) => c.copy()).toList(),
     accounts: accounts.map((a) => a.copy()).toList(),
     defaultAccount: defaultAccount,
   );
+
+  /// Renames built-in categories and accounts still bearing their default
+  /// name from the [labelsLang] language into [to]. Renamed ones are kept.
+  void relabel(String to) {
+    final from = labelsLang.isEmpty ? 'fr' : labelsLang;
+    if (from == to) return;
+    final before = defaultLabels(lookupAppLocalizations(Locale(from)));
+    final after = defaultLabels(lookupAppLocalizations(Locale(to)));
+    for (final c in cats) {
+      if (before[c.id] != null && c.name == before[c.id]) c.name = after[c.id]!;
+    }
+    for (final a in accounts) {
+      if (before[a.id] != null && a.name == before[a.id]) a.name = after[a.id]!;
+    }
+    labelsLang = to;
+  }
 
   /// Repairs anything a bad edit could leave behind: at least one active
   /// category of each kind and one active account, and a valid default account.
@@ -150,13 +213,13 @@ class Settings {
         }
       }
     }
-    if (!accounts.any((a) => !a.archived)) accounts.add(Account(id: newId('a-'), name: 'Espèces', icon: 'wallet'));
+    if (!accounts.any((a) => !a.archived)) accounts.add(Account(id: newId('a-'), name: tr.defAccCash, icon: 'wallet'));
     if (!accounts.any((a) => a.id == defaultAccount && !a.archived)) defaultAccount = accounts.firstWhere((a) => !a.archived).id;
     for (final c in cats) {
-      if (c.name.trim().isEmpty) c.name = 'Sans nom';
+      if (c.name.trim().isEmpty) c.name = tr.unnamedCategory;
     }
     for (final a in accounts) {
-      if (a.name.trim().isEmpty) a.name = 'Compte';
+      if (a.name.trim().isEmpty) a.name = tr.unnamedAccount;
     }
   }
 
@@ -164,6 +227,8 @@ class Settings {
     'currency': currency,
     'budget': budget,
     'theme': theme,
+    'language': language,
+    'labelsLang': labelsLang,
     'cats': cats.map((c) => c.toJson()).toList(),
     'accounts': accounts.map((a) => a.toJson()).toList(),
     'defaultAccount': defaultAccount,
@@ -173,6 +238,8 @@ class Settings {
       currency: currencies.containsKey(j['currency']) ? j['currency'] : 'XAF',
       budget: (j['budget'] as num?)?.toDouble() ?? 0,
       theme: ['auto', 'light', 'dark'].contains(j['theme']) ? j['theme'] : 'auto',
+      language: supportedLangs.contains(j['language']) ? j['language'] : 'auto',
+      labelsLang: supportedLangs.contains(j['labelsLang']) ? j['labelsLang'] : '',
       cats: (j['cats'] as List?)?.map((e) => Category.fromJson(Map<String, dynamic>.from(e))).toList() ?? defaultCategories(),
       accounts: (j['accounts'] as List?)?.map((e) => Account.fromJson(Map<String, dynamic>.from(e))).toList() ?? defaultAccounts(),
       defaultAccount: '${j['defaultAccount'] ?? 'cash'}',
@@ -198,6 +265,7 @@ class Tx {
   bool init; // debt: the original loan rather than a repayment
   String date;
   String note;
+  String proof; // file name of the proof photo (see proofs.dart), or ''
   bool sample;
   int created;
 
@@ -214,6 +282,7 @@ class Tx {
     this.init = false,
     required this.date,
     this.note = '',
+    this.proof = '',
     this.sample = false,
     int? created,
   }) : created = created ?? DateTime.now().millisecondsSinceEpoch;
@@ -231,6 +300,7 @@ class Tx {
     'init': init ? 1 : 0,
     'date': date,
     'note': note,
+    'proof': proof,
     'sample': sample ? 1 : 0,
     'created': created,
   };
@@ -247,6 +317,7 @@ class Tx {
     init: (r['init'] as int?) == 1,
     date: r['date'] as String,
     note: (r['note'] as String?) ?? '',
+    proof: (r['proof'] as String?) ?? '',
     sample: (r['sample'] as int?) == 1,
     created: (r['created'] as int?) ?? 0,
   );

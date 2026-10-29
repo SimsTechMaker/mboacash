@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -9,6 +10,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 
 import 'config.dart';
+import 'i18n.dart';
 import 'security.dart';
 import 'state.dart';
 
@@ -73,7 +75,7 @@ class DriveBackup extends ChangeNotifier {
   // ---------- account (network, on user action only) ----------
 
   Future<GoogleSignInAccount> _account() async {
-    if (!configured) throw const BackupException("La synchronisation Google Drive n'est pas configurée dans cette version de l'app.");
+    if (!configured) throw BackupException(tr.backupNotConfigured);
     if (!_signInReady) {
       await _signIn.initialize(serverClientId: googleServerClientId);
       _signInReady = true;
@@ -139,9 +141,9 @@ class DriveBackup extends ChangeNotifier {
   /// "Synchroniser": encrypts everything and uploads it as a new backup.
   Future<void> backupNow() => _run(() async {
     final k = await lock.backupKey();
-    if (k == null) throw const BackupException('Active un code de verrouillage : il sert à chiffrer tes sauvegardes.');
+    if (k == null) throw BackupException(tr.backupNeedPin);
     final api = await _api();
-    final bytes = await _encrypt(utf8.encode(jsonEncode(state.snapshot())), k.key, k.salt);
+    final bytes = await _encrypt(utf8.encode(jsonEncode(await state.fullSnapshot())), k.key, k.salt);
     final now = DateTime.now();
     final name = 'carnet237-${now.toIso8601String().substring(0, 19).replaceAll(':', '-')}.c237';
     await api.files.create(
@@ -177,7 +179,7 @@ class DriveBackup extends ChangeNotifier {
       await state.restore(data);
     } catch (_) {
       // restore() parses everything before writing, so local data is untouched.
-      throw const BackupException("Cette sauvegarde est illisible ou vient d'une autre application.");
+      throw BackupException(tr.backupUnreadable);
     }
   });
 
@@ -202,15 +204,17 @@ class DriveBackup extends ChangeNotifier {
       debugPrint('carnet237 GoogleSignInException: $e');
       // Closing Google's consent screen comes back as unknownError "[16] Cancelled by user".
       final cancelled = e.code == GoogleSignInExceptionCode.canceled || (e.description ?? '').contains('[16]');
-      lastError = cancelled ? 'Connexion annulée.' : 'Connexion Google impossible (${e.code.name}${e.description == null ? '' : ' : ${e.description}'}).';
+      lastError = cancelled
+          ? tr.backupSignInCancelled
+          : (e.description == null ? tr.backupSignInFailed(e.code.name) : tr.backupSignInFailedDetail(e.code.name, e.description!));
       throw BackupException(lastError!);
     } on drive.DetailedApiRequestError catch (e) {
       debugPrint('carnet237 Drive error: ${e.status} ${e.message}');
-      lastError = 'Google Drive a refusé la demande (${e.status}${e.message == null ? '' : ' : ${e.message}'}).';
+      lastError = e.message == null ? tr.backupDriveRefused('${e.status}') : tr.backupDriveRefusedDetail('${e.status}', e.message!);
       throw BackupException(lastError!);
     } catch (e, st) {
       debugPrint('carnet237 backup error: $e\n$st');
-      lastError = 'Opération impossible. Vérifie ta connexion internet.';
+      lastError = tr.backupNetworkError;
       throw BackupException(lastError!);
     } finally {
       busy = false;
@@ -219,6 +223,17 @@ class DriveBackup extends ChangeNotifier {
   }
 
   // ---------- encryption ----------
+
+  /// A complete backup protected by [password], for a file the user keeps
+  /// themself (same format as the Drive backups, with its own salt).
+  static Future<Uint8List> sealWithPassword(List<int> plain, String password) async {
+    final rnd = Random.secure();
+    final salt = List<int>.generate(16, (_) => rnd.nextInt(256));
+    return _encrypt(plain, await deriveKey(password, salt, LockService.backupIterations), salt);
+  }
+
+  /// Opens a backup file made by [sealWithPassword] or by a Drive backup.
+  static Future<List<int>> openWithPassword(Uint8List data, String password) => _decrypt(data, password);
 
   static Future<Uint8List> _encrypt(List<int> plain, List<int> key, List<int> salt) async {
     final aes = AesGcm.with256bits();
@@ -237,10 +252,10 @@ class DriveBackup extends ChangeNotifier {
   static Future<List<int>> _decrypt(Uint8List data, String code) async {
     const head = 4 + 1 + 4 + 16 + 12;
     if (data.length < head + 16 || !List.generate(4, (i) => data[i] == _magic[i]).every((x) => x) || data[4] != 1) {
-      throw const BackupException("Ce fichier n'est pas une sauvegarde carnet237 valide.");
+      throw BackupException(tr.backupInvalidFile);
     }
     final iterations = ByteData.sublistView(data, 5, 9).getUint32(0);
-    if (iterations < 1000 || iterations > _maxIterations) throw const BackupException("Ce fichier n'est pas une sauvegarde carnet237 valide.");
+    if (iterations < 1000 || iterations > _maxIterations) throw BackupException(tr.backupInvalidFile);
     final salt = data.sublist(9, 25);
     final nonce = data.sublist(25, 37);
     final cipher = data.sublist(37, data.length - 16);
@@ -252,7 +267,7 @@ class DriveBackup extends ChangeNotifier {
         secretKey: SecretKey(key),
       );
     } on SecretBoxAuthenticationError {
-      throw const BackupException("Code incorrect pour cette sauvegarde. Il faut le code qui était actif au moment où elle a été faite.");
+      throw BackupException(tr.backupWrongCode);
     }
   }
 }

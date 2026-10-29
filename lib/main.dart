@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'backup.dart';
 import 'db.dart';
 import 'export.dart';
+import 'i18n.dart';
 import 'icons.dart';
 import 'notify.dart';
 import 'screens/accounts_screen.dart';
@@ -24,7 +24,9 @@ import 'widgets/sheets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('fr_FR');
+  await initializeDateFormatting();
+  // The phone's language until the saved choice is read by state.load().
+  useLang(resolveLang('auto'));
   // The lock state is read before the first frame so data never flashes on screen.
   final lock = LockService();
   await lock.load();
@@ -128,8 +130,9 @@ class CarnetApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.select<AppState, String>((s) => s.settings.theme);
+    final language = context.select<AppState, String>((s) => s.settings.language);
     return MaterialApp(
-      title: 'carnet237',
+      onGenerateTitle: (context) => context.l.appTitle,
       debugShowCheckedModeBanner: false,
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),
@@ -138,9 +141,10 @@ class CarnetApp extends StatelessWidget {
         'dark' => ThemeMode.dark,
         _ => ThemeMode.system,
       },
-      locale: const Locale('fr', 'FR'),
-      supportedLocales: const [Locale('fr', 'FR')],
-      localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      // AppState has already switched `tr` and the intl locale to match.
+      locale: Locale(resolveLang(language)),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       builder: (context, child) => LockGate(child: child!),
       home: const HomeShell(),
     );
@@ -171,7 +175,13 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     _fade.forward(from: 0);
   }
 
-  static const _tabs = [('list', 'Opérations'), ('wallet', 'Comptes'), ('tags', 'Catégories'), ('chart-pie', 'Statistiques'), ('layout-grid', 'Plus')];
+  List<(String, String)> _tabs(AppLocalizations l) => [
+    ('list', l.tabOps),
+    ('wallet', l.tabAccounts),
+    ('tags', l.tabCategories),
+    ('chart-pie', l.tabStats),
+    ('layout-grid', l.tabMore),
+  ];
 
   @override
   void initState() {
@@ -183,15 +193,17 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
 
   void showOps() => _select(0);
 
-  String get _title {
-    if (index != 0) return _tabs[index].$2;
+  String _title(AppLocalizations l) {
+    if (index != 0) return _tabs(l)[index].$2;
     final h = DateTime.now().hour;
-    return h >= 18 || h < 4 ? 'Bonsoir' : 'Bonjour';
+    return h >= 18 || h < 4 ? l.greetingEvening : l.greetingDay;
   }
 
   @override
   Widget build(BuildContext context) {
     final ready = context.select<AppState, bool>((s) => s.ready);
+    final l = context.l;
+    final title = _title(l);
     if (onboarded == null) return Scaffold(backgroundColor: context.c.bg);
     if (onboarded == false) {
       return OnboardingScreen(
@@ -206,7 +218,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
       appBar: AppBar(
         title: AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
-          child: Text(_title, key: ValueKey(_title)),
+          child: Text(title, key: ValueKey(title)),
         ),
       ),
       body: ready
@@ -221,13 +233,13 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
             )
           : const Center(child: CircularProgressIndicator()),
       floatingActionButton: ready && index != 4
-          ? FloatingActionButton(tooltip: 'Nouvelle opération', onPressed: () => openTxSheet(context), child: Icon(appIcon('plus'), size: 26))
+          ? FloatingActionButton(tooltip: l.newOperation, onPressed: () => openTxSheet(context), child: Icon(appIcon('plus'), size: 26))
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
         animationDuration: const Duration(milliseconds: 350),
         onDestinationSelected: _select,
-        destinations: [for (final t in _tabs) NavigationDestination(icon: Icon(appIcon(t.$1)), label: t.$2)],
+        destinations: [for (final t in _tabs(l)) NavigationDestination(icon: Icon(appIcon(t.$1)), label: t.$2)],
       ),
     );
   }

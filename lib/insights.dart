@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'i18n.dart';
 import 'models.dart';
 import 'state.dart';
 
@@ -19,7 +20,7 @@ String _norm(String s) {
 }
 
 List<String> _words(String note) => _norm(note).split(' ').where((w) => w.length >= 3 && !_stop.contains(w)).toList();
-const _stop = {'les', 'des', 'pour', 'avec', 'une', 'aux', 'chez', 'mon', 'mes', 'son', 'ses', 'sur', 'par', 'the', 'and'};
+const _stop = {'les', 'des', 'pour', 'avec', 'une', 'aux', 'chez', 'mon', 'mes', 'son', 'ses', 'sur', 'par', 'the', 'and', 'for', 'with', 'from', 'your'};
 
 /// Common words → built-in category ids, used before there is enough history.
 const _keywords = <String, String>{
@@ -96,6 +97,7 @@ const _keywords = <String, String>{
   'livre': 'education',
   'fournitures': 'education',
   'formation': 'education',
+  'rentree': 'education',
   'parents': 'famille',
   'famille': 'famille',
   'enfant': 'famille',
@@ -113,6 +115,66 @@ const _keywords = <String, String>{
   'commission': 'activite',
   'cadeau': 'cadeau',
   'don': 'cadeau',
+  // English equivalents (notes may be written in either language).
+  'fuel': 'transport',
+  'petrol': 'transport',
+  'diesel': 'transport',
+  'ticket': 'transport',
+  'fare': 'transport',
+  'toll': 'transport',
+  'supermarket': 'alim',
+  'market': 'alim',
+  'grocer': 'alim',
+  'food': 'alim',
+  'bread': 'alim',
+  'bakery': 'alim',
+  'rice': 'alim',
+  'fish': 'alim',
+  'meat': 'alim',
+  'vegetable': 'alim',
+  'lunch': 'resto',
+  'dinner': 'resto',
+  'breakfast': 'resto',
+  'rent': 'logement',
+  'lease': 'logement',
+  'bill': 'factures',
+  'electricity': 'factures',
+  'water': 'factures',
+  'subscription': 'factures',
+  'airtime': 'telephone',
+  'bundle': 'telephone',
+  'topup': 'telephone',
+  'pharmacy': 'sante',
+  'medicine': 'sante',
+  'drug': 'sante',
+  'hospital': 'sante',
+  'doctor': 'sante',
+  'clinic': 'sante',
+  'movie': 'loisirs',
+  'party': 'loisirs',
+  'outing': 'loisirs',
+  'cloth': 'shopping',
+  'shoe': 'shopping',
+  'dress': 'shopping',
+  'school': 'education',
+  'tuition': 'education',
+  'books': 'education',
+  'supplies': 'education',
+  'training': 'education',
+  'family': 'famille',
+  'child': 'famille',
+  'kids': 'famille',
+  'baby': 'famille',
+  'funeral': 'famille',
+  'wedding': 'famille',
+  'salary': 'salaire',
+  'wage': 'salaire',
+  'payroll': 'salaire',
+  'bonus': 'salaire',
+  'customer': 'activite',
+  'sale': 'activite',
+  'gift': 'cadeau',
+  'donation': 'cadeau',
 };
 
 class Recurring {
@@ -358,14 +420,13 @@ class Insights {
       if (a <= 0 || diff.abs() < max(2000, income * 0.03)) continue;
       final pct = (diff / a * 100).round();
       final g = s.group(key);
-      final verb = current ? 'à ce rythme, tu finirais le mois à' : 'soit';
       if (pct >= 20) {
         out.add(
           Insight(
             Tone.warn,
             g.icon,
-            '+$pct % en ${g.name}',
-            '${money(cur[key] ?? 0)} dépensés, $verb ${money(c)} contre ${money(a)} en moyenne.',
+            tr.insWarnTitle(pct, g.name),
+            current ? tr.insWarnTextCurrent(money(cur[key] ?? 0), money(c), money(a)) : tr.insWarnTextPast(money(cur[key] ?? 0), money(c), money(a)),
             cat: key,
             weight: diff,
           ),
@@ -375,8 +436,8 @@ class Insights {
           Insight(
             Tone.good,
             g.icon,
-            '$pct % en ${g.name}',
-            'Bien joué : ${money(a - c)} de moins que ta moyenne${current ? ' si tu gardes ce rythme' : ''}.',
+            tr.insGoodTitle(pct, g.name),
+            current ? tr.insGoodTextCurrent(money(a - c)) : tr.insGoodTextPast(money(a - c)),
             cat: key,
             weight: -diff * 0.8,
           ),
@@ -387,16 +448,7 @@ class Insights {
     final saved = s.monthTxs(month).where((t) => t.type == TxType.save).fold(0.0, (a, t) => a - t.dir * t.amount);
     final avgSaved = avg['save'] ?? 0;
     if (s.goals.isNotEmpty && saved <= 0 && avgSaved > 0 && current && now.day >= 10) {
-      out.add(
-        Insight(
-          Tone.info,
-          'piggy-bank',
-          'Pas encore d\'épargne ce mois-ci',
-          "D'habitude tu mets ${money(avgSaved)} de côté par mois.",
-          cat: 'save',
-          weight: avgSaved,
-        ),
-      );
+      out.add(Insight(Tone.info, 'piggy-bank', tr.insNoSavingTitle, tr.insNoSavingText(money(avgSaved)), cat: 'save', weight: avgSaved));
     }
     out.sort((a, b) => b.weight.compareTo(a.weight));
     return out.take(4).toList();

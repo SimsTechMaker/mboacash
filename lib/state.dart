@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 import 'db.dart';
+import 'i18n.dart';
 import 'models.dart';
+import 'proofs.dart';
 
 class Effect {
   final String account;
@@ -47,6 +49,9 @@ class AppState extends ChangeNotifier {
   Future<void> load() async {
     await store.open();
     settings = await store.loadSettings();
+    final labels = settings.labelsLang;
+    _applyLang(settings);
+    if (settings.labelsLang != labels) await store.saveSettings(settings);
     txs = await store.loadTxs();
     goals = await store.loadGoals();
     debts = await store.loadDebts();
@@ -104,11 +109,11 @@ class AppState extends ChangeNotifier {
 
   /// Name, icon and palette slot of a [flowKey] group.
   ({String name, String icon, String color}) group(String key) => switch (key) {
-    'save' => (name: 'Épargne', icon: 'piggy-bank', color: 'c2'),
-    'debt' => (name: 'Dettes', icon: 'handshake', color: 'c9'),
-    'transfer' => (name: 'Transfert', icon: 'arrow-left-right', color: 'c10'),
-    'adjust' => (name: 'Ajustement', icon: 'sliders-horizontal', color: 'c10'),
-    _ => (name: catById(key)?.name ?? 'Sans catégorie', icon: catById(key)?.icon ?? 'package', color: catById(key)?.color ?? 'c10'),
+    'save' => (name: tr.typeSave, icon: 'piggy-bank', color: 'c2'),
+    'debt' => (name: tr.debtsTitle, icon: 'handshake', color: 'c9'),
+    'transfer' => (name: tr.stateGroupTransfer, icon: 'arrow-left-right', color: 'c10'),
+    'adjust' => (name: tr.typeAdjust, icon: 'sliders-horizontal', color: 'c10'),
+    _ => (name: catById(key)?.name ?? tr.stateNoCategory, icon: catById(key)?.icon ?? 'package', color: catById(key)?.color ?? 'c10'),
   };
 
   List<Effect> effects(Tx t) {
@@ -162,6 +167,8 @@ class AppState extends ChangeNotifier {
     await store.saveTx(t);
     final i = txs.indexWhere((x) => x.id == t.id);
     if (i >= 0) {
+      // The proof photo was replaced or removed: drop the old file.
+      if (txs[i].proof.isNotEmpty && txs[i].proof != t.proof) await Proofs.delete(txs[i].proof);
       txs[i] = t;
     } else {
       txs.add(t);
@@ -171,11 +178,22 @@ class AppState extends ChangeNotifier {
 
   Future<void> deleteTx(String id) async {
     await store.deleteTx(id);
+    final proof = txs.where((t) => t.id == id).firstOrNull?.proof ?? '';
+    if (proof.isNotEmpty) await Proofs.delete(proof);
     txs.removeWhere((t) => t.id == id);
     _changed();
   }
 
+  /// Switches the app to the language [s] asks for and renames the built-in
+  /// categories and accounts to match (custom names are left alone).
+  void _applyLang(Settings s) {
+    final code = resolveLang(s.language);
+    useLang(code);
+    s.relabel(code);
+  }
+
   Future<void> saveSettings(Settings s) async {
+    _applyLang(s);
     s.normalize();
     await store.saveSettings(s);
     settings = s;
@@ -242,6 +260,7 @@ class AppState extends ChangeNotifier {
     txs.clear();
     goals.clear();
     debts.clear();
+    await Proofs.prune({});
     _changed();
   }
 
@@ -268,7 +287,7 @@ class AppState extends ChangeNotifier {
 
   /// Everything the app stores, as plain JSON (what a backup contains).
   Map<String, dynamic> snapshot() => {
-    'app': 'carnet237',
+    'app': 'carnet237', // format tag from the app's first name: kept so every backup opens
     'format': 1,
     'created': DateTime.now().toIso8601String(),
     'settings': settings.toJson(),
@@ -277,7 +296,10 @@ class AppState extends ChangeNotifier {
     'debts': debts.map((d) => d.toRow()).toList(),
   };
 
-  /// Replaces all data with a [snapshot]. Parsing happens first, so a bad
+  /// [snapshot] plus the proof photos, base64-encoded: a complete backup.
+  Future<Map<String, dynamic>> fullSnapshot() async => {...snapshot(), 'proofs': await Proofs.export(txs.map((t) => t.proof).where((p) => p.isNotEmpty))};
+
+  /// Replaces all data with a [snapshot] (with or without proof photos). Parsing happens first, so a bad
   /// file leaves the current data untouched.
   Future<void> restore(Map<String, dynamic> data) async {
     if (data['app'] != 'carnet237') throw const FormatException('not a carnet237 backup');
@@ -286,7 +308,14 @@ class AppState extends ChangeNotifier {
     final t = rows('txs').map(Tx.fromRow).toList();
     final g = rows('goals').map(Goal.fromRow).toList();
     final d = rows('debts').map(Debt.fromRow).toList();
+    for (final x in t) {
+      if (x.proof.isNotEmpty && !Proofs.isValidName(x.proof)) x.proof = '';
+    }
+    final proofs = data['proofs'] is Map ? Map<String, dynamic>.from(data['proofs'] as Map) : const <String, dynamic>{};
+    _applyLang(s);
     await store.replaceAll(s, t, g, d);
+    await Proofs.import(proofs);
+    await Proofs.prune({for (final x in t) x.proof});
     settings = s;
     txs = t;
     goals = g;
@@ -304,7 +333,7 @@ class AppState extends ChangeNotifier {
 
     final goal = Goal(
       id: newId('g-'),
-      name: "Fonds d'urgence",
+      name: tr.stateSampleGoalEmergency,
       icon: 'shield',
       color: 'c2',
       target: 600000,
@@ -318,13 +347,13 @@ class AppState extends ChangeNotifier {
       amount: 50000,
       date: d(1, 10),
       due: isoDate(DateTime(now.year, now.month, 1)),
-      note: 'Avance pour son loyer',
+      note: tr.stateSampleNoteRentAdvance,
       sample: true,
     );
     final owe = Debt(
       id: newId('d-'),
       owe: true,
-      person: 'Tontine du quartier',
+      person: tr.stateSampleDebtTontine,
       amount: 120000,
       date: d(2, 5),
       due: isoDate(DateTime(now.year, now.month + 3, 1)),
@@ -380,39 +409,39 @@ class AppState extends ChangeNotifier {
       );
     }
 
-    const inc = TxType.income, exp = TxType.expense, tr = TxType.transfer;
+    const inc = TxType.income, exp = TxType.expense, xfer = TxType.transfer;
     for (final m in [0, 1, 2]) {
-      add(m, 1, inc, 450000, cat: 'salaire', acc: 'bank', note: 'Salaire');
-      add(m, 2, exp, 150000, cat: 'logement', acc: 'bank', note: 'Loyer');
-      add(m, 3, tr, m == 0 ? 60000 : 120000, acc: 'bank', to: 'cash', note: 'Retrait au guichet');
+      add(m, 1, inc, 450000, cat: 'salaire', acc: 'bank', note: tr.stateSampleNoteSalary);
+      add(m, 2, exp, 150000, cat: 'logement', acc: 'bank', note: tr.stateSampleNoteRent);
+      add(m, 3, xfer, m == 0 ? 60000 : 120000, acc: 'bank', to: 'cash', note: tr.stateSampleNoteWithdrawal);
     }
-    add(0, 3, exp, 18500, cat: 'alim', note: 'Marché de la semaine');
-    add(0, 4, exp, 3500, cat: 'transport', note: 'Moto-taxi');
-    add(0, 5, tr, 30000, acc: 'bank', to: 'momo', note: 'Recharge');
+    add(0, 3, exp, 18500, cat: 'alim', note: tr.stateSampleNoteWeeklyMarket);
+    add(0, 4, exp, 3500, cat: 'transport', note: tr.stateSampleNoteMotoTaxi);
+    add(0, 5, xfer, 30000, acc: 'bank', to: 'momo', note: tr.stateSampleNoteTopUp);
     add(0, 5, TxType.save, 50000, acc: 'bank');
-    add(0, 6, exp, 22000, cat: 'factures', acc: 'momo', note: 'Électricité ENEO');
-    add(0, 8, exp, 9200, cat: 'alim', note: 'Supermarché');
-    add(0, 9, exp, 6500, cat: 'resto', note: 'Déjeuner au tourne-dos');
+    add(0, 6, exp, 22000, cat: 'factures', acc: 'momo', note: tr.stateSampleNoteEneo);
+    add(0, 8, exp, 9200, cat: 'alim', note: tr.stateSampleNoteSupermarket);
+    add(0, 9, exp, 6500, cat: 'resto', note: tr.stateSampleNoteLunch);
     add(0, 10, TxType.debt, 20000, acc: 'momo', debt: owe);
-    add(0, 12, exp, 12000, cat: 'loisirs', note: 'Cinéma et sortie');
-    add(0, 13, exp, 7500, cat: 'sante', note: 'Pharmacie');
-    add(0, 14, inc, 85000, cat: 'activite', acc: 'momo', note: 'Mission freelance');
-    add(0, 15, exp, 25000, cat: 'famille', acc: 'momo', note: 'Aide aux parents');
+    add(0, 12, exp, 12000, cat: 'loisirs', note: tr.stateSampleNoteCinema);
+    add(0, 13, exp, 7500, cat: 'sante', note: tr.stateSampleNotePharmacy);
+    add(0, 14, inc, 85000, cat: 'activite', acc: 'momo', note: tr.stateSampleNoteFreelance);
+    add(0, 15, exp, 25000, cat: 'famille', acc: 'momo', note: tr.stateSampleNoteParents);
     add(0, 16, TxType.debt, 20000, debt: lent);
-    add(0, 18, exp, 15000, cat: 'transport', note: 'Carburant');
-    add(0, 20, exp, 19900, cat: 'shopping', acc: 'bank', note: 'Chaussures');
-    add(0, 22, exp, 10000, cat: 'telephone', acc: 'momo', note: 'Forfait internet');
-    add(0, 24, exp, 30000, cat: 'education', acc: 'bank', note: "Cours d'anglais");
+    add(0, 18, exp, 15000, cat: 'transport', note: tr.stateSampleNoteFuel);
+    add(0, 20, exp, 19900, cat: 'shopping', acc: 'bank', note: tr.stateSampleNoteShoes);
+    add(0, 22, exp, 10000, cat: 'telephone', acc: 'momo', note: tr.stateSampleNoteInternet);
+    add(0, 24, exp, 30000, cat: 'education', acc: 'bank', note: tr.stateSampleNoteLessons);
     add(1, 5, TxType.save, 75000, acc: 'bank');
-    add(1, 6, exp, 61000, cat: 'alim', note: 'Courses du mois');
+    add(1, 6, exp, 61000, cat: 'alim', note: tr.stateSampleNoteGroceries);
     add(1, 10, TxType.debt, 50000, debt: lent, init: true);
-    add(1, 12, exp, 31000, cat: 'factures', acc: 'momo', note: 'Électricité et eau');
-    add(1, 19, exp, 28000, cat: 'transport', note: 'Carburant');
-    add(1, 25, exp, 22000, cat: 'loisirs', acc: 'bank', note: 'Week-end');
+    add(1, 12, exp, 31000, cat: 'factures', acc: 'momo', note: tr.stateSampleNoteUtilities);
+    add(1, 19, exp, 28000, cat: 'transport', note: tr.stateSampleNoteFuel);
+    add(1, 25, exp, 22000, cat: 'loisirs', acc: 'bank', note: tr.stateSampleNoteWeekend);
     add(2, 5, TxType.debt, 120000, acc: 'bank', debt: owe, init: true);
-    add(2, 9, exp, 72000, cat: 'alim', note: 'Courses du mois');
-    add(2, 16, exp, 40000, cat: 'sante', acc: 'bank', note: 'Consultation');
-    add(2, 22, exp, 55000, cat: 'shopping', acc: 'bank', note: 'Téléphone');
+    add(2, 9, exp, 72000, cat: 'alim', note: tr.stateSampleNoteGroceries);
+    add(2, 16, exp, 40000, cat: 'sante', acc: 'bank', note: tr.stateSampleNoteDoctor);
+    add(2, 22, exp, 55000, cat: 'shopping', acc: 'bank', note: tr.stateSampleNotePhone);
 
     await store.saveMany(list);
     txs.addAll(list);

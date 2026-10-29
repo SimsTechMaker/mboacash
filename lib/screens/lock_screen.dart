@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n.dart';
 import '../icons.dart';
 import '../security.dart';
 import '../state.dart';
@@ -128,7 +129,7 @@ class _PinPadState extends State<PinPad> {
                 child: pin.isEmpty
                     ? null
                     : IconButton(
-                        tooltip: 'Effacer',
+                        tooltip: context.l.commonClear,
                         icon: Icon(appIcon('delete'), size: 26),
                         onPressed: () => setState(() => pin = pin.substring(0, pin.length - 1)),
                       ),
@@ -140,7 +141,7 @@ class _PinPadState extends State<PinPad> {
           const SizedBox(height: 8),
           SizedBox(
             width: 252,
-            child: FilledButton(onPressed: widget.enabled && pin.length >= widget.minLength && !busy ? submit : null, child: const Text('Valider')),
+            child: FilledButton(onPressed: widget.enabled && pin.length >= widget.minLength && !busy ? submit : null, child: Text(context.l.lockSubmit)),
           ),
         ],
       ],
@@ -226,23 +227,23 @@ class _LockScreenState extends State<LockScreen> {
                 ),
                 const SizedBox(height: 18),
                 PinPad(
-                  title: 'carnet237 est verrouillé',
-                  subtitle: 'Saisis ton code pour continuer',
-                  error: blocked ? 'Trop d\'essais. Réessaie dans $wait s.' : error,
+                  title: context.l.lockTitle,
+                  subtitle: context.l.lockSubtitle,
+                  error: blocked ? context.l.lockTooManyWait(wait) : error,
                   enabled: !blocked,
                   onSubmit: (pin) async {
                     final ok = await l.unlockWithPin(pin);
                     if (!ok && mounted) {
                       setState(
                         () => error = l.failures >= LockService.maxTries
-                            ? 'Code incorrect.'
-                            : 'Code incorrect. ${LockService.maxTries - l.failures} essai${LockService.maxTries - l.failures > 1 ? 's' : ''} avant une pause.',
+                            ? context.l.lockWrongCode
+                            : context.l.lockWrongCodeTries(LockService.maxTries - l.failures),
                       );
                     }
                   },
                   extra: l.biometric && l.biometricAvailable
                       ? IconButton(
-                          tooltip: 'Empreinte ou visage',
+                          tooltip: context.l.lockBiometricTooltip,
                           iconSize: 30,
                           icon: Icon(appIcon('fingerprint'), color: context.c.accent),
                           onPressed: blocked ? null : _bio,
@@ -250,7 +251,7 @@ class _LockScreenState extends State<LockScreen> {
                       : null,
                 ),
                 const SizedBox(height: 12),
-                TextButton(onPressed: () => _forgot(context), child: const Text('Code oublié ?')),
+                TextButton(onPressed: () => _forgot(context), child: Text(context.l.lockForgot)),
               ],
             ),
           ),
@@ -263,17 +264,14 @@ class _LockScreenState extends State<LockScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Code oublié'),
-        content: const Text(
-          "Le code ne peut pas être récupéré. La seule solution est d'effacer toutes les données de l'app sur ce téléphone et de retirer le code.\n\n"
-          'Si tu as une sauvegarde Google Drive, tu pourras la restaurer ensuite, mais il faudra le code utilisé au moment de cette sauvegarde.',
-        ),
+        title: Text(ctx.l.lockForgotTitle),
+        content: Text(ctx.l.lockForgotBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l.cancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: ctx.c.expense, foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Tout effacer'),
+            child: Text(ctx.l.lockWipeAll),
           ),
         ],
       ),
@@ -283,7 +281,7 @@ class _LockScreenState extends State<LockScreen> {
     final l = context.read<LockService>();
     await s.wipeAll();
     await l.removePin();
-    if (context.mounted) toast(context, 'Données effacées et code retiré');
+    if (context.mounted) toast(context, context.l.lockWiped);
   }
 }
 
@@ -305,14 +303,14 @@ class _NewPinPageState extends State<_NewPinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Code de verrouillage')),
+      appBar: AppBar(title: Text(context.l.lockCodeTitle)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: PinPad(
             key: ValueKey(first == null),
-            title: first == null ? 'Choisis un code' : 'Confirme le code',
-            subtitle: first == null ? 'De 4 à 6 chiffres' : 'Saisis-le une deuxième fois',
+            title: first == null ? context.l.lockChooseCode : context.l.lockConfirmCode,
+            subtitle: first == null ? context.l.lockDigits : context.l.lockEnterAgain,
             error: error,
             onSubmit: (pin) async {
               if (first == null) {
@@ -325,7 +323,7 @@ class _NewPinPageState extends State<_NewPinPage> {
               } else {
                 setState(() {
                   first = null;
-                  error = 'Les deux codes sont différents. Recommence.';
+                  error = context.l.lockMismatch;
                 });
               }
             },
@@ -362,20 +360,20 @@ class _AskPinPageState extends State<_AskPinPage> {
   Widget build(BuildContext context) {
     final l = context.watch<LockService>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Code')),
+      appBar: AppBar(title: Text(context.l.lockCode)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: PinPad(
             title: widget.title,
             subtitle: widget.subtitle,
-            error: widget.check && l.isBlocked ? "Trop d'essais. Réessaie plus tard." : error,
+            error: widget.check && l.isBlocked ? context.l.lockTooManyLater : error,
             enabled: !(widget.check && l.isBlocked),
             onSubmit: (pin) async {
               if (!widget.check || await l.check(pin)) {
                 if (context.mounted) Navigator.pop(context, pin);
               } else {
-                setState(() => error = 'Code incorrect.');
+                setState(() => error = context.l.lockWrongCode);
               }
             },
           ),

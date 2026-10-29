@@ -1,20 +1,24 @@
-"""Draws the carnet237 logo: a cream notebook with ring binding, "237" on the
-cover and an orange bookmark, on the app's ledger green.
+"""Draws the my-nkap logo, "où va mon argent ?": the trail the money leaves
+draws a dotted question mark, and a gold $ coin is its dot. Ledger green tile,
+cream trail, gold coin. The black master is docs/logo/concepts/a-trail-question.svg.
+
+Usage: python docs/logo/make_logo.py <project>   then   dart run flutter_launcher_icons
 
 Outputs (in <project>/assets/icon/ and android res/drawable-*/):
   icon.png             1024 full icon (rounded square) for legacy launchers
   foreground.png       1024 adaptive foreground (transparent, safe zone)
   monochrome.png       1024 Android 13 themed icon silhouette
   logo-512.png         512 store/branding icon
+  splash_logo.png      launch screen artwork (before Android 12)
   ic_stat_carnet.png   white notification silhouettes at each density
 """
+import math
 import os
 import sys
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 PROJECT = sys.argv[1]
-FONT = os.path.join(PROJECT, "assets", "fonts", "IBMPlexSans-Bold.ttf")
 OUT = os.path.join(PROJECT, "assets", "icon")
 RES = os.path.join(PROJECT, "android", "app", "src", "main", "res")
 os.makedirs(OUT, exist_ok=True)
@@ -22,82 +26,133 @@ os.makedirs(OUT, exist_ok=True)
 GREEN = (29, 106, 86, 255)
 GREEN_DARK = (19, 76, 61, 255)
 CREAM = (247, 244, 236, 255)
-PAGE = (226, 221, 207, 255)
-ORANGE = (217, 130, 43, 255)
+GOLD = (232, 163, 61, 255)
+GOLD_DARK = (196, 124, 32, 255)
+WHITE = (255, 255, 255, 255)
+CLEAR = (0, 0, 0, 0)
 SS = 4  # supersampling factor for smooth edges
 
-
-def notebook(draw, cx, cy, w, h, s, mono=False, text=True):
-    """Notebook centred on (cx, cy), size w x h, in supersampled pixels."""
-    x0, y0, x1, y1 = cx - w // 2, cy - h // 2, cx + w // 2, cy + h // 2
-    r = int(w * 0.09)
-    fg = (255, 255, 255, 255) if mono else CREAM
-    # Page edges peeking out on the right, then the cover.
-    if not mono:
-        draw.rounded_rectangle((x0 + int(w * 0.05), y0 + int(h * 0.025), x1 + int(w * 0.035), y1 - int(h * 0.025)), r, fill=PAGE)
-    draw.rounded_rectangle((x0, y0, x1, y1), r, fill=fg)
-    # Spine band and binder rings.
-    spine = int(w * 0.17)
-    hole = (0, 0, 0, 0) if mono else GREEN
-    if not mono:
-        draw.rounded_rectangle((x0, y0, x0 + spine, y1), r, fill=(232, 228, 216, 255))
-        draw.rectangle((x0 + spine - int(w * 0.012), y0, x0 + spine, y1), fill=(214, 208, 192, 255))
-    ring_r = int(w * 0.04)
-    for k in range(4):
-        ry = y0 + int(h * (0.2 + k * 0.2))
-        rx = x0 + spine // 2
-        draw.ellipse((rx - ring_r, ry - ring_r, rx + ring_r, ry + ring_r), fill=hole)
-    # Bookmark ribbon hanging from the top edge.
-    bx = x1 - int(w * 0.24)
-    bw = int(w * 0.12)
-    ribbon = (0, 0, 0, 0) if mono else ORANGE
-    by1 = y0 + int(h * 0.26)
-    draw.polygon([(bx, y0), (bx + bw, y0), (bx + bw, by1), (bx + bw // 2, by1 - int(bw * 0.55)), (bx, by1)], fill=ribbon)
-    if text:
-        size = int(w * 0.36)
-        font = ImageFont.truetype(FONT, size)
-        label = "237"
-        l, t, rr, b = draw.textbbox((0, 0), label, font=font)
-        tx = x0 + spine + (w - spine - (rr - l)) // 2 - l
-        ty = cy + int(h * 0.08) - (b - t) // 2 - t
-        draw.text((tx, ty), label, font=font, fill=(0, 0, 0, 0) if mono else GREEN)
-        # Underline: a ledger rule under the number.
-        uy = ty + b + int(h * 0.05)
-        draw.rounded_rectangle((tx + l, uy, tx + rr, uy + int(h * 0.022)), int(h * 0.011), fill=(0, 0, 0, 0) if mono else ORANGE)
+# Geometry on a 256 grid (same numbers as the SVG master).
+HOOK = (128, 86, 50, 160, 385)  # arc centre x, y, radius, start and end angle (degrees, y down)
+STEM_END = (128, 160)
+TRAIL_W, DASH, GAP = 24, 18, 44  # stroke width and dash pattern, as an SVG stroke-dasharray with round caps
+COIN = (128, 214, 32)
+DOLLAR_K, DOLLAR_W = 30, 6.5
 
 
-def render(size, bg=True, mono=False, scale=0.62, text=True, rounded=True):
-    S = size * SS
-    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+def cubic(p0, p1, p2, p3, n):
+    out = []
+    for i in range(n + 1):
+        t = i / n
+        u = 1 - t
+        out.append(tuple(u**3 * a + 3 * u * u * t * b + 3 * u * t * t * c + t**3 * d for a, b, c, d in zip(p0, p1, p2, p3)))
+    return out
+
+
+def trail():
+    """The question mark's hook and stem as a dense polyline."""
+    cx, cy, r, a0, a1 = HOOK
+    arc = [(cx + r * math.cos(math.radians(a0 + (a1 - a0) * i / 600)), cy + r * math.sin(math.radians(a0 + (a1 - a0) * i / 600))) for i in range(601)]
+    x1, y1 = arc[-1]
+    return arc + cubic((x1, y1), (x1 - 14, y1 + 10), (128, 140), STEM_END, 200)[1:]
+
+
+def dollar_strokes(cx, cy, k):
+    S = (
+        cubic((cx + 0.34 * k, cy - 0.36 * k), (cx + 0.22 * k, cy - 0.54 * k), (cx - 0.38 * k, cy - 0.54 * k), (cx - 0.38 * k, cy - 0.22 * k), 120)
+        + cubic((cx - 0.38 * k, cy - 0.22 * k), (cx - 0.38 * k, cy + 0.04 * k), (cx + 0.38 * k, cy - 0.06 * k), (cx + 0.38 * k, cy + 0.22 * k), 120)
+        + cubic((cx + 0.38 * k, cy + 0.22 * k), (cx + 0.38 * k, cy + 0.54 * k), (cx - 0.22 * k, cy + 0.54 * k), (cx - 0.36 * k, cy + 0.36 * k), 120)
+    )
+    bar = [(cx, cy - 0.66 * k + (1.32 * k) * i / 100) for i in range(101)]
+    return [S, bar]
+
+
+class Transform:
+    """Maps the 256 grid into a box of the supersampled image."""
+
+    def __init__(self, x, y, size):
+        self.x, self.y, self.s = x, y, size / 256
+
+    def __call__(self, px, py):
+        return (self.x + px * self.s, self.y + py * self.s)
+
+
+def stamp(d, pts, width, color, T):
+    """Round-capped stroke: discs stamped densely along the points."""
+    rad = width / 2 * T.s
+    for x, y in pts:
+        X, Y = T(x, y)
+        d.ellipse((X - rad, Y - rad, X + rad, Y + rad), fill=color)
+
+
+def dashed(pts):
+    """Splits a polyline into dashes of DASH units separated by GAP units."""
+    out, run, dist, on = [], [pts[0]], 0.0, True
+    for a, b in zip(pts, pts[1:]):
+        dist += math.dist(a, b)
+        if on:
+            run.append(b)
+        if on and dist >= DASH:
+            out.append(run)
+            on, dist = False, 0.0
+        elif not on and dist >= GAP:
+            on, dist, run = True, 0.0, [b]
+    if on and len(run) > 1:
+        out.append(run)
+    return out
+
+
+def mark(img, T, mono=False):
     d = ImageDraw.Draw(img)
+    for seg in dashed(trail()):
+        stamp(d, seg, TRAIL_W, WHITE if mono else CREAM, T)
+    cx, cy, r = COIN
+    X, Y = T(cx, cy)
+    R = r * T.s
+    if mono:
+        d.ellipse((X - R, Y - R, X + R, Y + R), fill=WHITE)
+    else:
+        lift = R * 0.09
+        d.ellipse((X - R, Y - R + lift, X + R, Y + R + lift), fill=GOLD_DARK)
+        d.ellipse((X - R, Y - R, X + R, Y + R), fill=GOLD)
+    # In the one-colour versions the $ is cut out of the coin.
+    for s in dollar_strokes(cx, cy, DOLLAR_K):
+        stamp(d, s, DOLLAR_W, CLEAR if mono else CREAM, T)
+
+
+def render(size, bg=True, mono=False, scale=0.80, rounded=True):
+    S = size * SS
+    img = Image.new("RGBA", (S, S), CLEAR)
     if bg:
+        d = ImageDraw.Draw(img)
         if rounded:
             d.rounded_rectangle((0, 0, S - 1, S - 1), int(S * 0.22), fill=GREEN)
         else:
             d.rectangle((0, 0, S, S), fill=GREEN)
         # Soft diagonal shade in the lower-right corner, clipped to the tile.
-        shade = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+        shade = Image.new("RGBA", (S, S), CLEAR)
         ImageDraw.Draw(shade).polygon([(S, int(S * 0.45)), (S, S), (int(S * 0.45), S)], fill=GREEN_DARK[:3] + (150,))
         clip = Image.new("L", (S, S), 0)
         ImageDraw.Draw(clip).rounded_rectangle((0, 0, S - 1, S - 1), int(S * 0.22) if rounded else 0, fill=255)
         shade.putalpha(Image.composite(shade.getchannel("A"), Image.new("L", (S, S), 0), clip))
         img = Image.alpha_composite(img, shade)
-        d = ImageDraw.Draw(img)
-    w = int(S * scale * 0.80)
-    h = int(S * scale)
-    notebook(d, S // 2 - int(S * 0.01), S // 2, w, h, SS, mono=mono, text=text)
+    box = S * scale
+    mark(img, Transform((S - box) / 2, (S - box) / 2, box), mono=mono)
     return img.resize((size, size), Image.LANCZOS)
 
 
 render(1024).save(os.path.join(OUT, "icon.png"))
 render(512).save(os.path.join(OUT, "logo-512.png"))
 # Adaptive layers: 108dp canvas, safe zone is the central 66dp circle.
-render(1024, bg=False, scale=0.50).save(os.path.join(OUT, "foreground.png"))
-render(1024, bg=False, mono=True, scale=0.50).save(os.path.join(OUT, "monochrome.png"))
+render(1024, bg=False, scale=0.64).save(os.path.join(OUT, "foreground.png"))
+render(1024, bg=False, mono=True, scale=0.64).save(os.path.join(OUT, "monochrome.png"))
 
-# Notification icon: white silhouette, no text (unreadable at 24 px).
-for folder, px in {"drawable-mdpi": 24, "drawable-hdpi": 36, "drawable-xhdpi": 48, "drawable-xxhdpi": 72, "drawable-xxxhdpi": 96}.items():
+densities = {"drawable-mdpi": 1, "drawable-hdpi": 1.5, "drawable-xhdpi": 2, "drawable-xxhdpi": 3, "drawable-xxxhdpi": 4}
+for folder, k in densities.items():
     os.makedirs(os.path.join(RES, folder), exist_ok=True)
-    render(px, bg=False, mono=True, scale=0.92, text=False).save(os.path.join(RES, folder, "ic_stat_carnet.png"))
+    # Launch screen (Android < 12): the artwork on the green window background.
+    render(int(120 * k), bg=False, scale=0.9).save(os.path.join(RES, folder, "splash_logo.png"))
+    # Notification icon: white silhouette filling the 24 dp square.
+    render(int(24 * k), bg=False, mono=True, scale=1.0).save(os.path.join(RES, folder, "ic_stat_carnet.png"))
 
 print("ok")

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../models.dart';
 import '../state.dart';
@@ -48,6 +49,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final used = cats.where((c) => (by[c.id] ?? 0) > 0).toList();
     final unused = cats.where((c) => (by[c.id] ?? 0) == 0).toList();
     final overCaps = income ? 0 : used.where((c) => c.cap > 0 && (by[c.id] ?? 0) > c.cap).length;
+    final l = context.l;
+    final monthName = monthLabel(s.month, year: false);
+    final monthLower = lang == 'fr' ? monthName.toLowerCase() : monthName;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
@@ -56,9 +60,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         const SizedBox(height: 14),
         SegmentedButton<bool>(
           showSelectedIcon: false,
-          segments: const [
-            ButtonSegment(value: false, label: Text('Dépenses')),
-            ButtonSegment(value: true, label: Text('Revenus')),
+          segments: [
+            ButtonSegment(value: false, label: Text(l.totalsExpenses)),
+            ButtonSegment(value: true, label: Text(l.totalsIncome)),
           ],
           selected: {income},
           onSelectionChanged: (v) => setState(() => income = v.first),
@@ -72,7 +76,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HeroLabel('${income ? 'Reçu' : 'Dépensé'} en ${monthLabel(s.month, year: false).toLowerCase()}'),
+                    HeroLabel(income ? l.catsReceivedIn(monthLower) : l.catsSpentIn(monthLower)),
                     const SizedBox(height: 4),
                     FittedBox(
                       alignment: Alignment.centerLeft,
@@ -81,9 +85,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     const SizedBox(height: 8),
                     Text(
                       used.isEmpty
-                          ? 'Aucune opération ce mois-ci'
-                          : '${plural(used.length, 'catégorie')} · la plus forte : ${used.first.name}'
-                                '${overCaps > 0 ? ' · ${plural(overCaps, 'plafond')} dépassé${overCaps > 1 ? 's' : ''}' : ''}',
+                          ? l.catsNoOps
+                          : '${l.catsCount(used.length)} · ${l.catsTop(used.first.name)}'
+                                '${overCaps > 0 ? ' · ${l.catsOverCaps(overCaps)}' : ''}',
                       style: const TextStyle(color: heroSoft, fontSize: 12.5),
                     ),
                   ],
@@ -99,10 +103,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         const SizedBox(height: 18),
         SectionTitle(
           icon: 'tags',
-          text: 'Par catégorie',
+          text: l.catsByCategory,
           trailing: TextButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen(initialTab: 1))),
-            child: const Text('Gérer'),
+            child: Text(l.catsManage),
           ),
         ),
         for (var i = 0; i < used.length; i++) ...[
@@ -114,7 +118,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ],
         if (unused.isNotEmpty) ...[
           const SizedBox(height: 8),
-          Text('Sans opération ce mois-ci', style: TextStyle(color: context.c.muted, fontSize: 13)),
+          Text(l.catsUnused, style: TextStyle(color: context.c.muted, fontSize: 13)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
@@ -145,6 +149,7 @@ class _CatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.read<AppState>();
     final f = fmtOf(context);
+    final l = context.l;
     final cap = income ? 0.0 : cat.cap;
     final pct = cap > 0 ? value / cap : (total > 0 ? value / total : 0.0);
     final color = cap > 0
@@ -175,7 +180,7 @@ class _CatCard extends StatelessWidget {
                 Text(cat.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 2),
                 Text(
-                  cap > 0 ? '${plural(count, 'opération')} · plafond ${f.money(cap)}' : '${plural(count, 'opération')} · ${(pct * 100).round()} % du total',
+                  cap > 0 ? '${l.opsCount(count)} · ${l.catsCap(f.money(cap))}' : '${l.opsCount(count)} · ${l.catsShareOfTotal((pct * 100).round())}',
                   style: TextStyle(color: context.c.muted, fontSize: 12.5),
                 ),
               ],
@@ -185,7 +190,7 @@ class _CatCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               AnimatedMoney(value, size: 15, weight: FontWeight.w600),
-              if (cap > 0) ...[const SizedBox(height: 4), Pill(pct > 1 ? 'Dépassé' : '${(pct * 100).round()} %', color: color)],
+              if (cap > 0) ...[const SizedBox(height: 4), Pill(pct > 1 ? l.catsOver : l.statsPercent('${(pct * 100).round()}'), color: color)],
             ],
           ),
         ],

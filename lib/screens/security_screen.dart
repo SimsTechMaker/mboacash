@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n.dart';
 import '../icons.dart';
 import '../security.dart';
 import '../theme.dart';
@@ -11,7 +12,14 @@ import 'lock_screen.dart';
 class SecurityScreen extends StatelessWidget {
   const SecurityScreen({super.key});
 
-  static const delays = {0: 'Immédiatement', 30: 'Après 30 secondes', 60: 'Après 1 minute', 300: 'Après 5 minutes', 900: 'Après 15 minutes'};
+  static const delayChoices = [0, 30, 60, 300, 900];
+
+  static String delayLabel(AppLocalizations l, int s) {
+    if (s == 0) return l.securityDelayNow;
+    if (s < 60) return l.securityDelaySeconds(s);
+    if (s % 60 == 0) return l.securityDelayMinutes(s ~/ 60);
+    return l.securityDelayShort(s);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,27 +29,27 @@ class SecurityScreen extends StatelessWidget {
       final pin = await askNewPin(context);
       if (pin == null) return;
       await l.setPin(pin);
-      if (context.mounted) toast(context, 'Code activé');
+      if (context.mounted) toast(context, context.l.securityCodeOn);
     }
 
     Future<void> change() async {
-      final cur = await askPin(context, title: 'Code actuel', subtitle: 'Saisis ton code actuel');
+      final cur = await askPin(context, title: context.l.securityCurrentCode, subtitle: context.l.securityEnterCurrent);
       if (cur == null || !context.mounted) return;
       final pin = await askNewPin(context);
       if (pin == null) return;
       await l.setPin(pin);
-      if (context.mounted) toast(context, 'Code modifié. Les prochaines sauvegardes utiliseront le nouveau code.');
+      if (context.mounted) toast(context, context.l.securityCodeChanged);
     }
 
     Future<void> disable() async {
-      final cur = await askPin(context, title: 'Code actuel', subtitle: 'Saisis ton code pour le retirer');
+      final cur = await askPin(context, title: context.l.securityCurrentCode, subtitle: context.l.securityEnterToRemove);
       if (cur == null) return;
       await l.removePin();
-      if (context.mounted) toast(context, 'Code retiré');
+      if (context.mounted) toast(context, context.l.securityCodeRemoved);
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sécurité')),
+      appBar: AppBar(title: Text(context.l.securityTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -64,14 +72,14 @@ class SecurityScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            l.hasPin ? 'App protégée' : 'App non protégée',
+                            l.hasPin ? context.l.securityProtected : context.l.securityUnprotected,
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             l.hasPin
-                                ? "Code activé${l.biometric && l.biometricAvailable ? ' · empreinte' : ''}. L'app le demande à l'ouverture."
-                                : "N'importe qui ayant ton téléphone peut ouvrir l'app.",
+                                ? (l.biometric && l.biometricAvailable ? context.l.securityProtectedDescBio : context.l.securityProtectedDesc)
+                                : context.l.securityUnprotectedDesc,
                             style: const TextStyle(color: heroSoft, fontSize: 12.5),
                           ),
                         ],
@@ -84,7 +92,7 @@ class SecurityScreen extends StatelessWidget {
                   FilledButton.icon(
                     style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF8A5216)),
                     icon: Icon(appIcon('lock')),
-                    label: const Text('Activer un code'),
+                    label: Text(context.l.securityEnable),
                     onPressed: enable,
                   )
                 else
@@ -92,8 +100,8 @@ class SecurityScreen extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _HeroButton(label: 'Changer le code', onPressed: change),
-                      _HeroButton(label: 'Retirer le code', onPressed: disable),
+                      _HeroButton(label: context.l.securityChange, onPressed: change),
+                      _HeroButton(label: context.l.securityRemove, onPressed: disable),
                     ],
                   ),
               ],
@@ -106,25 +114,21 @@ class SecurityScreen extends StatelessWidget {
                 children: [
                   SwitchListTile(
                     secondary: Icon(appIcon('fingerprint')),
-                    title: const Text('Empreinte ou reconnaissance faciale'),
-                    subtitle: Text(
-                      l.biometricAvailable
-                          ? 'Déverrouille sans taper le code. Le code reste possible.'
-                          : "Aucune empreinte ou visage enregistré sur ce téléphone. Ajoute-en dans les réglages d'Android.",
-                    ),
+                    title: Text(context.l.securityBioTitle),
+                    subtitle: Text(l.biometricAvailable ? context.l.securityBioOn : context.l.securityBioNone),
                     value: l.biometric && l.biometricAvailable,
                     onChanged: l.biometricAvailable
                         ? (v) async {
                             final ok = await l.setBiometric(v);
-                            if (!ok && context.mounted) toast(context, 'Vérification biométrique annulée');
+                            if (!ok && context.mounted) toast(context, context.l.securityBioCancelled);
                           }
                         : null,
                   ),
                   const Divider(),
                   ListTile(
                     leading: Icon(appIcon('timer')),
-                    title: const Text('Verrouiller quand je quitte l\'app'),
-                    subtitle: Text(delays[l.delaySeconds] ?? 'Après ${l.delaySeconds} s'),
+                    title: Text(context.l.securityLockOnLeave),
+                    subtitle: Text(delayLabel(context.l, l.delaySeconds)),
                     trailing: Icon(appIcon('chevron-right')),
                     onTap: () async {
                       final v = await showModalBottomSheet<int>(
@@ -135,7 +139,7 @@ class SecurityScreen extends StatelessWidget {
                             onChanged: (v) => Navigator.pop(ctx, v),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              children: [for (final e in delays.entries) RadioListTile<int>(value: e.key, title: Text(e.value))],
+                              children: [for (final d in delayChoices) RadioListTile<int>(value: d, title: Text(delayLabel(ctx.l, d)))],
                             ),
                           ),
                         ),
@@ -146,7 +150,7 @@ class SecurityScreen extends StatelessWidget {
                   const Divider(),
                   ListTile(
                     leading: Icon(appIcon('lock')),
-                    title: const Text('Verrouiller maintenant'),
+                    title: Text(context.l.securityLockNow),
                     onTap: () {
                       Navigator.pop(context);
                       l.lockNow();
@@ -157,12 +161,7 @@ class SecurityScreen extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 14),
-          Text(
-            "Le code n'est jamais enregistré en clair : seule une empreinte chiffrée est gardée dans le coffre sécurisé d'Android. "
-            'Après 5 erreurs, la saisie est bloquée un moment, et ce délai double à chaque nouvelle erreur. '
-            'Le code sert aussi à chiffrer tes sauvegardes Google Drive.',
-            style: TextStyle(color: context.c.muted, fontSize: 13),
-          ),
+          Text(context.l.securityFootnote, style: TextStyle(color: context.c.muted, fontSize: 13)),
         ],
       ),
     );

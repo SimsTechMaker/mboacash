@@ -10,7 +10,7 @@
          the Google account or to a new phone on its own; backups are the
          app's encrypted ones, made only on request. -->
     <application
-        android:label="carnet237"
+        android:label="my-nkap"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"

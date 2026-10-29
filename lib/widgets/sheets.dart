@@ -1,13 +1,18 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../insights.dart';
 import '../models.dart';
+import '../proofs.dart';
 import '../state.dart';
 import '../theme.dart';
 import 'common.dart';
+import 'proof.dart';
 
 // ---------------------------------------------------------------------------
 // Income / expense / transfer
@@ -20,7 +25,7 @@ Future<void> openTxSheet(BuildContext context, {Tx? tx, Recurring? from}) {
   }
   return showFormSheet(
     context,
-    title: tx == null ? 'Nouvelle opération' : "Modifier l'opération",
+    title: tx == null ? context.l.newOperation : context.l.sheetsTxEditTitle,
     builder: (_) => _TxForm(tx: tx, from: from, state: s),
   );
 }
@@ -41,6 +46,9 @@ class _TxFormState extends State<_TxForm> {
   final note = TextEditingController();
   bool catChosen = false; // the user picked a category: stop suggesting
   bool suggested = false;
+  // Proof photo: the saved file name, and a new photo written only on save.
+  late String proof = widget.tx?.proof ?? '';
+  Uint8List? newProof;
 
   @override
   void initState() {
@@ -95,11 +103,13 @@ class _TxFormState extends State<_TxForm> {
   Future<void> save() async {
     final s = widget.state;
     final v = parseAmount(amount.text);
-    if (v == null || v <= 0) return toast(context, 'Indique un montant supérieur à zéro.');
-    if (type == TxType.transfer && to == account) return toast(context, 'Choisis deux comptes différents pour un transfert.');
+    if (v == null || v <= 0) return toast(context, context.l.sheetsAmountPositive);
+    if (type == TxType.transfer && to == account) return toast(context, context.l.sheetsTransferSameAccount);
     final t = widget.tx;
+    final id = t?.id ?? newId();
+    if (newProof != null) proof = await Proofs.save(id, newProof!);
     final tx = Tx(
-      id: t?.id ?? newId(),
+      id: id,
       type: type,
       amount: v,
       cat: type == TxType.transfer ? 'transfer' : cat,
@@ -107,6 +117,7 @@ class _TxFormState extends State<_TxForm> {
       to: type == TxType.transfer ? to : '',
       date: date,
       note: note.text.trim(),
+      proof: proof,
       sample: t?.sample ?? false,
       created: t?.created,
     );
@@ -114,7 +125,8 @@ class _TxFormState extends State<_TxForm> {
     if (!date.startsWith(s.month)) s.setMonth(date.substring(0, 7));
     if (!mounted) return;
     Navigator.pop(context);
-    toast(context, t != null ? 'Opération mise à jour' : {TxType.expense: 'Dépense ajoutée', TxType.income: 'Revenu ajouté'}[type] ?? 'Transfert enregistré');
+    final l = context.l;
+    toast(context, t != null ? l.sheetsTxUpdated : {TxType.expense: l.sheetsExpenseAdded, TxType.income: l.sheetsIncomeAdded}[type] ?? l.sheetsTransferSaved);
   }
 
   @override
@@ -129,10 +141,10 @@ class _TxFormState extends State<_TxForm> {
       children: [
         SegmentedButton<TxType>(
           showSelectedIcon: false,
-          segments: const [
-            ButtonSegment(value: TxType.expense, label: Text('Dépense')),
-            ButtonSegment(value: TxType.income, label: Text('Revenu')),
-            ButtonSegment(value: TxType.transfer, label: Text('Transfert')),
+          segments: [
+            ButtonSegment(value: TxType.expense, label: Text(context.l.typeExpense)),
+            ButtonSegment(value: TxType.income, label: Text(context.l.typeIncome)),
+            ButtonSegment(value: TxType.transfer, label: Text(context.l.commonTransfer)),
           ],
           selected: {type},
           onSelectionChanged: (v) => setType(v.first),
@@ -141,32 +153,48 @@ class _TxFormState extends State<_TxForm> {
         Row(
           children: [
             Expanded(
-              child: AmountField(controller: amount, label: 'Montant', autofocus: widget.tx == null),
+              child: AmountField(controller: amount, label: context.l.sheetsAmount, autofocus: widget.tx == null),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: DateField(label: 'Date', value: date, onChanged: (d) => setState(() => date = d)),
+              child: DateField(label: context.l.sheetsDate, value: date, onChanged: (d) => setState(() => date = d)),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        accountDropdown(context, label: isT ? 'Depuis le compte' : 'Compte', value: account, extra: [account], onChanged: (v) => setState(() => account = v)),
+        accountDropdown(
+          context,
+          label: isT ? context.l.sheetsFromAccount : context.l.sheetsAccount,
+          value: account,
+          extra: [account],
+          onChanged: (v) => setState(() => account = v),
+        ),
         if (isT) ...[
           const SizedBox(height: 12),
-          accountDropdown(context, label: 'Vers le compte', value: to, extra: [to], onChanged: (v) => setState(() => to = v)),
+          accountDropdown(context, label: context.l.sheetsToAccount, value: to, extra: [to], onChanged: (v) => setState(() => to = v)),
         ],
         const SizedBox(height: 12),
         TextField(
           controller: note,
           maxLength: 120,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(labelText: 'Note', hintText: 'Marché, taxi, facture ENEO…', counterText: ''),
+          decoration: InputDecoration(labelText: context.l.sheetsNote, hintText: context.l.sheetsTxNoteHint, counterText: ''),
+        ),
+        const SizedBox(height: 12),
+        ProofField(
+          saved: proof,
+          pending: newProof,
+          onPicked: (b) => setState(() => newProof = b),
+          onRemove: () => setState(() {
+            newProof = null;
+            proof = '';
+          }),
         ),
         if (!isT) ...[
           const SizedBox(height: 14),
           Row(
             children: [
-              Text('Catégorie', style: TextStyle(color: context.c.muted, fontSize: 13)),
+              Text(context.l.sheetsCategory, style: TextStyle(color: context.c.muted, fontSize: 13)),
               const SizedBox(width: 8),
               AnimatedOpacity(
                 opacity: suggested && !catChosen ? 1 : 0,
@@ -175,7 +203,7 @@ class _TxFormState extends State<_TxForm> {
                   children: [
                     Icon(appIcon('sparkles'), size: 14, color: context.c.accent),
                     const SizedBox(width: 4),
-                    Text("suggérée d'après la note", style: TextStyle(color: context.c.accent, fontSize: 12.5)),
+                    Text(context.l.sheetsSuggested, style: TextStyle(color: context.c.accent, fontSize: 12.5)),
                   ],
                 ),
               ),
@@ -205,19 +233,19 @@ class _TxFormState extends State<_TxForm> {
           children: [
             if (widget.tx != null) ...[
               ConfirmDeleteButton(
-                label: 'Supprimer',
+                label: context.l.delete,
                 onConfirm: () async {
                   await s.deleteTx(widget.tx!.id);
                   if (context.mounted) {
                     Navigator.pop(context);
-                    toast(context, 'Opération supprimée');
+                    toast(context, context.l.sheetsTxDeleted);
                   }
                 },
               ),
               const SizedBox(width: 8),
             ],
             Expanded(
-              child: FilledButton(onPressed: save, child: Text(widget.tx == null ? 'Ajouter' : 'Mettre à jour')),
+              child: FilledButton(onPressed: save, child: Text(widget.tx == null ? context.l.add : context.l.sheetsUpdate)),
             ),
           ],
         ),
@@ -231,11 +259,12 @@ class _TxFormState extends State<_TxForm> {
 Future<void> openMovementDetails(BuildContext context, Tx tx) {
   final s = context.read<AppState>();
   final v = txView(s, tx);
+  final l = context.l;
   final where = tx.type == TxType.adjust
-      ? "Un ajustement corrige le solde d'un compte sans compter comme revenu ou dépense."
+      ? l.sheetsAdjustExplain
       : tx.type == TxType.save
-      ? 'Ce mouvement se gère depuis Plus › Épargne.'
-      : 'Ce mouvement se gère depuis Plus › Dettes.';
+      ? l.sheetsSaveExplain
+      : l.sheetsDebtExplain;
   return showFormSheet(
     context,
     title: v.title,
@@ -244,17 +273,17 @@ Future<void> openMovementDetails(BuildContext context, Tx tx) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _InfoBox(lines: ['Montant : ${f.money(tx.amount)}', 'Date : ${longDate(tx.date)}', 'Compte : ${v.sub}']),
+          _InfoBox(lines: [ctx.l.sheetsInfoAmount(f.money(tx.amount)), ctx.l.sheetsInfoDate(longDate(tx.date)), ctx.l.sheetsInfoAccount(v.sub)]),
           const SizedBox(height: 12),
-          Text('$where Tu peux le supprimer ici si c\'était une erreur.', style: TextStyle(color: ctx.c.muted)),
+          Text('$where ${ctx.l.sheetsDeleteIfMistake}', style: TextStyle(color: ctx.c.muted)),
           const SizedBox(height: 16),
           ConfirmDeleteButton(
-            label: 'Supprimer ce mouvement',
+            label: ctx.l.sheetsDeleteMovement,
             onConfirm: () async {
               await s.deleteTx(tx.id);
               if (ctx.mounted) {
                 Navigator.pop(ctx);
-                toast(ctx, 'Mouvement supprimé');
+                toast(ctx, ctx.l.sheetsMovementDeleted);
               }
             },
           ),
@@ -291,39 +320,36 @@ Future<void> openAdjustSheet(BuildContext context, String accId) {
   var date = todayIso();
   return showFormSheet(
     context,
-    title: 'Ajuster : ${a.name}',
+    title: context.l.sheetsAdjustTitle(a.name),
     builder: (ctx) {
       final f = Fmt(s.settings.currency);
       return StatefulBuilder(
         builder: (ctx, set) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              "Indique ce qu'il y a vraiment sur le compte. La différence est enregistrée comme un ajustement, qui ne compte ni comme revenu ni comme dépense.",
-              style: TextStyle(color: ctx.c.muted),
-            ),
+            Text(ctx.l.sheetsAdjustIntro, style: TextStyle(color: ctx.c.muted)),
             const SizedBox(height: 12),
-            _InfoBox(lines: ['Solde dans le carnet : ${f.money(cur)}']),
+            _InfoBox(lines: [ctx.l.sheetsBookBalance(f.money(cur))]),
             const SizedBox(height: 12),
-            AmountField(controller: real, label: 'Solde réel', autofocus: true),
+            AmountField(controller: real, label: ctx.l.sheetsRealBalance, autofocus: true),
             const SizedBox(height: 12),
-            DateField(label: 'Date', value: date, onChanged: (d) => set(() => date = d)),
+            DateField(label: ctx.l.sheetsDate, value: date, onChanged: (d) => set(() => date = d)),
             const SizedBox(height: 12),
             TextField(
               controller: note,
-              decoration: const InputDecoration(labelText: 'Note', hintText: 'Frais bancaires, oubli…'),
+              decoration: InputDecoration(labelText: ctx.l.sheetsNote, hintText: ctx.l.sheetsAdjustNoteHint),
             ),
             const SizedBox(height: 18),
             FilledButton(
               onPressed: () async {
                 final v = parseAmount(real.text);
-                if (v == null) return toast(ctx, 'Indique le solde réel du compte.');
+                if (v == null) return toast(ctx, ctx.l.sheetsRealBalanceMissing);
                 final diff = await s.adjustAccount(accId, v, date, note.text.trim());
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
-                toast(ctx, diff == 0 ? 'Le solde est déjà juste.' : 'Solde ajusté (${f.money(diff, signed: true)})');
+                toast(ctx, diff == 0 ? ctx.l.sheetsBalanceAlreadyRight : ctx.l.sheetsBalanceAdjusted(f.money(diff, signed: true)));
               },
-              child: const Text('Ajuster'),
+              child: Text(ctx.l.sheetsAdjust),
             ),
           ],
         ),
@@ -350,7 +376,7 @@ Future<void> openGoalSheet(BuildContext context, {Goal? goal}) {
   final color = goal?.color ?? palette.firstWhere((p) => !used.contains(p), orElse: () => 'c2');
   return showFormSheet(
     context,
-    title: goal == null ? "Nouvel objectif d'épargne" : "Modifier l'objectif",
+    title: goal == null ? context.l.sheetsGoalNewTitle : context.l.sheetsGoalEditTitle,
     builder: (ctx) {
       return StatefulBuilder(
         builder: (ctx, set) => Column(
@@ -359,15 +385,15 @@ Future<void> openGoalSheet(BuildContext context, {Goal? goal}) {
             TextField(
               controller: name,
               autofocus: goal == null,
-              decoration: const InputDecoration(labelText: 'Nom', hintText: "Fonds d'urgence, voyage, voiture…"),
+              decoration: InputDecoration(labelText: ctx.l.sheetsName, hintText: ctx.l.sheetsGoalNameHint),
             ),
             const SizedBox(height: 12),
-            AmountField(controller: target, label: 'Montant visé'),
+            AmountField(controller: target, label: ctx.l.sheetsGoalTarget),
             const SizedBox(height: 12),
-            DateField(label: 'Date visée (facultatif)', value: deadline, optional: true, onChanged: (d) => set(() => deadline = d)),
-            if (goal == null) ...[const SizedBox(height: 12), AmountField(controller: initial, label: 'Déjà mis de côté (facultatif)')],
+            DateField(label: ctx.l.sheetsGoalDeadline, value: deadline, optional: true, onChanged: (d) => set(() => deadline = d)),
+            if (goal == null) ...[const SizedBox(height: 12), AmountField(controller: initial, label: ctx.l.sheetsGoalInitial)],
             const SizedBox(height: 14),
-            Text('Icône', style: TextStyle(color: ctx.c.muted, fontSize: 13)),
+            Text(ctx.l.sheetsIcon, style: TextStyle(color: ctx.c.muted, fontSize: 13)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
@@ -382,24 +408,18 @@ Future<void> openGoalSheet(BuildContext context, {Goal? goal}) {
                   ),
               ],
             ),
-            if (goal != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                "Supprimer l'objectif efface aussi ses mouvements : l'argent revient sur les comptes d'origine.",
-                style: TextStyle(color: ctx.c.muted, fontSize: 13),
-              ),
-            ],
+            if (goal != null) ...[const SizedBox(height: 12), Text(ctx.l.sheetsGoalDeleteHint, style: TextStyle(color: ctx.c.muted, fontSize: 13))],
             const SizedBox(height: 18),
             Row(
               children: [
                 if (goal != null) ...[
                   ConfirmDeleteButton(
-                    label: 'Supprimer',
+                    label: ctx.l.delete,
                     onConfirm: () async {
                       await s.deleteGoal(goal.id);
                       if (ctx.mounted) {
                         Navigator.pop(ctx);
-                        toast(ctx, 'Objectif supprimé');
+                        toast(ctx, ctx.l.sheetsGoalDeleted);
                       }
                     },
                   ),
@@ -408,7 +428,7 @@ Future<void> openGoalSheet(BuildContext context, {Goal? goal}) {
                 Expanded(
                   child: FilledButton(
                     onPressed: () async {
-                      if (name.text.trim().isEmpty) return toast(ctx, "Donne un nom à l'objectif.");
+                      if (name.text.trim().isEmpty) return toast(ctx, ctx.l.sheetsGoalNameMissing);
                       final t = parseAmount(target.text) ?? 0;
                       final g =
                           goal ?? Goal(id: newId('g-'), name: '', color: color, initial: (parseAmount(initial.text) ?? 0).clamp(0, double.infinity).toDouble());
@@ -420,9 +440,9 @@ Future<void> openGoalSheet(BuildContext context, {Goal? goal}) {
                       await s.saveGoal(g);
                       if (!ctx.mounted) return;
                       Navigator.pop(ctx);
-                      toast(ctx, goal == null ? 'Objectif créé' : 'Objectif mis à jour');
+                      toast(ctx, goal == null ? ctx.l.sheetsGoalCreated : ctx.l.sheetsGoalUpdated);
                     },
-                    child: Text(goal == null ? "Créer l'objectif" : 'Enregistrer'),
+                    child: Text(goal == null ? ctx.l.sheetsGoalCreate : ctx.l.save),
                   ),
                 ),
               ],
@@ -445,38 +465,38 @@ Future<void> openGoalMoveSheet(BuildContext context, Goal g, int dir) {
   final f = Fmt(s.settings.currency);
   return showFormSheet(
     context,
-    title: dir < 0 ? 'Mettre de côté : ${g.name}' : 'Retirer de : ${g.name}',
+    title: dir < 0 ? context.l.sheetsGoalPutAsideTitle(g.name) : context.l.sheetsGoalWithdrawTitle(g.name),
     builder: (ctx) {
       return StatefulBuilder(
         builder: (ctx, set) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _InfoBox(lines: ['Déjà épargné : ${f.money(saved)}${g.target > 0 ? ' sur ${f.money(g.target)}' : ''}']),
+            _InfoBox(lines: [g.target > 0 ? ctx.l.sheetsGoalSavedOf(f.money(saved), f.money(g.target)) : ctx.l.sheetsGoalSaved(f.money(saved))]),
             const SizedBox(height: 12),
-            AmountField(controller: amount, label: 'Montant', autofocus: true),
+            AmountField(controller: amount, label: ctx.l.sheetsAmount, autofocus: true),
             const SizedBox(height: 12),
-            accountDropdown(ctx, label: dir < 0 ? 'Depuis le compte' : 'Vers le compte', value: account, onChanged: (v) => set(() => account = v)),
+            accountDropdown(ctx, label: dir < 0 ? ctx.l.sheetsFromAccount : ctx.l.sheetsToAccount, value: account, onChanged: (v) => set(() => account = v)),
             const SizedBox(height: 12),
-            DateField(label: 'Date', value: date, onChanged: (d) => set(() => date = d)),
+            DateField(label: ctx.l.sheetsDate, value: date, onChanged: (d) => set(() => date = d)),
             const SizedBox(height: 12),
             TextField(
               controller: note,
-              decoration: const InputDecoration(labelText: 'Note'),
+              decoration: InputDecoration(labelText: ctx.l.sheetsNote),
             ),
             const SizedBox(height: 18),
             FilledButton(
               onPressed: () async {
                 final v = parseAmount(amount.text);
-                if (v == null || v <= 0) return toast(ctx, 'Indique un montant supérieur à zéro.');
-                if (dir > 0 && v > saved + 0.001) return toast(ctx, 'Tu ne peux pas retirer plus que ${f.money(saved)}.');
+                if (v == null || v <= 0) return toast(ctx, ctx.l.sheetsAmountPositive);
+                if (dir > 0 && v > saved + 0.001) return toast(ctx, ctx.l.sheetsGoalWithdrawMax(f.money(saved)));
                 await s.saveTx(
                   Tx(id: newId(), type: TxType.save, amount: v, cat: 'save', account: account, dir: dir, goal: g.id, date: date, note: note.text.trim()),
                 );
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
-                toast(ctx, dir < 0 ? '${f.money(v)} mis de côté' : "${f.money(v)} retirés de l'épargne");
+                toast(ctx, dir < 0 ? ctx.l.sheetsGoalPutAsideDone(f.money(v)) : ctx.l.sheetsGoalWithdrawDone(f.money(v)));
               },
-              child: Text(dir < 0 ? 'Mettre de côté' : 'Retirer'),
+              child: Text(dir < 0 ? ctx.l.sheetsGoalPutAside : ctx.l.sheetsGoalWithdraw),
             ),
           ],
         ),
@@ -501,7 +521,7 @@ Future<void> openDebtSheet(BuildContext context, {Debt? debt, bool owe = true}) 
   var account = s.settings.defaultAccount;
   return showFormSheet(
     context,
-    title: debt == null ? 'Nouvelle dette' : 'Modifier la dette',
+    title: debt == null ? context.l.sheetsDebtNewTitle : context.l.sheetsDebtEditTitle,
     builder: (ctx) {
       return StatefulBuilder(
         builder: (ctx, set) => Column(
@@ -510,9 +530,9 @@ Future<void> openDebtSheet(BuildContext context, {Debt? debt, bool owe = true}) 
             if (debt == null) ...[
               SegmentedButton<bool>(
                 showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: true, label: Text('Je dois')),
-                  ButtonSegment(value: false, label: Text('On me doit')),
+                segments: [
+                  ButtonSegment(value: true, label: Text(ctx.l.sheetsDebtIOwe)),
+                  ButtonSegment(value: false, label: Text(ctx.l.sheetsDebtOwedToMe)),
                 ],
                 selected: {kindOwe},
                 onSelectionChanged: (v) => set(() => kindOwe = v.first),
@@ -521,19 +541,22 @@ Future<void> openDebtSheet(BuildContext context, {Debt? debt, bool owe = true}) 
             ],
             TextField(
               controller: person,
-              decoration: InputDecoration(labelText: 'Personne ou organisme', hintText: kindOwe ? "Qui t'a prêté l'argent ?" : 'À qui as-tu prêté ?'),
+              decoration: InputDecoration(
+                labelText: ctx.l.sheetsDebtPerson,
+                hintText: kindOwe ? ctx.l.sheetsDebtPersonHintOwe : ctx.l.sheetsDebtPersonHintLent,
+              ),
             ),
             const SizedBox(height: 12),
-            AmountField(controller: amount, label: 'Montant total'),
+            AmountField(controller: amount, label: ctx.l.sheetsDebtTotal),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  child: DateField(label: 'Date', value: date, onChanged: (d) => set(() => date = d)),
+                  child: DateField(label: ctx.l.sheetsDate, value: date, onChanged: (d) => set(() => date = d)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: DateField(label: 'Échéance', value: due, optional: true, onChanged: (d) => set(() => due = d)),
+                  child: DateField(label: ctx.l.sheetsDebtDue, value: due, optional: true, onChanged: (d) => set(() => due = d)),
                 ),
               ],
             ),
@@ -541,7 +564,7 @@ Future<void> openDebtSheet(BuildContext context, {Debt? debt, bool owe = true}) 
               const SizedBox(height: 12),
               accountDropdown(
                 ctx,
-                label: kindOwe ? "J'ai reçu l'argent sur" : "L'argent est sorti de",
+                label: kindOwe ? ctx.l.sheetsDebtReceivedOn : ctx.l.sheetsDebtPaidOutOf,
                 value: account,
                 allowNone: true,
                 onChanged: (v) => set(() => account = v),
@@ -550,26 +573,21 @@ Future<void> openDebtSheet(BuildContext context, {Debt? debt, bool owe = true}) 
             const SizedBox(height: 12),
             TextField(
               controller: note,
-              decoration: const InputDecoration(labelText: 'Note'),
+              decoration: InputDecoration(labelText: ctx.l.sheetsNote),
             ),
             const SizedBox(height: 8),
-            Text(
-              debt != null
-                  ? 'Supprimer la dette efface aussi ses remboursements enregistrés.'
-                  : "Choisis un compte pour que l'argent reçu ou prêté apparaisse dans son solde, ou « Ne pas toucher à mes comptes » pour une dette ancienne.",
-              style: TextStyle(color: ctx.c.muted, fontSize: 13),
-            ),
+            Text(debt != null ? ctx.l.sheetsDebtDeleteHint : ctx.l.sheetsDebtAccountHint, style: TextStyle(color: ctx.c.muted, fontSize: 13)),
             const SizedBox(height: 18),
             Row(
               children: [
                 if (debt != null) ...[
                   ConfirmDeleteButton(
-                    label: 'Supprimer',
+                    label: ctx.l.delete,
                     onConfirm: () async {
                       await s.deleteDebt(debt.id);
                       if (ctx.mounted) {
                         Navigator.pop(ctx);
-                        toast(ctx, 'Dette supprimée');
+                        toast(ctx, ctx.l.sheetsDebtDeleted);
                       }
                     },
                   ),
@@ -579,8 +597,8 @@ Future<void> openDebtSheet(BuildContext context, {Debt? debt, bool owe = true}) 
                   child: FilledButton(
                     onPressed: () async {
                       final v = parseAmount(amount.text);
-                      if (person.text.trim().isEmpty) return toast(ctx, 'Indique la personne ou l\'organisme.');
-                      if (v == null || v <= 0) return toast(ctx, 'Indique un montant supérieur à zéro.');
+                      if (person.text.trim().isEmpty) return toast(ctx, ctx.l.sheetsDebtPersonMissing);
+                      if (v == null || v <= 0) return toast(ctx, ctx.l.sheetsAmountPositive);
                       final d = debt ?? Debt(id: newId('d-'), owe: kindOwe, person: '', amount: 0, date: date);
                       d
                         ..person = person.text.trim()
@@ -606,9 +624,9 @@ Future<void> openDebtSheet(BuildContext context, {Debt? debt, bool owe = true}) 
                       }
                       if (!ctx.mounted) return;
                       Navigator.pop(ctx);
-                      toast(ctx, debt != null ? 'Dette mise à jour' : (kindOwe ? 'Dette ajoutée' : 'Prêt ajouté'));
+                      toast(ctx, debt != null ? ctx.l.sheetsDebtUpdated : (kindOwe ? ctx.l.sheetsDebtAdded : ctx.l.sheetsLoanAdded));
                     },
-                    child: Text(debt == null ? 'Ajouter' : 'Enregistrer'),
+                    child: Text(debt == null ? ctx.l.add : ctx.l.save),
                   ),
                 ),
               ],
@@ -630,30 +648,38 @@ Future<void> openDebtPaySheet(BuildContext context, Debt d) {
   var date = todayIso();
   return showFormSheet(
     context,
-    title: d.owe ? 'Rembourser ${d.person}' : 'Remboursement de ${d.person}',
+    title: d.owe ? context.l.sheetsDebtRepayTitle(d.person) : context.l.sheetsDebtRepaymentFromTitle(d.person),
     builder: (ctx) {
       return StatefulBuilder(
         builder: (ctx, set) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _InfoBox(lines: ['Reste à ${d.owe ? 'payer' : 'recevoir'} : ${f.money(left)} sur ${f.money(d.amount)}']),
+            _InfoBox(
+              lines: [d.owe ? ctx.l.sheetsDebtLeftToPay(f.money(left), f.money(d.amount)) : ctx.l.sheetsDebtLeftToReceive(f.money(left), f.money(d.amount))],
+            ),
             const SizedBox(height: 12),
-            AmountField(controller: amount, label: 'Montant'),
+            AmountField(controller: amount, label: ctx.l.sheetsAmount),
             const SizedBox(height: 12),
-            accountDropdown(ctx, label: d.owe ? 'Payé depuis' : 'Reçu sur', value: account, allowNone: true, onChanged: (v) => set(() => account = v)),
+            accountDropdown(
+              ctx,
+              label: d.owe ? ctx.l.sheetsDebtPaidFrom : ctx.l.sheetsDebtReceivedIn,
+              value: account,
+              allowNone: true,
+              onChanged: (v) => set(() => account = v),
+            ),
             const SizedBox(height: 12),
-            DateField(label: 'Date', value: date, onChanged: (x) => set(() => date = x)),
+            DateField(label: ctx.l.sheetsDate, value: date, onChanged: (x) => set(() => date = x)),
             const SizedBox(height: 12),
             TextField(
               controller: note,
-              decoration: const InputDecoration(labelText: 'Note'),
+              decoration: InputDecoration(labelText: ctx.l.sheetsNote),
             ),
             const SizedBox(height: 18),
             FilledButton(
               onPressed: () async {
                 final v = parseAmount(amount.text);
-                if (v == null || v <= 0) return toast(ctx, 'Indique un montant supérieur à zéro.');
-                if (v > left + 0.001) return toast(ctx, 'Le reste dû est de ${f.money(left)}.');
+                if (v == null || v <= 0) return toast(ctx, ctx.l.sheetsAmountPositive);
+                if (v > left + 0.001) return toast(ctx, ctx.l.sheetsDebtLeftMax(f.money(left)));
                 await s.saveTx(
                   Tx(
                     id: newId(),
@@ -669,9 +695,9 @@ Future<void> openDebtPaySheet(BuildContext context, Debt d) {
                 );
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
-                toast(ctx, v >= left ? 'Dette soldée' : 'Remboursement enregistré');
+                toast(ctx, v >= left ? ctx.l.sheetsDebtSettled : ctx.l.sheetsRepaymentSaved);
               },
-              child: const Text('Enregistrer le remboursement'),
+              child: Text(ctx.l.sheetsSaveRepayment),
             ),
           ],
         ),
@@ -697,7 +723,7 @@ Future<String?> pickIcon(BuildContext context, String current, Color color) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Choisir une icône', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
+            Text(ctx.l.sheetsPickIcon, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12),
             Expanded(
               child: GridView.builder(

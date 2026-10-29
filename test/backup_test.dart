@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:carnet237/backup.dart';
+import 'package:carnet237/proofs.dart';
 import 'package:carnet237/security.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,6 +24,21 @@ void main() {
     final ok = await aes.decrypt(box, secretKey: SecretKey(await deriveKey('2468', salt, 1000)));
     expect(utf8.decode(ok), contains('carnet237'));
     expect(() => aes.decrypt(box, secretKey: SecretKey(deriveKeySync())), throwsA(isA<SecretBoxAuthenticationError>()));
+  });
+
+  test('a backup file opens only with its password', () async {
+    final plain = utf8.encode('{"app":"carnet237","proofs":{"a-1.jpg":"AA=="}}');
+    final file = await DriveBackup.sealWithPassword(plain, 'mot2passe');
+    expect(utf8.decode(await DriveBackup.openWithPassword(file, 'mot2passe')), utf8.decode(plain));
+    expect(() => DriveBackup.openWithPassword(file, 'autre-mot'), throwsA(isA<BackupException>()));
+    expect(() => DriveBackup.openWithPassword(Uint8List.fromList([1, 2, 3]), 'mot2passe'), throwsA(isA<BackupException>()));
+  });
+
+  test('proof names from a backup cannot leave the proofs folder', () {
+    expect(Proofs.isValidName('t-abc123-lz4.jpg'), isTrue);
+    for (final bad in ['../db.jpg', 'a/b.jpg', 'x.png', '', '..jpg/']) {
+      expect(Proofs.isValidName(bad), isFalse, reason: bad);
+    }
   });
 }
 

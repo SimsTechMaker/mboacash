@@ -1,4 +1,4 @@
-# Donner carnet237 à tes proches (APK, hors Play Store)
+# Donner my-nkap à tes proches (APK, hors Play Store)
 
 ## Avant la première distribution : une étape côté Google Cloud
 
@@ -13,14 +13,14 @@ Pour que n'importe qui puisse synchroniser avec **son propre** compte Google :
 3. Vérifie que l'adresse e-mail d'assistance est celle que tu veux montrer : elle s'affiche sur
    l'écran de connexion Google. Tu peux utiliser une adresse dédiée.
 
-L'app ne demande qu'un accès : `drive.appdata`, un dossier caché du Drive que seule carnet237 peut lire.
+L'app ne demande qu'un accès : `drive.appdata`, un dossier caché du Drive que seule my-nkap peut lire.
 D'après la documentation de Google, ce type d'accès n'exige pas de vérification. Si la console
 te demande quand même une vérification au moment de publier, suis ses indications.
 
 ## Ce que tes proches reçoivent
 
-- `build\distribution\carnet237-arm64.apk` : pour presque tous les téléphones de moins de 8 ans.
-- `build\distribution\carnet237-arm32.apk` : pour les modèles anciens ou d'entrée de gamme, si le premier ne s'installe pas.
+- `build\distribution\my-nkap-arm64.apk` : pour presque tous les téléphones de moins de 8 ans.
+- `build\distribution\my-nkap-arm32.apk` : pour les modèles anciens ou d'entrée de gamme, si le premier ne s'installe pas.
 - À envoyer par WhatsApp, câble USB, Bluetooth ou clé USB.
 - Le guide [guide-utilisateur.md](guide-utilisateur.md), à leur transmettre si besoin.
 
@@ -45,7 +45,7 @@ te demande quand même une vérification au moment de publier, suis ses indicati
 
 ```powershell
 flutter build apk --release
-Copy-Item build\app\outputs\flutter-apk\app-release.apk build\carnet237.apk
+Copy-Item build\app\outputs\flutter-apk\app-release.apk build\my-nkap.apk
 ```
 
 ## Accès à internet

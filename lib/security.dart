@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 
+import 'i18n.dart';
+
 /// Random bytes from the platform's secure generator.
 List<int> randomBytes(int n) {
   final r = Random.secure();
@@ -144,7 +146,7 @@ class LockService extends ChangeNotifier {
 
   Future<bool> setBiometric(bool on) async {
     if (on) {
-      final ok = await _prompt('Confirme pour activer le déverrouillage biométrique');
+      final ok = await _prompt(tr.securityBioEnableReason);
       if (!ok) return false;
     }
     biometric = on;
@@ -155,7 +157,7 @@ class LockService extends ChangeNotifier {
 
   Future<bool> unlockWithBiometric() async {
     if (!biometric || !biometricAvailable) return false;
-    final ok = await _prompt('Déverrouille carnet237');
+    final ok = await _prompt(tr.securityBioUnlockReason);
     if (ok) {
       await _resetFailures();
       locked = false;

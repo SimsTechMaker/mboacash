@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../export.dart';
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../models.dart';
 import '../state.dart';
@@ -33,17 +34,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await context.read<AppState>().saveSettings(draft);
     if (!mounted) return;
     Navigator.pop(context);
-    toast(context, 'Paramètres enregistrés');
+    toast(context, context.l.settingsSaved);
   }
 
   void remove({Category? cat, Account? acc}) {
     final s = context.read<AppState>();
     if (cat != null) {
-      if (draft.cats.where((c) => c.income == cat.income && !c.archived).length <= 1) return toast(context, 'Garde au moins une catégorie de ce type.');
+      if (draft.cats.where((c) => c.income == cat.income && !c.archived).length <= 1) return toast(context, context.l.settingsKeepOneCategory);
       final used = s.txs.any((t) => t.cat == cat.id);
       setState(() => used ? cat.archived = true : draft.cats.remove(cat));
     } else if (acc != null) {
-      if (draft.accounts.where((a) => !a.archived).length <= 1) return toast(context, 'Garde au moins un compte.');
+      if (draft.accounts.where((a) => !a.archived).length <= 1) return toast(context, context.l.settingsKeepOneAccount);
       final used = s.txs.any((t) => t.account == acc.id || t.to == acc.id);
       setState(() {
         used ? acc.archived = true : draft.accounts.remove(acc);
@@ -59,11 +60,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       initialIndex: widget.initialTab,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Paramètres'),
+          title: Text(context.l.settingsTitle),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 12),
-              child: FilledButton(onPressed: save, child: const Text('Enregistrer')),
+              child: FilledButton(onPressed: save, child: Text(context.l.save)),
             ),
           ],
           bottom: TabBar(
@@ -73,7 +74,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             unselectedLabelColor: context.c.muted,
             indicatorColor: context.c.accent,
             tabs: [
-              for (final t in [('palette', 'Apparence'), ('tags', 'Catégories'), ('wallet', 'Comptes'), ('coins', 'Devise et budget'), ('database', 'Données')])
+              for (final t in [
+                ('palette', context.l.settingsTabAppearance),
+                ('tags', context.l.tabCategories),
+                ('wallet', context.l.tabAccounts),
+                ('coins', context.l.settingsTabMoney),
+                ('database', context.l.settingsTabData),
+              ])
                 Tab(child: Row(children: [Icon(appIcon(t.$1), size: 18), const SizedBox(width: 6), Text(t.$2)])),
             ],
           ),
@@ -84,55 +91,91 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _appearance() {
-    Widget opt(String v, String name, String desc, List<Color> sw) => Card(
+    final l = context.l;
+    Widget card(bool selected, VoidCallback onTap, Widget leading, String name, String desc) => Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: draft.theme == v ? context.c.accent : context.c.line, width: draft.theme == v ? 2 : 1),
+        side: BorderSide(color: selected ? context.c.accent : context.c.line, width: selected ? 2 : 1),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => setState(() => draft.theme = v),
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              Container(
-                width: 56,
-                height: 40,
-                decoration: BoxDecoration(
-                  border: Border.all(color: context.c.line),
-                  borderRadius: BorderRadius.circular(8),
-                  gradient: LinearGradient(colors: sw, stops: const [0.5, 0.5]),
-                ),
-              ),
+              leading,
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    Text(desc, style: TextStyle(color: context.c.muted, fontSize: 13)),
+                    if (desc.isNotEmpty) Text(desc, style: TextStyle(color: context.c.muted, fontSize: 13)),
                   ],
                 ),
               ),
-              if (draft.theme == v) Icon(appIcon('check'), color: context.c.accent),
+              if (selected) Icon(appIcon('check'), color: context.c.accent),
             ],
           ),
         ),
       ),
     );
+    Widget opt(String v, String name, String desc, List<Color> sw) => card(
+      draft.theme == v,
+      () => setState(() => draft.theme = v),
+      Container(
+        width: 56,
+        height: 40,
+        decoration: BoxDecoration(
+          border: Border.all(color: context.c.line),
+          borderRadius: BorderRadius.circular(8),
+          gradient: LinearGradient(colors: sw, stops: const [0.5, 0.5]),
+        ),
+      ),
+      name,
+      desc,
+    );
+    Widget langOpt(String v, String name, String desc) => card(
+      draft.language == v,
+      () => setState(() => draft.language = v),
+      Container(
+        width: 56,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: context.c.surface2,
+          border: Border.all(color: context.c.line),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: v == 'auto'
+            ? Icon(appIcon('smartphone'), size: 20, color: context.c.muted)
+            : Text(v.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w700)),
+      ),
+      name,
+      desc,
+    );
+    const title = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text('Thème', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(l.language, style: title),
         const SizedBox(height: 10),
-        opt('auto', 'Automatique', 'Suit le réglage du téléphone', [AppColors.light.bg, AppColors.dark.bg]),
+        langOpt('auto', l.languageAuto, l.languageAutoDesc),
         const SizedBox(height: 8),
-        opt('light', 'Clair', 'Toujours clair', [AppColors.light.bg, AppColors.light.surface]),
+        langOpt('fr', l.languageFr, ''),
         const SizedBox(height: 8),
-        opt('dark', 'Sombre', 'Mode nuit permanent', [AppColors.dark.bg, AppColors.dark.surface]),
+        langOpt('en', l.languageEn, ''),
+        const SizedBox(height: 20),
+        Text(l.settingsTheme, style: title),
         const SizedBox(height: 10),
-        Text('Le thème change après « Enregistrer ».', style: TextStyle(color: context.c.muted, fontSize: 13)),
+        opt('auto', l.settingsThemeAuto, l.settingsThemeAutoDesc, [AppColors.light.bg, AppColors.dark.bg]),
+        const SizedBox(height: 8),
+        opt('light', l.settingsThemeLight, l.settingsThemeLightDesc, [AppColors.light.bg, AppColors.light.surface]),
+        const SizedBox(height: 8),
+        opt('dark', l.settingsThemeDark, l.settingsThemeDarkDesc, [AppColors.dark.bg, AppColors.dark.surface]),
+        const SizedBox(height: 10),
+        Text(l.settingsAppearanceNote, style: TextStyle(color: context.c.muted, fontSize: 13)),
       ],
     );
   }
@@ -144,16 +187,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         SegmentedButton<bool>(
           showSelectedIcon: false,
-          segments: const [
-            ButtonSegment(value: false, label: Text('Dépenses')),
-            ButtonSegment(value: true, label: Text('Revenus')),
+          segments: [
+            ButtonSegment(value: false, label: Text(context.l.settingsExpenses)),
+            ButtonSegment(value: true, label: Text(context.l.settingsIncomes)),
           ],
           selected: {catIncome},
           onSelectionChanged: (v) => setState(() => catIncome = v.first),
         ),
         const SizedBox(height: 10),
         Text(
-          "Touche l'icône pour la changer.${catIncome ? '' : ' Le plafond mensuel est facultatif : la catégorie passe au rouge s\'il est dépassé.'}",
+          catIncome ? context.l.settingsCatsHint : '${context.l.settingsCatsHint} ${context.l.settingsCatsCapHint}',
           style: TextStyle(color: context.c.muted, fontSize: 13),
         ),
         const SizedBox(height: 10),
@@ -176,7 +219,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   flex: 3,
                   child: TextFormField(
                     initialValue: c.name,
-                    decoration: const InputDecoration(hintText: 'Nom'),
+                    decoration: InputDecoration(hintText: context.l.settingsName),
                     onChanged: (v) => c.name = v,
                   ),
                 ),
@@ -187,13 +230,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: TextFormField(
                       initialValue: c.cap > 0 ? Fmt(draft.currency).number(c.cap) : '',
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(hintText: 'Plafond'),
+                      decoration: InputDecoration(hintText: context.l.settingsCap),
                       onChanged: (v) => c.cap = (parseAmount(v) ?? 0).clamp(0, double.infinity).toDouble(),
                     ),
                   ),
                 ],
                 IconButton(
-                  tooltip: 'Supprimer',
+                  tooltip: context.l.delete,
                   icon: Icon(appIcon('trash-2'), size: 20),
                   onPressed: () => remove(cat: c),
                 ),
@@ -204,14 +247,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           alignment: Alignment.centerLeft,
           child: OutlinedButton.icon(
             icon: Icon(appIcon('plus'), size: 18),
-            label: const Text('Nouvelle catégorie'),
+            label: Text(context.l.settingsNewCategory),
             onPressed: () {
               final used = draft.cats.map((c) => c.color).toSet();
               setState(
                 () => draft.cats.add(
                   Category(
                     id: newId('c-'),
-                    name: catIncome ? 'Nouveau revenu' : 'Nouvelle catégorie',
+                    name: catIncome ? context.l.settingsNewIncome : context.l.settingsNewCategory,
                     icon: 'tag',
                     income: catIncome,
                     color: palette.firstWhere((p) => !used.contains(p), orElse: () => palette[draft.cats.length % palette.length]),
@@ -222,10 +265,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        Text(
-          "Une catégorie déjà utilisée est masquée plutôt qu'effacée, pour garder l'historique intact.",
-          style: TextStyle(color: context.c.muted, fontSize: 13),
-        ),
+        Text(context.l.settingsCatsArchiveNote, style: TextStyle(color: context.c.muted, fontSize: 13)),
       ],
     );
   }
@@ -238,10 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            "Le solde de départ est l'argent présent sur le compte avant ta première saisie. Pour corriger un solde plus tard, utilise « Ajuster le solde » dans l'onglet Comptes.",
-            style: TextStyle(color: context.c.muted, fontSize: 13),
-          ),
+          Text(context.l.settingsAccountsHint, style: TextStyle(color: context.c.muted, fontSize: 13)),
           const SizedBox(height: 12),
           for (final a in list)
             Card(
@@ -265,12 +302,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Expanded(
                           child: TextFormField(
                             initialValue: a.name,
-                            decoration: const InputDecoration(labelText: 'Nom'),
+                            decoration: InputDecoration(labelText: context.l.settingsName),
                             onChanged: (v) => a.name = v,
                           ),
                         ),
                         IconButton(
-                          tooltip: 'Supprimer',
+                          tooltip: context.l.delete,
                           icon: Icon(appIcon('trash-2'), size: 20),
                           onPressed: () => remove(acc: a),
                         ),
@@ -284,12 +321,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: TextFormField(
                             initialValue: a.initial != 0 ? Fmt(draft.currency).number(a.initial) : '',
                             keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                            decoration: const InputDecoration(labelText: 'Solde de départ'),
+                            decoration: InputDecoration(labelText: context.l.settingsInitialBalance),
                             onChanged: (v) => a.initial = parseAmount(v) ?? 0,
                           ),
                         ),
                         Radio<String>(value: a.id),
-                        const Text('Par défaut'),
+                        Text(context.l.settingsDefault),
                         const SizedBox(width: 8),
                       ],
                     ),
@@ -301,8 +338,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
               icon: Icon(appIcon('plus'), size: 18),
-              label: const Text('Nouveau compte'),
-              onPressed: () => setState(() => draft.accounts.add(Account(id: newId('a-'), name: 'Nouveau compte', icon: 'credit-card'))),
+              label: Text(context.l.settingsNewAccount),
+              onPressed: () => setState(() => draft.accounts.add(Account(id: newId('a-'), name: context.l.settingsNewAccount, icon: 'credit-card'))),
             ),
           ),
         ],
@@ -316,7 +353,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         DropdownButtonFormField<String>(
           initialValue: draft.currency,
-          decoration: const InputDecoration(labelText: 'Devise'),
+          decoration: InputDecoration(labelText: context.l.settingsCurrency),
           items: [for (final e in currencies.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
           onChanged: (v) => setState(() => draft.currency = v!),
         ),
@@ -324,11 +361,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextFormField(
           initialValue: draft.budget > 0 ? Fmt(draft.currency).number(draft.budget) : '',
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(labelText: 'Budget mensuel total', hintText: 'Aucun', suffixText: Fmt(draft.currency).symbol),
+          decoration: InputDecoration(labelText: context.l.settingsMonthlyBudget, hintText: context.l.settingsNone, suffixText: Fmt(draft.currency).symbol),
           onChanged: (v) => draft.budget = (parseAmount(v) ?? 0).clamp(0, double.infinity).toDouble(),
         ),
         const SizedBox(height: 10),
-        Text("Les plafonds par catégorie se règlent dans l'onglet Catégories.", style: TextStyle(color: context.c.muted, fontSize: 13)),
+        Text(context.l.settingsCapsNote, style: TextStyle(color: context.c.muted, fontSize: 13)),
       ],
     );
   }
@@ -352,34 +389,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        box('Exporter', 'Un fichier CSV avec toutes tes opérations, lisible dans Excel ou Google Sheets.', [
-          OutlinedButton.icon(icon: Icon(appIcon('download'), size: 18), label: const Text('Exporter en CSV'), onPressed: () => exportCsv(context)),
+        box(context.l.settingsExportTitle, context.l.settingsExportText, [
+          OutlinedButton.icon(icon: Icon(appIcon('download'), size: 18), label: Text(context.l.settingsExportCsv), onPressed: () => exportCsv(context)),
         ]),
-        box("Données d'exemple", s.hasSamples ? "Le carnet contient des données d'exemple." : "Aucune donnée d'exemple.", [
+        box(context.l.settingsSamplesTitle, s.hasSamples ? context.l.settingsSamplesYes : context.l.settingsSamplesNo, [
           if (s.hasSamples)
             OutlinedButton(
               style: OutlinedButton.styleFrom(foregroundColor: context.c.expense),
               onPressed: () async {
                 await s.clearSamples();
-                if (mounted) toast(context, 'Exemples retirés');
+                if (mounted) toast(context, context.l.settingsSamplesRemoved);
               },
-              child: const Text('Retirer les exemples'),
+              child: Text(context.l.settingsSamplesRemove),
             ),
         ]),
-        box(
-          'Tout effacer',
-          'Supprime toutes les opérations, objectifs et dettes. Tes catégories, comptes et réglages sont gardés. Exporte un CSV avant si tu veux garder une trace.',
-          [
-            ConfirmDeleteButton(
-              label: 'Effacer toutes les données',
-              onConfirm: () async {
-                await s.wipeAll();
-                if (mounted) toast(context, 'Données effacées');
-              },
-            ),
-          ],
-        ),
-        Text('${plural(s.txs.length, 'opération')} au total. Les données restent sur ce téléphone.', style: TextStyle(color: context.c.muted, fontSize: 13)),
+        box(context.l.settingsWipeTitle, context.l.settingsWipeText, [
+          ConfirmDeleteButton(
+            label: context.l.settingsWipeButton,
+            onConfirm: () async {
+              await s.wipeAll();
+              if (mounted) toast(context, context.l.settingsWiped);
+            },
+          ),
+        ]),
+        Text(context.l.settingsDataFooter(s.txs.length), style: TextStyle(color: context.c.muted, fontSize: 13)),
       ],
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../insights.dart';
 import '../models.dart';
@@ -23,6 +24,7 @@ class OpsScreen extends StatelessWidget {
     final month = s.monthTxs(s.month);
     final current = s.month == monthKey(DateTime.now());
     final ins = Insights.of(s);
+    final l = context.l;
 
     final scoped = month.where((t) => s.accFilter == null || s.accountOf(t) == s.accFilter || t.to == s.accFilter).toList();
     final usedKeys = scoped.map(s.flowKey).toSet().toList();
@@ -45,7 +47,7 @@ class OpsScreen extends StatelessWidget {
         if (current && s.txs.isNotEmpty) ...[const SizedBox(height: 12), _ForecastCard(forecast: ins.forecast())],
         if (advice.isNotEmpty) ...[
           const SizedBox(height: 18),
-          const SectionTitle(icon: 'sparkles', text: 'Conseils'),
+          SectionTitle(icon: 'sparkles', text: l.opsAdvice),
           SizedBox(
             height: 128,
             child: ListView.separated(
@@ -58,7 +60,7 @@ class OpsScreen extends StatelessWidget {
         ],
         if (due.isNotEmpty) ...[
           const SizedBox(height: 18),
-          const SectionTitle(icon: 'repeat', text: 'Habituels pas encore saisis'),
+          SectionTitle(icon: 'repeat', text: l.opsDueTitle),
           Card(
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -75,9 +77,9 @@ class OpsScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text('Journal', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                  Text(l.opsJournal, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
                   const Spacer(),
-                  if (list.isNotEmpty) Label(plural(list.length, 'opération')),
+                  if (list.isNotEmpty) Label(l.opsCount(list.length)),
                 ],
               ),
               if (s.accFilter != null || usedKeys.length > 1) ...[
@@ -99,7 +101,7 @@ class OpsScreen extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(right: 6),
                           child: ChoiceChip(
-                            label: const Text('Tout'),
+                            label: Text(l.opsFilterAll),
                             selected: catFilter == null,
                             onSelected: (_) => s.setFilters(cat: null, acc: s.accFilter),
                           ),
@@ -123,15 +125,17 @@ class OpsScreen extends StatelessWidget {
                 EmptyState(
                   icon: 'receipt',
                   text: s.txs.isEmpty
-                      ? 'Ton carnet est vide. Ajoute ta première dépense avec le bouton +, ou charge quelques exemples pour voir le carnet rempli.'
-                      : 'Aucune opération en ${monthLabel(s.month)}${s.accFilter != null ? ' sur ce compte' : ''}.',
+                      ? l.opsEmptyFirst
+                      : s.accFilter != null
+                      ? l.opsEmptyMonthAccount(monthLabel(s.month))
+                      : l.opsEmptyMonth(monthLabel(s.month)),
                   action: s.txs.isEmpty
                       ? OutlinedButton(
                           onPressed: () async {
                             await s.loadSamples();
-                            if (context.mounted) toast(context, 'Exemples chargés. Tu pourras les retirer dans Paramètres › Données.');
+                            if (context.mounted) toast(context, context.l.opsSamplesLoaded);
                           },
-                          child: const Text('Charger des exemples'),
+                          child: Text(l.opsLoadSamples),
                         )
                       : null,
                 ),
@@ -185,6 +189,7 @@ class _Hero extends StatelessWidget {
     final b = s.settings.budget;
     final spent = s.budgetSpent(month);
     final pct = b > 0 ? spent / b : 0.0;
+    final l = context.l;
 
     Widget total(String label, String icon, double v) => Expanded(
       child: Row(
@@ -229,7 +234,7 @@ class _Hero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'SOLDE DU MOIS',
+            l.opsHeroBalance,
             style: TextStyle(color: soft, fontSize: 11, letterSpacing: 1, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
@@ -238,12 +243,14 @@ class _Hero extends StatelessWidget {
             child: AnimatedMoney(bal, signed: true, size: 30, color: white, weight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
-          Row(children: [total('Revenus', 'arrow-down-left', sum.income), const SizedBox(width: 10), total('Dépenses', 'arrow-up-right', sum.expense)]),
+          Row(
+            children: [total(l.totalsIncome, 'arrow-down-left', sum.income), const SizedBox(width: 10), total(l.totalsExpenses, 'arrow-up-right', sum.expense)],
+          ),
           const SizedBox(height: 16),
           if (b > 0) ...[
             Row(
               children: [
-                Text('Budget', style: TextStyle(color: soft, fontSize: 12.5)),
+                Text(l.opsBudget, style: TextStyle(color: soft, fontSize: 12.5)),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -253,7 +260,7 @@ class _Hero extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  pct > 1 ? 'Dépassé de ${f.money(spent - b)}' : 'Reste ${f.money(b - spent)}',
+                  pct > 1 ? l.opsBudgetOver(f.money(spent - b)) : l.opsBudgetLeft(f.money(b - spent)),
                   style: TextStyle(color: pct > 1 ? const Color(0xFFFFC2B3) : white, fontSize: 12.5, fontWeight: FontWeight.w600),
                 ),
               ],
@@ -280,7 +287,7 @@ class _Hero extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text("L'épargne et les dettes ne comptent pas dans le budget.", style: TextStyle(color: soft, fontSize: 11.5)),
+            Text(l.opsBudgetNote, style: TextStyle(color: soft, fontSize: 11.5)),
           ] else
             InkWell(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BudgetAssistantScreen())),
@@ -288,10 +295,10 @@ class _Hero extends StatelessWidget {
                 children: [
                   Icon(appIcon('wand-sparkles'), size: 16, color: white),
                   const SizedBox(width: 6),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Préparer mon budget avec l\'assistant',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      l.opsBudgetAssistant,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                     ),
                   ),
                   Icon(appIcon('chevron-right'), size: 16, color: white),
@@ -316,6 +323,7 @@ class _ForecastCard extends StatelessWidget {
     final b = s.settings.budget;
     final over = b > 0 && fc.budgetProjected > b;
     final bal = fc.projectedBalance;
+    final l = context.l;
     return Panel(
       padding: const EdgeInsets.all(14),
       child: Row(
@@ -326,17 +334,17 @@ class _ForecastCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Prévision de fin de mois', style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+                Text(l.opsForecastTitle, style: TextStyle(color: context.c.muted, fontSize: 12.5)),
                 const SizedBox(height: 2),
                 Text.rich(
                   TextSpan(
                     children: [
-                      const TextSpan(text: 'Dépenses ≈ '),
+                      TextSpan(text: l.opsForecastExpenses),
                       TextSpan(
                         text: f.money(fc.projectedExpense),
                         style: numStyle.copyWith(fontWeight: FontWeight.w600),
                       ),
-                      const TextSpan(text: ' · solde ≈ '),
+                      TextSpan(text: l.opsForecastBalance),
                       TextSpan(
                         text: f.money(bal, signed: true),
                         style: numStyle.copyWith(fontWeight: FontWeight.w600, color: bal < 0 ? context.c.expense : context.c.income),
@@ -348,15 +356,12 @@ class _ForecastCard extends StatelessWidget {
                 if (over)
                   Padding(
                     padding: const EdgeInsets.only(top: 3),
-                    child: Text(
-                      'À ce rythme, le budget serait dépassé de ${f.money(fc.budgetProjected - b)}.',
-                      style: TextStyle(color: context.c.warn, fontSize: 12.5),
-                    ),
+                    child: Text(l.opsForecastOver(f.money(fc.budgetProjected - b)), style: TextStyle(color: context.c.warn, fontSize: 12.5)),
                   )
                 else
                   Padding(
                     padding: const EdgeInsets.only(top: 3),
-                    child: Text('Jour ${fc.day} sur ${fc.days}, d\'après ton rythme et tes habitudes.', style: TextStyle(color: context.c.muted, fontSize: 12)),
+                    child: Text(l.opsForecastDay(fc.day, fc.days), style: TextStyle(color: context.c.muted, fontSize: 12)),
                   ),
               ],
             ),
@@ -442,12 +447,12 @@ class _RecurringTile extends StatelessWidget {
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
-        '${r.income ? '+' : '−'}${f.money(r.amount)} · ${late ? 'habituellement vers le ${parseIso(r.nextDate).day}' : 'prévu le ${longDate(r.nextDate)}'}',
+        '${r.income ? '+' : '−'}${f.money(r.amount)} · ${late ? context.l.opsRecurringUsual(parseIso(r.nextDate).day) : context.l.opsRecurringPlanned(longDate(r.nextDate))}',
         style: TextStyle(color: context.c.muted, fontSize: 12.5),
       ),
       trailing: TextButton(
         onPressed: () => openTxSheet(context, from: r),
-        child: const Text('Ajouter'),
+        child: Text(context.l.add),
       ),
     );
   }

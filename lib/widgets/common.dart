@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../models.dart';
 import '../state.dart';
@@ -175,7 +176,7 @@ class MonthNav extends StatelessWidget {
         children: [
           IconButton(
             visualDensity: VisualDensity.compact,
-            tooltip: 'Mois précédent',
+            tooltip: context.l.commonPrevMonth,
             icon: Icon(appIcon('chevron-left'), size: 20),
             onPressed: () => s.setMonth(shiftMonth(s.month, -1)),
           ),
@@ -189,7 +190,7 @@ class MonthNav extends StatelessWidget {
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            tooltip: 'Mois suivant',
+            tooltip: context.l.commonNextMonth,
             icon: Icon(appIcon('chevron-right'), size: 20),
             onPressed: () => s.setMonth(shiftMonth(s.month, 1)),
           ),
@@ -212,7 +213,7 @@ class TxView {
 TxView txView(AppState s, Tx t) {
   final accId = s.accountOf(t);
   final acc = accId.isEmpty ? null : s.accById(accId);
-  final accName = acc?.name ?? 'Hors comptes';
+  final accName = acc?.name ?? tr.commonOffAccounts;
   String withNote(String base) => t.note.isEmpty ? base : '$base · ${t.note}';
   switch (t.type) {
     case TxType.income:
@@ -220,7 +221,7 @@ TxView txView(AppState s, Tx t) {
       final c = s.catById(t.cat);
       final inc = t.type == TxType.income;
       return TxView(
-        c?.name ?? 'Sans catégorie',
+        c?.name ?? tr.commonNoCategory,
         t.note.isEmpty ? accName : '${t.note} · $accName',
         c?.icon ?? 'package',
         slot(c?.color ?? 'c10'),
@@ -229,15 +230,15 @@ TxView txView(AppState s, Tx t) {
         inc ? 1 : -1,
       );
     case TxType.transfer:
-      return TxView('Transfert', withNote('$accName → ${s.accById(t.to)?.name ?? '?'}'), 'arrow-left-right', slot('c10'), t.amount, false, 0);
+      return TxView(tr.commonTransfer, withNote('$accName → ${s.accById(t.to)?.name ?? '?'}'), 'arrow-left-right', slot('c10'), t.amount, false, 0);
     case TxType.adjust:
-      return TxView('Ajustement', withNote(accName), 'sliders-horizontal', slot('c10'), t.dir * t.amount, true, 0);
+      return TxView(tr.typeAdjust, withNote(accName), 'sliders-horizontal', slot('c10'), t.dir * t.amount, true, 0);
     case TxType.save:
       final g = s.goalById(t.goal);
-      final name = g?.name ?? 'objectif supprimé';
+      final name = g?.name ?? tr.commonGoalDeleted;
       return TxView(
-        t.dir < 0 ? 'Épargne : $name' : "Retrait d'épargne : $name",
-        withNote('${t.dir < 0 ? 'Depuis' : 'Vers'} $accName'),
+        t.dir < 0 ? tr.commonSavingTo(name) : tr.commonSavingFrom(name),
+        withNote(t.dir < 0 ? tr.commonFromAccount(accName) : tr.commonToAccount(accName)),
         g?.icon ?? 'piggy-bank',
         slot(g?.color ?? 'c2'),
         t.dir * t.amount,
@@ -246,9 +247,9 @@ TxView txView(AppState s, Tx t) {
       );
     case TxType.debt:
       final d = s.debtById(t.debt);
-      final who = d?.person ?? 'dette supprimée';
+      final who = d?.person ?? tr.commonDebtDeleted;
       final owe = d?.owe ?? t.dir > 0;
-      final title = t.init ? (owe ? 'Emprunt auprès de $who' : 'Prêt à $who') : (owe ? 'Remboursement à $who' : 'Remboursement de $who');
+      final title = t.init ? (owe ? tr.commonBorrowFrom(who) : tr.commonLendTo(who)) : (owe ? tr.commonRepayTo(who) : tr.commonRepayFrom(who));
       return TxView(title, withNote(accName), 'handshake', slot(owe ? 'c4' : 'c8'), acc == null ? t.amount : t.dir * t.amount, acc != null, 0);
   }
 }
@@ -290,10 +291,11 @@ class TxTile extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
+                      if (tx.proof.isNotEmpty) ...[const SizedBox(width: 5), Icon(appIcon('paperclip'), size: 13, color: context.c.muted)],
                       if (tx.sample) ...[
                         const SizedBox(width: 6),
                         Text(
-                          'EXEMPLE',
+                          context.l.commonSample,
                           style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: context.c.warn),
                         ),
                       ],
@@ -337,7 +339,7 @@ class AmountField extends StatelessWidget {
   );
 }
 
-/// Date field that opens the French date picker.
+/// Date field that opens the date picker (in the app's language).
 class DateField extends StatelessWidget {
   final String label;
   final String value; // ISO or ''
@@ -351,23 +353,17 @@ class DateField extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       onTap: () async {
         final init = value.isEmpty ? DateTime.now() : parseIso(value);
-        final d = await showDatePicker(
-          context: context,
-          initialDate: init,
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
-          locale: const Locale('fr', 'FR'),
-        );
+        final d = await showDatePicker(context: context, initialDate: init, firstDate: DateTime(2000), lastDate: DateTime(2100));
         if (d != null) onChanged(isoDate(d));
       },
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,
           suffixIcon: optional && value.isNotEmpty
-              ? IconButton(icon: Icon(appIcon('x'), size: 18), onPressed: () => onChanged(''), tooltip: 'Effacer')
+              ? IconButton(icon: Icon(appIcon('x'), size: 18), onPressed: () => onChanged(''), tooltip: context.l.commonClear)
               : Icon(appIcon('calendar'), size: 18),
         ),
-        child: Text(value.isEmpty ? 'Aucune' : longDate(value), style: TextStyle(color: value.isEmpty ? context.c.muted : context.c.ink)),
+        child: Text(value.isEmpty ? context.l.commonNone : longDate(value), style: TextStyle(color: value.isEmpty ? context.c.muted : context.c.ink)),
       ),
     );
   }
@@ -388,7 +384,7 @@ DropdownButtonFormField<String> accountDropdown(
     if (a != null && !list.contains(a)) list.add(a);
   }
   final items = <DropdownMenuItem<String>>[
-    if (allowNone) const DropdownMenuItem(value: '', child: Text('Ne pas toucher à mes comptes')),
+    if (allowNone) DropdownMenuItem(value: '', child: Text(context.l.commonLeaveAccounts)),
     ...list.map(
       (a) => DropdownMenuItem(
         value: a.id,
@@ -447,7 +443,7 @@ class _ConfirmDeleteButtonState extends State<ConfirmDeleteButton> {
         ? FilledButton(
             style: FilledButton.styleFrom(backgroundColor: red, foregroundColor: Colors.white),
             onPressed: widget.onConfirm,
-            child: const Text('Confirmer la suppression'),
+            child: Text(context.l.commonConfirmDelete),
           )
         : OutlinedButton(
             style: OutlinedButton.styleFrom(foregroundColor: red),

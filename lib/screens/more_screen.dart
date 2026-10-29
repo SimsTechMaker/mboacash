@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../backup.dart';
 import '../export.dart';
-import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../security.dart';
 import '../state.dart';
@@ -11,6 +11,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/design.dart';
 import 'backup_screen.dart';
+import 'file_backup_screen.dart';
 import 'budget_assistant_screen.dart';
 import 'debts_screen.dart';
 import 'import_screen.dart';
@@ -31,6 +32,7 @@ class MoreScreen extends StatelessWidget {
     final lock = context.watch<LockService>();
     final backup = context.watch<DriveBackup>();
     final f = fmtOf(context);
+    final l = context.l;
     final openDebts = s.debts.where((d) => s.debtLeft(d) > 0).toList();
     void go(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
 
@@ -38,41 +40,36 @@ class MoreScreen extends StatelessWidget {
       (
         'piggy-bank',
         'c2',
-        'Épargne',
-        s.goals.isEmpty ? "Crée un objectif et mets de l'argent de côté" : '${plural(s.goals.length, 'objectif')} · ${f.money(s.totalSaved)} mis de côté',
+        l.moreSavings,
+        s.goals.isEmpty ? l.moreSavingsEmpty : l.moreSavingsSub(s.goals.length, f.money(s.totalSaved)),
         () => go(const SavingsScreen()),
       ),
       (
         'handshake',
         'c1',
-        'Dettes',
-        openDebts.isEmpty ? "Suis ce que tu dois et ce qu'on te doit" : 'Je dois ${f.money(s.totalOwed)} · On me doit ${f.money(s.totalLent)}',
+        l.moreDebts,
+        openDebts.isEmpty ? l.moreDebtsEmpty : l.moreDebtsSub(f.money(s.totalOwed), f.money(s.totalLent)),
         () => go(const DebtsScreen()),
       ),
-      ('wand-sparkles', 'c7', 'Assistant budget', 'Budget et plafonds selon tes revenus et tes objectifs', () => go(const BudgetAssistantScreen())),
+      ('wand-sparkles', 'c7', l.moreAssistant, l.moreAssistantSub, () => go(const BudgetAssistantScreen())),
     ];
     final data = <_Item>[
-      ('file-text', 'c3', 'Relevé PDF', 'Imprimable, par mois, par période ou par compte', () => go(const StatementScreen())),
-      ('download', 'c8', 'Exporter en CSV', 'Toutes tes opérations dans un fichier pour Excel', () => exportCsv(context)),
-      ('file-up', 'c8', 'Importer un CSV', 'Récupérer un export carnet237, sans doublons', () => go(const ImportScreen())),
-      (
-        'cloud',
-        'c5',
-        'Synchronisation Google Drive',
-        backup.connected ? backup.email! : 'Copie chiffrée dans ton Drive, à restaurer ailleurs',
-        () => go(const BackupScreen()),
-      ),
+      ('file-text', 'c3', l.moreStatement, l.moreStatementSub, () => go(const StatementScreen())),
+      ('download', 'c8', l.moreExportCsv, l.moreExportCsvSub, () => exportCsv(context)),
+      ('file-up', 'c8', l.moreImportCsv, l.moreImportCsvSub, () => go(const ImportScreen())),
+      ('file-lock', 'c4', l.fileBackupTitle, l.fileBackupMoreSub, () => go(const FileBackupScreen())),
+      ('cloud', 'c5', l.moreDrive, backup.connected ? backup.email! : l.moreDriveSub, () => go(const BackupScreen())),
     ];
     final app = <_Item>[
       (
         lock.hasPin ? 'lock' : 'lock-open',
         'c4',
-        'Sécurité',
-        lock.hasPin ? 'Code activé${lock.biometric ? ' · empreinte' : ''}' : 'Protège l\'app par un code et ton empreinte',
+        l.moreSecurity,
+        lock.hasPin ? (lock.biometric ? l.moreSecurityOnBio : l.moreSecurityOn) : l.moreSecurityOff,
         () => go(const SecurityScreen()),
       ),
-      ('bell', 'c6', 'Notifications', 'Rappels, budget, échéances, synchronisation', () => go(const NotificationsScreen())),
-      ('settings', 'c10', 'Paramètres', 'Thème, devise, budget, catégories, comptes', () => go(const SettingsScreen())),
+      ('bell', 'c6', l.moreNotifications, l.moreNotificationsSub, () => go(const NotificationsScreen())),
+      ('settings', 'c10', l.moreSettings, l.moreSettingsSub, () => go(const SettingsScreen())),
     ];
 
     Widget group(String icon, String title, List<_Item> items, int offset) => Column(
@@ -126,19 +123,19 @@ class MoreScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'carnet237',
-                      style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: Colors.white),
+                    Text(
+                      l.appTitle,
+                      style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                     const SizedBox(height: 2),
-                    Text('${plural(s.txs.length, 'opération')} · données sur ce téléphone', style: const TextStyle(color: heroSoft, fontSize: 12.5)),
+                    Text(l.moreHeroSub(s.txs.length), style: const TextStyle(color: heroSoft, fontSize: 12.5)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        _Badge(icon: lock.hasPin ? 'shield-check' : 'shield', text: lock.hasPin ? 'Protégée' : 'Sans code'),
-                        _Badge(icon: backup.connected ? 'cloud' : 'cloud-off', text: backup.connected ? 'Drive connecté' : 'Hors ligne'),
+                        _Badge(icon: lock.hasPin ? 'shield-check' : 'shield', text: lock.hasPin ? l.moreBadgeLocked : l.moreBadgeNoCode),
+                        _Badge(icon: backup.connected ? 'cloud' : 'cloud-off', text: backup.connected ? l.moreBadgeDrive : l.moreBadgeOffline),
                       ],
                     ),
                   ],
@@ -148,11 +145,11 @@ class MoreScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        group('coins', 'Argent', money, 0),
-        group('database', 'Données', data, 1),
-        group('settings', 'Application', app, 2),
+        group('coins', l.moreGroupMoney, money, 0),
+        group('database', l.moreGroupData, data, 1),
+        group('settings', l.moreGroupApp, app, 2),
         Center(
-          child: Text('carnet237 · fait au Cameroun', style: TextStyle(color: context.c.muted, fontSize: 12)),
+          child: Text(l.moreFooter, style: TextStyle(color: context.c.muted, fontSize: 12)),
         ),
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n.dart';
 import '../icons.dart';
 import '../notify.dart';
 import '../theme.dart';
@@ -28,9 +29,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final n = context.watch<Notifier>();
-    final time = '${n.hour.toString().padLeft(2, '0')} h ${n.minute.toString().padLeft(2, '0')}';
+    final l = context.l;
+    final time = l.notificationsTimeValue(n.hour.toString().padLeft(2, '0'), n.minute.toString().padLeft(2, '0'));
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: Text(l.notificationsTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -42,20 +44,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Les notifications sont bloquées pour carnet237.',
+                    l.notificationsBlocked,
                     style: TextStyle(color: context.c.ink, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    "Autorise-les pour recevoir les rappels. Si rien ne s'affiche, va dans Réglages Android › Applications › carnet237 › Notifications.",
-                  ),
+                  Text(l.notificationsBlockedHelp),
                   const SizedBox(height: 8),
                   OutlinedButton(
                     onPressed: () async {
                       await n.requestPermission();
                       await _refresh();
                     },
-                    child: const Text('Autoriser'),
+                    child: Text(l.notificationsAllow),
                   ),
                 ],
               ),
@@ -67,15 +67,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               children: [
                 SwitchListTile(
                   secondary: Icon(appIcon('bell')),
-                  title: const Text('Rappel quotidien'),
-                  subtitle: const Text("« As-tu noté tes dépenses ? », sauf si tu as déjà saisi quelque chose ce jour-là"),
+                  title: Text(l.notifyChDaily),
+                  subtitle: Text(l.notificationsDailyDesc),
                   value: n.daily,
                   onChanged: (v) => n.set(daily: v),
                 ),
                 ListTile(
                   enabled: n.daily,
                   leading: Icon(appIcon('clock')),
-                  title: const Text('Heure du rappel'),
+                  title: Text(l.notificationsTime),
                   trailing: Text(time, style: const TextStyle(fontWeight: FontWeight.w600)),
                   onTap: () async {
                     final t = await showTimePicker(
@@ -88,24 +88,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 const Divider(),
                 SwitchListTile(
                   secondary: Icon(appIcon('gauge')),
-                  title: const Text('Budget et plafonds'),
-                  subtitle: const Text('Alerte à 80 %, puis en cas de dépassement'),
+                  title: Text(l.notifyChBudget),
+                  subtitle: Text(l.notificationsBudgetDesc),
                   value: n.budget,
                   onChanged: (v) => n.set(budget: v),
                 ),
                 const Divider(),
                 SwitchListTile(
                   secondary: Icon(appIcon('handshake')),
-                  title: const Text('Échéances de dettes'),
-                  subtitle: const Text("3 jours avant et le jour de l'échéance, à 9 h"),
+                  title: Text(l.notifyChDebts),
+                  subtitle: Text(l.notificationsDebtsDesc),
                   value: n.debts,
                   onChanged: (v) => n.set(debts: v),
                 ),
                 const Divider(),
                 SwitchListTile(
                   secondary: Icon(appIcon('cloud')),
-                  title: const Text('Rappel de synchronisation'),
-                  subtitle: const Text('Si ta dernière sauvegarde Google Drive date de plus de 7 jours'),
+                  title: Text(l.notifyChSync),
+                  subtitle: Text(l.notificationsSyncDesc),
                   value: n.sync,
                   onChanged: (v) => n.set(sync: v),
                 ),
@@ -113,10 +113,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          Text(
-            'Les notifications sont préparées sur le téléphone, sans internet. Sur un écran verrouillé, Android masque les montants.',
-            style: TextStyle(color: context.c.muted, fontSize: 13),
-          ),
+          Text(l.notificationsFooter, style: TextStyle(color: context.c.muted, fontSize: 13)),
         ],
       ),
     );

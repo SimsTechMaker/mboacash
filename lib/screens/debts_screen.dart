@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../models.dart';
 import '../state.dart';
@@ -33,11 +34,11 @@ class _DebtsScreenState extends State<DebtsScreen> {
     final open = s.debts.where((d) => s.debtLeft(d) > 0).length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dettes')),
+      appBar: AppBar(title: Text(context.l.debtsTitle)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => openDebtSheet(context, owe: owe),
         icon: Icon(appIcon('plus')),
-        label: Text(owe ? 'Ajouter une dette' : 'Ajouter un prêt'),
+        label: Text(owe ? context.l.debtsAddDebt : context.l.debtsAddLoan),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
@@ -47,23 +48,23 @@ class _DebtsScreenState extends State<DebtsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const HeroLabel('Solde des dettes'),
+                HeroLabel(context.l.debtsBalance),
                 const SizedBox(height: 4),
                 FittedBox(
                   alignment: Alignment.centerLeft,
                   child: AnimatedMoney(balance, signed: true, size: 28, color: Colors.white, weight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
-                Text(open == 0 ? 'Aucune dette en cours' : '${plural(open, 'dette')} en cours', style: const TextStyle(color: heroSoft, fontSize: 12.5)),
+                Text(open == 0 ? context.l.debtsNoneOpen : context.l.debtsOpenCount(open), style: const TextStyle(color: heroSoft, fontSize: 12.5)),
                 const SizedBox(height: 14),
                 Row(
                   children: [
                     Expanded(
-                      child: HeroStat(label: 'Je dois', icon: 'arrow-down-left', value: s.totalOwed),
+                      child: HeroStat(label: context.l.debtsIOwe, icon: 'arrow-down-left', value: s.totalOwed),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: HeroStat(label: 'On me doit', icon: 'arrow-up-right', value: s.totalLent),
+                      child: HeroStat(label: context.l.debtsOwedToMe, icon: 'arrow-up-right', value: s.totalLent),
                     ),
                   ],
                 ),
@@ -73,9 +74,9 @@ class _DebtsScreenState extends State<DebtsScreen> {
           const SizedBox(height: 14),
           SegmentedButton<bool>(
             showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(value: true, label: Text('Je dois')),
-              ButtonSegment(value: false, label: Text('On me doit')),
+            segments: [
+              ButtonSegment(value: true, label: Text(context.l.debtsIOwe)),
+              ButtonSegment(value: false, label: Text(context.l.debtsOwedToMe)),
             ],
             selected: {owe},
             onSelectionChanged: (v) => setState(() => owe = v.first),
@@ -83,10 +84,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
           const SizedBox(height: 14),
           if (list.isEmpty)
             Panel(
-              child: EmptyState(
-                icon: 'handshake',
-                text: owe ? "Note l'argent que tu as emprunté et suis tes remboursements." : "Note l'argent que tu as prêté et suis ce qu'on te rembourse.",
-              ),
+              child: EmptyState(icon: 'handshake', text: owe ? context.l.debtsEmptyOwe : context.l.debtsEmptyLent),
             ),
           for (var i = 0; i < list.length; i++) ...[
             FadeIn(
@@ -147,16 +145,16 @@ class _DebtCard extends StatelessWidget {
                           if (d.sample) ...[
                             const SizedBox(width: 6),
                             Text(
-                              'EXEMPLE',
+                              context.l.savingsSampleTag,
                               style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: context.c.warn),
                             ),
                           ],
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text('${f.money(paid)} remboursés sur ${f.money(d.amount)}', style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+                      Text(context.l.debtsRepaidOf(f.money(paid), f.money(d.amount)), style: TextStyle(color: context.c.muted, fontSize: 12.5)),
                       Text(
-                        'depuis le ${longDate(d.date)}${d.note.isNotEmpty ? ' · ${d.note}' : ''}',
+                        '${context.l.debtsSince(longDate(d.date))}${d.note.isNotEmpty ? ' · ${d.note}' : ''}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: context.c.muted, fontSize: 12),
@@ -170,9 +168,9 @@ class _DebtCard extends StatelessWidget {
                     AnimatedMoney(left, size: 16, weight: FontWeight.w600, color: tone),
                     const SizedBox(height: 4),
                     if (settled)
-                      Pill('Soldée', color: context.c.income)
+                      Pill(context.l.debtsSettled, color: context.c.income)
                     else if (late)
-                      Pill('En retard', color: context.c.expense)
+                      Pill(context.l.debtsLate, color: context.c.expense)
                     else if (d.due.isNotEmpty)
                       Pill(longDate(d.due), color: context.c.muted),
                   ],
@@ -187,13 +185,13 @@ class _DebtCard extends StatelessWidget {
                 if (!settled)
                   ActionChipButton(
                     icon: 'check',
-                    label: d.owe ? 'Je rembourse' : 'On me rembourse',
+                    label: d.owe ? context.l.debtsIRepay : context.l.debtsTheyRepay,
                     primary: true,
                     onPressed: () => openDebtPaySheet(context, d),
                   ),
                 ActionChipButton(
                   icon: 'pencil',
-                  label: 'Modifier',
+                  label: context.l.edit,
                   onPressed: () => openDebtSheet(context, debt: d),
                 ),
               ],

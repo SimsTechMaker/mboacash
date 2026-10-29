@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../format.dart';
+import '../i18n.dart';
 import '../icons.dart';
 import '../models.dart';
 import '../state.dart';
@@ -21,11 +22,11 @@ class SavingsScreen extends StatelessWidget {
     final reached = s.goals.where((g) => g.target > 0 && s.goalSaved(g) >= g.target).length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Épargne')),
+      appBar: AppBar(title: Text(context.l.typeSave)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => openGoalSheet(context),
         icon: Icon(appIcon('plus')),
-        label: const Text('Nouvel objectif'),
+        label: Text(context.l.savingsNewGoal),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
@@ -38,7 +39,7 @@ class SavingsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const HeroLabel('Total mis de côté'),
+                      HeroLabel(context.l.savingsTotalLabel),
                       const SizedBox(height: 4),
                       FittedBox(
                         alignment: Alignment.centerLeft,
@@ -47,8 +48,8 @@ class SavingsScreen extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         target > 0
-                            ? "sur ${f.money(target)} d'objectifs${reached > 0 ? ' · ${plural(reached, 'objectif')} atteint${reached > 1 ? 's' : ''}' : ''}"
-                            : 'Fixe un montant à tes objectifs pour suivre tes progrès',
+                            ? [context.l.savingsOfTargets(f.money(target)), if (reached > 0) context.l.savingsReachedCount(reached)].join(' · ')
+                            : context.l.savingsNoTarget,
                         style: const TextStyle(color: heroSoft, fontSize: 12.5),
                       ),
                     ],
@@ -62,7 +63,7 @@ class SavingsScreen extends StatelessWidget {
                     size: 72,
                     stroke: 8,
                     child: Text(
-                      '${(s.totalSaved / target * 100).clamp(0, 999).round()} %',
+                      context.l.savingsPercent('${(s.totalSaved / target * 100).clamp(0, 999).round()}'),
                       style: numStyle.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -72,14 +73,11 @@ class SavingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           if (s.goals.isEmpty)
-            const Panel(
-              child: EmptyState(
-                icon: 'piggy-bank',
-                text: "Crée un objectif (fonds d'urgence, voyage, voiture…) puis mets de l'argent de côté depuis tes comptes. L'argent épargné quitte le compte et s'ajoute à l'objectif.",
-              ),
+            Panel(
+              child: EmptyState(icon: 'piggy-bank', text: context.l.savingsEmpty),
             )
           else
-            const SectionTitle(icon: 'target', text: 'Mes objectifs'),
+            SectionTitle(icon: 'target', text: context.l.savingsMyGoals),
           for (var i = 0; i < s.goals.length; i++) ...[
             FadeIn(
               index: i,
@@ -109,7 +107,7 @@ class _GoalCard extends StatelessWidget {
     if (g.target > 0 && !done && g.deadline.isNotEmpty) {
       final now = DateTime.now(), end = parseIso(g.deadline);
       final months = ((end.year - now.year) * 12 + end.month - now.month).clamp(1, 1000);
-      plan = '${f.money((g.target - saved) / months)} par mois pour y arriver';
+      plan = context.l.savingsPerMonth(f.money((g.target - saved) / months));
     }
     final color = done ? context.c.income : slot(g.color);
     return SoftCard(
@@ -137,7 +135,7 @@ class _GoalCard extends StatelessWidget {
                         if (g.sample) ...[
                           const SizedBox(width: 6),
                           Text(
-                            'EXEMPLE',
+                            context.l.savingsSampleTag,
                             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: context.c.warn),
                           ),
                         ],
@@ -151,7 +149,7 @@ class _GoalCard extends StatelessWidget {
                             text: f.money(saved),
                             style: numStyle.copyWith(fontWeight: FontWeight.w600, color: context.c.ink),
                           ),
-                          if (g.target > 0) TextSpan(text: '  sur ${f.money(g.target)}'),
+                          if (g.target > 0) TextSpan(text: '  ${context.l.savingsOfTarget(f.money(g.target))}'),
                         ],
                       ),
                       style: TextStyle(color: context.c.muted, fontSize: 13),
@@ -160,14 +158,17 @@ class _GoalCard extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 3),
                         child: Text(
-                          [if (g.deadline.isNotEmpty) 'avant le ${longDate(g.deadline)}', ?plan].join(' · '),
+                          [if (g.deadline.isNotEmpty) context.l.savingsBefore(longDate(g.deadline)), ?plan].join(' · '),
                           style: TextStyle(color: context.c.muted, fontSize: 12),
                         ),
                       ),
                   ],
                 ),
               ),
-              if (done) Pill('Atteint', color: context.c.income) else if (g.target > 0) Pill('${(pct * 100).round()} %', color: color),
+              if (done)
+                Pill(context.l.savingsReached, color: context.c.income)
+              else if (g.target > 0)
+                Pill(context.l.savingsPercent('${(pct * 100).round()}'), color: color),
             ],
           ),
           const SizedBox(height: 12),
@@ -175,11 +176,11 @@ class _GoalCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              ActionChipButton(icon: 'plus', label: 'Mettre de côté', primary: true, onPressed: () => openGoalMoveSheet(context, g, -1)),
-              ActionChipButton(icon: 'minus', label: 'Retirer', onPressed: () => openGoalMoveSheet(context, g, 1)),
+              ActionChipButton(icon: 'plus', label: context.l.savingsPutAside, primary: true, onPressed: () => openGoalMoveSheet(context, g, -1)),
+              ActionChipButton(icon: 'minus', label: context.l.savingsWithdraw, onPressed: () => openGoalMoveSheet(context, g, 1)),
               ActionChipButton(
                 icon: 'pencil',
-                label: 'Modifier',
+                label: context.l.edit,
                 onPressed: () => openGoalSheet(context, goal: g),
               ),
             ],

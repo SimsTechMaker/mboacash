@@ -1,0 +1,1509 @@
+{
+  "@@locale": "fr",
+  "accountsAdjust": "Ajuster le solde",
+  "accountsDefault": "par défaut",
+  "accountsIOwe": "Je dois",
+  "accountsMine": "Mes comptes",
+  "accountsNetWorth": "Patrimoine net",
+  "accountsOnAccounts": "Sur mes comptes",
+  "accountsOps": "Opérations",
+  "accountsOwedToMe": "On me doit",
+  "accountsShare": "{pct} % de ton argent disponible",
+  "@accountsShare": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "add": "Ajouter",
+  "appTitle": "my-nkap",
+  "assistantApplied": "Budget et plafonds appliqués",
+  "assistantApply": "Appliquer ce budget",
+  "assistantApplyNote": "Remplace ton budget mensuel et les plafonds de tes catégories de dépenses. Tu pourras les modifier ensuite dans Paramètres.",
+  "assistantCapPerCat": "Plafond par catégorie",
+  "assistantCreateGoal": "Créer un objectif",
+  "assistantGoals": "Objectifs d'épargne",
+  "assistantGoalsReached": "Tous tes objectifs sont atteints.",
+  "assistantIncomeLabel": "Revenus mensuels",
+  "assistantIntro": "Indique ce que tu gagnes par mois : l'assistant propose un budget, un plafond par catégorie et ce qu'il faut mettre de côté pour tes objectifs.",
+  "assistantMethod": "Méthode",
+  "assistantMonthlyBudget": "Budget mensuel (dépenses courantes)",
+  "assistantNeeds": "Besoins",
+  "assistantNeedsSub": "Logement, factures, alimentation, transport…",
+  "assistantNoGoals": "Aucun objectif pour l'instant. Commence par un fonds d'urgence d'environ 3 mois de dépenses, soit à peu près {amount}.",
+  "@assistantNoGoals": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "assistantPerMonth": "{amount} / mois",
+  "@assistantPerMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "assistantPrefilled": "Pré-rempli avec ta moyenne des 3 derniers mois.",
+  "assistantProposal": "Proposition",
+  "assistantRule503020Desc": "La règle classique : 50 % pour les besoins, 30 % pour les envies, 20 % pour l'épargne.",
+  "assistantRule702010Desc": "Plus réaliste quand le loyer et la nourriture pèsent lourd : 70 % besoins, 20 % envies, 10 % épargne.",
+  "assistantRuleHistory": "Mes habitudes",
+  "assistantRuleHistoryDesc": "Part de tes dépenses réelles des 3 derniers mois, et garde le reste pour l'épargne.",
+  "assistantTitle": "Assistant budget",
+  "assistantWants": "Envies",
+  "assistantWantsSub": "Restaurant, loisirs, shopping…",
+  "back": "Retour",
+  "backupCodeSubtitle": "Le code de verrouillage qui était actif quand cette sauvegarde a été faite",
+  "backupCodeTitle": "Code de la sauvegarde",
+  "backupConnectIntro": "Connecte ton compte Google pour enregistrer une copie chiffrée de tes données dans un espace privé de ton propre Drive. Tu pourras la restaurer sur un autre téléphone.",
+  "backupConnected": "Compte Google connecté",
+  "backupDeleted": "Sauvegarde supprimée",
+  "backupDisconnect": "Déconnecter le compte Google",
+  "backupDisconnected": "Compte Google déconnecté de l'app",
+  "backupDriveRefused": "Google Drive a refusé la demande ({status}).",
+  "@backupDriveRefused": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "backupDriveRefusedDetail": "Google Drive a refusé la demande ({status} : {detail}).",
+  "@backupDriveRefusedDetail": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "backupEnablePin": "Activer un code",
+  "backupInfo": "L'app ne se connecte à internet que quand tu touches un de ces boutons. Les {count} dernières sauvegardes sont gardées, chiffrées avec ton code, dans un dossier caché de ton Drive que seule my-nkap peut lire.",
+  "@backupInfo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupInvalidFile": "Ce fichier n'est pas une sauvegarde my-nkap valide.",
+  "backupLast": "Dernière synchronisation : {date}",
+  "@backupLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupListTitle": "Sauvegardes sur Drive",
+  "backupNeedPin": "Active un code de verrouillage : il sert à chiffrer tes sauvegardes.",
+  "backupNetworkError": "Opération impossible. Vérifie ta connexion internet.",
+  "backupNever": "Jamais synchronisé depuis ce téléphone",
+  "backupNone": "Aucune sauvegarde pour ce compte.",
+  "backupNotConfigured": "La synchronisation Google Drive n'est pas configurée dans cette version de l'app.",
+  "backupRefresh": "Actualiser",
+  "backupRestore": "Restaurer",
+  "backupRestoreText": "Toutes les données actuelles de ce téléphone seront remplacées par celles du {date}. Synchronise d'abord si tu veux garder l'état actuel.",
+  "@backupRestoreText": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupRestoreTitle": "Restaurer cette sauvegarde ?",
+  "backupRestored": "Sauvegarde restaurée",
+  "backupSent": "Sauvegarde envoyée sur ton Google Drive",
+  "backupShow": "Afficher",
+  "backupShowHint": "Touche « Afficher » pour voir les sauvegardes de ce compte (connexion internet nécessaire).",
+  "backupSignIn": "Se connecter avec Google",
+  "backupSignInCancelled": "Connexion annulée.",
+  "backupSignInFailed": "Connexion Google impossible ({code}).",
+  "@backupSignInFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSignInFailedDetail": "Connexion Google impossible ({code} : {detail}).",
+  "@backupSignInFailedDetail": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSize": "{size} Ko",
+  "@backupSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSizeLatest": "{size} Ko · la plus récente",
+  "@backupSizeLatest": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSyncNow": "Synchroniser maintenant",
+  "backupTitle": "Synchronisation",
+  "backupUnreadable": "Cette sauvegarde est illisible ou vient d'une autre application.",
+  "backupWhen": "{date} à {time}",
+  "@backupWhen": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "backupWrongCode": "Code incorrect pour cette sauvegarde. Il faut le code qui était actif au moment où elle a été faite.",
+  "cancel": "Annuler",
+  "catsByCategory": "Par catégorie",
+  "catsCap": "plafond {amount}",
+  "@catsCap": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "catsCount": "{count, plural, one{{count} catégorie} other{{count} catégories}}",
+  "@catsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catsManage": "Gérer",
+  "catsNoOps": "Aucune opération ce mois-ci",
+  "catsOver": "Dépassé",
+  "catsOverCaps": "{count, plural, one{{count} plafond dépassé} other{{count} plafonds dépassés}}",
+  "@catsOverCaps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catsReceivedIn": "Reçu en {month}",
+  "@catsReceivedIn": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "catsShareOfTotal": "{pct} % du total",
+  "@catsShareOfTotal": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "catsSpentIn": "Dépensé en {month}",
+  "@catsSpentIn": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "catsTop": "la plus forte : {name}",
+  "@catsTop": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "catsUnused": "Sans opération ce mois-ci",
+  "close": "Fermer",
+  "commonBorrowFrom": "Emprunt auprès de {who}",
+  "@commonBorrowFrom": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      }
+    }
+  },
+  "commonClear": "Effacer",
+  "commonConfirmDelete": "Confirmer la suppression",
+  "commonDebtDeleted": "dette supprimée",
+  "commonFromAccount": "Depuis {account}",
+  "@commonFromAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "commonGoalDeleted": "objectif supprimé",
+  "commonLeaveAccounts": "Ne pas toucher à mes comptes",
+  "commonLendTo": "Prêt à {who}",
+  "@commonLendTo": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      }
+    }
+  },
+  "commonNextMonth": "Mois suivant",
+  "commonNoCategory": "Sans catégorie",
+  "commonNone": "Aucune",
+  "commonOffAccounts": "Hors comptes",
+  "commonPrevMonth": "Mois précédent",
+  "commonRepayFrom": "Remboursement de {who}",
+  "@commonRepayFrom": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      }
+    }
+  },
+  "commonRepayTo": "Remboursement à {who}",
+  "@commonRepayTo": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      }
+    }
+  },
+  "commonSample": "EXEMPLE",
+  "commonSavingFrom": "Retrait d'épargne : {name}",
+  "@commonSavingFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commonSavingTo": "Épargne : {name}",
+  "@commonSavingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commonToAccount": "Vers {account}",
+  "@commonToAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "commonTransfer": "Transfert",
+  "confirm": "Confirmer",
+  "curEUR": "Euro (EUR)",
+  "curGHS": "Cedi (GHS)",
+  "curGNF": "Franc guinéen (GNF)",
+  "curMAD": "Dirham marocain (MAD)",
+  "curNGN": "Naira (NGN)",
+  "curUSD": "Dollar US (USD)",
+  "curXAF": "Franc CFA (XAF)",
+  "curXOF": "Franc CFA (XOF)",
+  "debtsAddDebt": "Ajouter une dette",
+  "debtsAddLoan": "Ajouter un prêt",
+  "debtsBalance": "Solde des dettes",
+  "debtsEmptyLent": "Note l'argent que tu as prêté et suis ce qu'on te rembourse.",
+  "debtsEmptyOwe": "Note l'argent que tu as emprunté et suis tes remboursements.",
+  "debtsIOwe": "Je dois",
+  "debtsIRepay": "Je rembourse",
+  "debtsLate": "En retard",
+  "debtsNoneOpen": "Aucune dette en cours",
+  "debtsOpenCount": "{count, plural, one{{count} dette en cours} other{{count} dettes en cours}}",
+  "@debtsOpenCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "debtsOwedToMe": "On me doit",
+  "debtsRepaidOf": "{paid} remboursés sur {total}",
+  "@debtsRepaidOf": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "debtsSettled": "Soldée",
+  "debtsSince": "depuis le {date}",
+  "@debtsSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "debtsTheyRepay": "On me rembourse",
+  "debtsTitle": "Dettes",
+  "defAccBank": "Banque",
+  "defAccCash": "Espèces",
+  "defAccMomo": "Mobile Money",
+  "defCatActivite": "Activité",
+  "defCatAlim": "Alimentation",
+  "defCatAutre": "Autre",
+  "defCatAutreIn": "Autre revenu",
+  "defCatCadeau": "Cadeau",
+  "defCatEducation": "Éducation",
+  "defCatFactures": "Factures",
+  "defCatFamille": "Famille",
+  "defCatLogement": "Logement",
+  "defCatLoisirs": "Loisirs",
+  "defCatResto": "Restaurant",
+  "defCatSalaire": "Salaire",
+  "defCatSante": "Santé",
+  "defCatShopping": "Shopping",
+  "defCatTelephone": "Téléphone et internet",
+  "defCatTransport": "Transport",
+  "delete": "Supprimer",
+  "edit": "Modifier",
+  "exportAllAccounts": "Tous les comptes",
+  "exportByCategory": "Dépenses par catégorie",
+  "exportClosing": "Solde de clôture",
+  "exportColAccount": "Compte",
+  "exportColAmount": "Montant",
+  "exportColBalance": "Solde",
+  "exportColCap": "Plafond mensuel",
+  "exportColCategory": "Catégorie",
+  "exportColCredit": "Crédit",
+  "exportColDate": "Date",
+  "exportColDebit": "Débit",
+  "exportColDirection": "Sens",
+  "exportColDue": "Échéance",
+  "exportColGoal": "Objectif",
+  "exportColLabel": "Libellé",
+  "exportColLeft": "Reste",
+  "exportColPerson": "Personne",
+  "exportColProgress": "Avancement",
+  "exportColRepaid": "Remboursé",
+  "exportColSaved": "Épargné",
+  "exportColShare": "Part",
+  "exportColTarget": "Cible",
+  "exportColTargetDate": "Date visée",
+  "exportCredits": "Total crédits",
+  "exportCsvSubject": "Export my-nkap",
+  "exportCurrency": "Devise : {currency}",
+  "@exportCurrency": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "exportDebits": "Total débits",
+  "exportDebtsLoans": "Dettes et prêts",
+  "exportEmpty": "Aucune opération sur cette période.",
+  "exportFileName": "releve-{from}-au-{to}",
+  "@exportFileName": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFooter": "Relevé du {from} au {to} - document personnel, sans valeur bancaire officielle",
+  "@exportFooter": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "exportIOwe": "Je dois",
+  "exportIssued": "Édité le {date}",
+  "@exportIssued": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "exportOpening": "Solde d'ouverture",
+  "exportOwedToMe": "On me doit",
+  "exportPage": "Page {page} / {pages}",
+  "@exportPage": {
+    "placeholders": {
+      "page": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "String"
+      }
+    }
+  },
+  "exportPdfDocTitle": "Relevé my-nkap",
+  "exportPercent": "{value} %",
+  "@exportPercent": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "exportPeriod": "Du {from} au {to}",
+  "@exportPeriod": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "exportPeriodSummary": "Revenus de la période : {income}   ·   Dépenses de la période : {expense}   ·   {ops}",
+  "@exportPeriodSummary": {
+    "placeholders": {
+      "income": {
+        "type": "String"
+      },
+      "expense": {
+        "type": "String"
+      },
+      "ops": {
+        "type": "String"
+      }
+    }
+  },
+  "exportSettled": "Soldée",
+  "exportTitle": "Relevé de compte",
+  "exportTotal": "Total",
+  "exportTotals": "Totaux",
+  "exportTransfer": "Transfert",
+  "exportTransferInternal": "Transfert interne",
+  "fileBackupExport": "Créer le fichier de sauvegarde",
+  "fileBackupFailed": "Opération impossible. Réessaie.",
+  "fileBackupImport": "Restaurer depuis un fichier",
+  "fileBackupMoreSub": "Tout dans un fichier protégé, sans compte Google",
+  "fileBackupPassword": "Mot de passe",
+  "fileBackupPasswordAgain": "Confirme le mot de passe",
+  "fileBackupPasswordEnter": "Mot de passe du fichier",
+  "fileBackupPasswordHelp": "Il sera demandé pour restaurer. Note-le bien : il ne peut pas être récupéré.",
+  "fileBackupPasswordMismatch": "Les deux mots de passe ne sont pas identiques.",
+  "fileBackupPasswordNew": "Protéger le fichier",
+  "fileBackupPasswordShort": "Au moins 6 caractères.",
+  "fileBackupPointAll": "Un seul fichier avec tout : opérations, comptes, catégories, épargne, dettes, réglages et justificatifs.",
+  "fileBackupPointOffline": "Garde-le où tu veux (téléphone, clé USB, e-mail, WhatsApp…) et réimporte-le sur n'importe quel téléphone.",
+  "fileBackupPointPassword": "Chiffré avec un mot de passe que tu choisis : sans lui, personne ne peut l'ouvrir.",
+  "fileBackupReplace": "Remplacer",
+  "fileBackupReplaceText": "Les opérations, comptes, catégories, épargne, dettes et justificatifs actuels seront remplacés par ceux du fichier.",
+  "fileBackupReplaceTitle": "Remplacer toutes les données ?",
+  "fileBackupRestored": "Sauvegarde restaurée",
+  "fileBackupSubject": "Sauvegarde my-nkap",
+  "fileBackupTitle": "Sauvegarde complète (fichier)",
+  "fileBackupWarning": "Restaurer remplace toutes les données de ce téléphone par celles du fichier. Si tu oublies le mot de passe, le fichier ne peut plus être ouvert.",
+  "greetingDay": "Bonjour",
+  "greetingEvening": "Bonsoir",
+  "importBadLines": "{count, plural, one{{count} ligne illisible} other{{count} lignes illisibles}}",
+  "@importBadLines": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importButton": "{count, plural, one{Importer {count} opération} other{Importer {count} opérations}}",
+  "@importButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importCantRead": "Impossible de lire ce fichier.",
+  "importCurrencyWarn": "Le fichier est en {file}, l'app en {app} : les montants sont importés tels quels, sans conversion.",
+  "@importCurrencyWarn": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "importDone": "{count, plural, one{{count} opération importée} other{{count} opérations importées}}",
+  "@importDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importDuplicates": "{count, plural, one{{count} doublon ignoré (déjà dans l'app)} other{{count} doublons ignorés (déjà dans l'app)}}",
+  "@importDuplicates": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importErrDebt": "ligne {line} : dette sans personne ni sens",
+  "@importErrDebt": {
+    "placeholders": {
+      "line": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrEmpty": "Le fichier est vide.",
+  "importErrNotExport": "Ce fichier n'est pas un export my-nkap : il manque les colonnes date, type ou montant.",
+  "importErrUnreadable": "ligne {line} : date, type ou montant illisible",
+  "@importErrUnreadable": {
+    "placeholders": {
+      "line": {
+        "type": "String"
+      }
+    }
+  },
+  "importFailed": "L'import a échoué ; rien n'a été modifié.",
+  "importIntro": "Choisis un fichier exporté par my-nkap (Plus › Exporter en CSV), même modifié dans Excel. Les opérations déjà présentes sont ignorées, et les catégories, comptes, objectifs et dettes manquants sont créés.",
+  "importMoreErrors": "{count, plural, one{… et {count} autre} other{… et {count} autres}}",
+  "@importMoreErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importNewAccounts": "Comptes créés : {names}",
+  "@importNewAccounts": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "importNewCats": "Catégories créées : {names}",
+  "@importNewCats": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "importNewDebts": "Dettes créées : {names}",
+  "@importNewDebts": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "importNewGoals": "Objectifs créés : {names}",
+  "@importNewGoals": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "importNothing": "Rien à importer",
+  "importPick": "Choisir un fichier",
+  "importPickOther": "Choisir un autre fichier",
+  "importSavingsGoal": "Épargne importée",
+  "importTitle": "Importer un CSV",
+  "importToImport": "{count, plural, one{{count} opération à importer} other{{count} opérations à importer}}",
+  "@importToImport": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importTooBig": "Fichier trop volumineux (plus de 20 Mo).",
+  "insGoodTextCurrent": "Bien joué : {amount} de moins que ta moyenne si tu gardes ce rythme.",
+  "@insGoodTextCurrent": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insGoodTextPast": "Bien joué : {amount} de moins que ta moyenne.",
+  "@insGoodTextPast": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insGoodTitle": "{pct} % en {name}",
+  "@insGoodTitle": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "insNoSavingText": "D'habitude tu mets {amount} de côté par mois.",
+  "@insNoSavingText": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insNoSavingTitle": "Pas encore d'épargne ce mois-ci",
+  "insWarnTextCurrent": "{spent} dépensés, à ce rythme, tu finirais le mois à {projected} contre {avg} en moyenne.",
+  "@insWarnTextCurrent": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "projected": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      }
+    }
+  },
+  "insWarnTextPast": "{spent} dépensés, soit {projected} contre {avg} en moyenne.",
+  "@insWarnTextPast": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "projected": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      }
+    }
+  },
+  "insWarnTitle": "+{pct} % en {name}",
+  "@insWarnTitle": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "language": "Langue",
+  "languageAuto": "Automatique",
+  "languageAutoDesc": "Suit la langue du téléphone",
+  "languageEn": "English",
+  "languageFr": "Français",
+  "lockBiometricTooltip": "Empreinte ou visage",
+  "lockChooseCode": "Choisis un code",
+  "lockCode": "Code",
+  "lockCodeTitle": "Code de verrouillage",
+  "lockConfirmCode": "Confirme le code",
+  "lockDigits": "De 4 à 6 chiffres",
+  "lockEnterAgain": "Saisis-le une deuxième fois",
+  "lockForgot": "Code oublié ?",
+  "lockForgotBody": "Le code ne peut pas être récupéré. La seule solution est d'effacer toutes les données de l'app sur ce téléphone et de retirer le code.\n\nSi tu as une sauvegarde Google Drive, tu pourras la restaurer ensuite, mais il faudra le code utilisé au moment de cette sauvegarde.",
+  "lockForgotTitle": "Code oublié",
+  "lockMismatch": "Les deux codes sont différents. Recommence.",
+  "lockSubmit": "Valider",
+  "lockSubtitle": "Saisis ton code pour continuer",
+  "lockTitle": "my-nkap est verrouillé",
+  "lockTooManyLater": "Trop d'essais. Réessaie plus tard.",
+  "lockTooManyWait": "Trop d'essais. Réessaie dans {seconds} s.",
+  "@lockTooManyWait": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "lockWipeAll": "Tout effacer",
+  "lockWiped": "Données effacées et code retiré",
+  "lockWrongCode": "Code incorrect.",
+  "lockWrongCodeTries": "{count, plural, one{Code incorrect. {count} essai avant une pause.} other{Code incorrect. {count} essais avant une pause.}}",
+  "@lockWrongCodeTries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moreAssistant": "Assistant budget",
+  "moreAssistantSub": "Budget et plafonds selon tes revenus et tes objectifs",
+  "moreBadgeDrive": "Drive connecté",
+  "moreBadgeLocked": "Protégée",
+  "moreBadgeNoCode": "Sans code",
+  "moreBadgeOffline": "Hors ligne",
+  "moreDebts": "Dettes",
+  "moreDebtsEmpty": "Suis ce que tu dois et ce qu'on te doit",
+  "moreDebtsSub": "Je dois {owed} · On me doit {lent}",
+  "@moreDebtsSub": {
+    "placeholders": {
+      "owed": {
+        "type": "String"
+      },
+      "lent": {
+        "type": "String"
+      }
+    }
+  },
+  "moreDrive": "Synchronisation Google Drive",
+  "moreDriveSub": "Copie chiffrée dans ton Drive, à restaurer ailleurs",
+  "moreExportCsv": "Exporter en CSV",
+  "moreExportCsvSub": "Toutes tes opérations dans un fichier pour Excel",
+  "moreFooter": "my-nkap · fait au Cameroun",
+  "moreGroupApp": "Application",
+  "moreGroupData": "Données",
+  "moreGroupMoney": "Argent",
+  "moreHeroSub": "{count, plural, one{{count} opération} other{{count} opérations}} · données sur ce téléphone",
+  "@moreHeroSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moreImportCsv": "Importer un CSV",
+  "moreImportCsvSub": "Récupérer un export my-nkap, sans doublons",
+  "moreNotifications": "Notifications",
+  "moreNotificationsSub": "Rappels, budget, échéances, synchronisation",
+  "moreSavings": "Épargne",
+  "moreSavingsEmpty": "Crée un objectif et mets de l'argent de côté",
+  "moreSavingsSub": "{count, plural, one{{count} objectif} other{{count} objectifs}} · {amount} mis de côté",
+  "@moreSavingsSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moreSecurity": "Sécurité",
+  "moreSecurityOff": "Protège l'app par un code et ton empreinte",
+  "moreSecurityOn": "Code activé",
+  "moreSecurityOnBio": "Code activé · empreinte",
+  "moreSettings": "Paramètres",
+  "moreSettingsSub": "Langue, thème, devise, budget, catégories, comptes",
+  "moreStatement": "Relevé PDF",
+  "moreStatementSub": "Imprimable, par mois, par période ou par compte",
+  "newOperation": "Nouvelle opération",
+  "next": "Suivant",
+  "no": "Non",
+  "notificationsAllow": "Autoriser",
+  "notificationsBlocked": "Les notifications sont bloquées pour my-nkap.",
+  "notificationsBlockedHelp": "Autorise-les pour recevoir les rappels. Si rien ne s'affiche, va dans Réglages Android › Applications › my-nkap › Notifications.",
+  "notificationsBudgetDesc": "Alerte à 80 %, puis en cas de dépassement",
+  "notificationsDailyDesc": "« As-tu noté tes dépenses ? », sauf si tu as déjà saisi quelque chose ce jour-là",
+  "notificationsDebtsDesc": "3 jours avant et le jour de l'échéance, à 9 h",
+  "notificationsFooter": "Les notifications sont préparées sur le téléphone, sans internet. Sur un écran verrouillé, Android masque les montants.",
+  "notificationsSyncDesc": "Si ta dernière sauvegarde Google Drive date de plus de 7 jours",
+  "notificationsTime": "Heure du rappel",
+  "notificationsTimeValue": "{hour} h {minute}",
+  "@notificationsTimeValue": {
+    "placeholders": {
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsTitle": "Notifications",
+  "notifyChBudget": "Budget et plafonds",
+  "notifyChDaily": "Rappel quotidien",
+  "notifyChDebts": "Échéances de dettes",
+  "notifyChSync": "Rappel de synchronisation",
+  "notifyDaily1": "As-tu noté tes dépenses aujourd'hui ?",
+  "notifyDaily2": "Deux minutes pour mettre ton carnet à jour ?",
+  "notifyDaily3": "Un taxi, un repas, une recharge ? Note-les avant d'oublier.",
+  "notifyDaily4": "Ton carnet t'attend : note les opérations du jour.",
+  "notifyDebtIOwe": "Tu dois rembourser {amount} à {person} {when}.",
+  "@notifyDebtIOwe": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyDebtOwedToMe": "{person} doit te rembourser {amount} {when}.",
+  "@notifyDebtOwedToMe": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyDebtTitle": "Échéance : {person}",
+  "@notifyDebtTitle": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyIn3Days": "dans 3 jours",
+  "notifyMonthBudget": "Budget du mois",
+  "notifyNearBody": "Déjà {spent} sur {cap}. Il reste {left} pour le mois.",
+  "@notifyNearBody": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "cap": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyNearTitle": "{name} : 80 % atteint",
+  "@notifyNearTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyOverBody": "Tu as dépensé {spent} ce mois-ci pour un plafond de {cap}.",
+  "@notifyOverBody": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "cap": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyOverTitle": "{name} : dépassé",
+  "@notifyOverTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifySyncNever": "Tu n'as pas encore sauvegardé tes données sur Google Drive.",
+  "notifySyncOld": "Ta dernière sauvegarde Google Drive date de plus de 7 jours.",
+  "notifySyncTitle": "Pense à synchroniser",
+  "notifyToday": "aujourd'hui",
+  "ok": "OK",
+  "onboardingBudget": "Préparer mon budget",
+  "onboardingSamples": "Voir avec des exemples",
+  "onboardingSkip": "Passer",
+  "onboardingStart": "Commencer",
+  "onboardingText1": "Note tes dépenses et tes revenus en quelques secondes : marché, taxi, ENEO, Mobile Money… Tu vois où part ton argent, mois après mois.",
+  "onboardingText2": "Tout est enregistré sur ce téléphone, sans compte et sans internet. Tu peux protéger l'app par un code ou ton empreinte, et la sauvegarder chiffrée sur ton propre Google Drive.",
+  "onboardingText3": "L'app devine la catégorie à partir de la note, repère tes dépenses habituelles, te prévient avant de dépasser ton budget et propose un budget adapté à tes revenus.",
+  "onboardingTitle1": "Bienvenue dans my-nkap",
+  "onboardingTitle2": "Tes données restent chez toi",
+  "onboardingTitle3": "Un carnet qui t'aide",
+  "opsAdvice": "Conseils",
+  "opsBudget": "Budget",
+  "opsBudgetAssistant": "Préparer mon budget avec l'assistant",
+  "opsBudgetLeft": "Reste {amount}",
+  "@opsBudgetLeft": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "opsBudgetNote": "L'épargne et les dettes ne comptent pas dans le budget.",
+  "opsBudgetOver": "Dépassé de {amount}",
+  "@opsBudgetOver": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "opsCount": "{count, plural, one{{count} opération} other{{count} opérations}}",
+  "@opsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "opsDueTitle": "Habituels pas encore saisis",
+  "opsEmptyFirst": "Ton carnet est vide. Ajoute ta première dépense avec le bouton +, ou charge quelques exemples pour voir le carnet rempli.",
+  "opsEmptyMonth": "Aucune opération en {month}.",
+  "@opsEmptyMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "opsEmptyMonthAccount": "Aucune opération en {month} sur ce compte.",
+  "@opsEmptyMonthAccount": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "opsFilterAll": "Tout",
+  "opsForecastBalance": " · solde ≈ ",
+  "opsForecastDay": "Jour {day} sur {days}, d'après ton rythme et tes habitudes.",
+  "@opsForecastDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "opsForecastExpenses": "Dépenses ≈ ",
+  "opsForecastOver": "À ce rythme, le budget serait dépassé de {amount}.",
+  "@opsForecastOver": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "opsForecastTitle": "Prévision de fin de mois",
+  "opsHeroBalance": "SOLDE DU MOIS",
+  "opsJournal": "Journal",
+  "opsLoadSamples": "Charger des exemples",
+  "opsRecurringPlanned": "prévu le {date}",
+  "@opsRecurringPlanned": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "opsRecurringUsual": "habituellement vers le {day}",
+  "@opsRecurringUsual": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "opsSamplesLoaded": "Exemples chargés. Tu pourras les retirer dans Paramètres › Données.",
+  "proofAdd": "Ajouter un justificatif (photo, reçu)",
+  "proofCamera": "Prendre une photo",
+  "proofGallery": "Choisir dans la galerie",
+  "proofRemove": "Retirer",
+  "proofReplace": "Remplacer",
+  "proofTapToView": "Touche l'image pour l'agrandir",
+  "proofTitle": "Justificatif",
+  "save": "Enregistrer",
+  "savingsBefore": "avant le {date}",
+  "@savingsBefore": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsEmpty": "Crée un objectif (fonds d'urgence, voyage, voiture…) puis mets de l'argent de côté depuis tes comptes. L'argent épargné quitte le compte et s'ajoute à l'objectif.",
+  "savingsMyGoals": "Mes objectifs",
+  "savingsNewGoal": "Nouvel objectif",
+  "savingsNoTarget": "Fixe un montant à tes objectifs pour suivre tes progrès",
+  "savingsOfTarget": "sur {amount}",
+  "@savingsOfTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsOfTargets": "sur {amount} d'objectifs",
+  "@savingsOfTargets": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsPerMonth": "{amount} par mois pour y arriver",
+  "@savingsPerMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsPercent": "{pct} %",
+  "@savingsPercent": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsPutAside": "Mettre de côté",
+  "savingsReached": "Atteint",
+  "savingsReachedCount": "{count, plural, one{{count} objectif atteint} other{{count} objectifs atteints}}",
+  "@savingsReachedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savingsSampleTag": "EXEMPLE",
+  "savingsTotalLabel": "Total mis de côté",
+  "savingsWithdraw": "Retirer",
+  "securityBioCancelled": "Vérification biométrique annulée",
+  "securityBioEnableReason": "Confirme pour activer le déverrouillage biométrique",
+  "securityBioNone": "Aucune empreinte ou visage enregistré sur ce téléphone. Ajoute-en dans les réglages d'Android.",
+  "securityBioOn": "Déverrouille sans taper le code. Le code reste possible.",
+  "securityBioTitle": "Empreinte ou reconnaissance faciale",
+  "securityBioUnlockReason": "Déverrouille my-nkap",
+  "securityChange": "Changer le code",
+  "securityCodeChanged": "Code modifié. Les prochaines sauvegardes utiliseront le nouveau code.",
+  "securityCodeOn": "Code activé",
+  "securityCodeRemoved": "Code retiré",
+  "securityCurrentCode": "Code actuel",
+  "securityDelayMinutes": "{count, plural, one{Après {count} minute} other{Après {count} minutes}}",
+  "@securityDelayMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "securityDelayNow": "Immédiatement",
+  "securityDelaySeconds": "{count, plural, one{Après {count} seconde} other{Après {count} secondes}}",
+  "@securityDelaySeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "securityDelayShort": "Après {seconds} s",
+  "@securityDelayShort": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "securityEnable": "Activer un code",
+  "securityEnterCurrent": "Saisis ton code actuel",
+  "securityEnterToRemove": "Saisis ton code pour le retirer",
+  "securityFootnote": "Le code n'est jamais enregistré en clair : seule une empreinte chiffrée est gardée dans le coffre sécurisé d'Android. Après 5 erreurs, la saisie est bloquée un moment, et ce délai double à chaque nouvelle erreur. Le code sert aussi à chiffrer tes sauvegardes Google Drive.",
+  "securityLockNow": "Verrouiller maintenant",
+  "securityLockOnLeave": "Verrouiller quand je quitte l'app",
+  "securityProtected": "App protégée",
+  "securityProtectedDesc": "Code activé. L'app le demande à l'ouverture.",
+  "securityProtectedDescBio": "Code activé · empreinte. L'app le demande à l'ouverture.",
+  "securityRemove": "Retirer le code",
+  "securityTitle": "Sécurité",
+  "securityUnprotected": "App non protégée",
+  "securityUnprotectedDesc": "N'importe qui ayant ton téléphone peut ouvrir l'app.",
+  "settingsAccountsHint": "Le solde de départ est l'argent présent sur le compte avant ta première saisie. Pour corriger un solde plus tard, utilise « Ajuster le solde » dans l'onglet Comptes.",
+  "settingsAppearanceNote": "La langue et le thème changent après « Enregistrer ».",
+  "settingsCap": "Plafond",
+  "settingsCapsNote": "Les plafonds par catégorie se règlent dans l'onglet Catégories.",
+  "settingsCatsArchiveNote": "Une catégorie déjà utilisée est masquée plutôt qu'effacée, pour garder l'historique intact.",
+  "settingsCatsCapHint": "Le plafond mensuel est facultatif : la catégorie passe au rouge s'il est dépassé.",
+  "settingsCatsHint": "Touche l'icône pour la changer.",
+  "settingsCurrency": "Devise",
+  "settingsDataFooter": "{count, plural, one{{count} opération au total} other{{count} opérations au total}}. Les données restent sur ce téléphone.",
+  "@settingsDataFooter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDefault": "Par défaut",
+  "settingsExpenses": "Dépenses",
+  "settingsExportCsv": "Exporter en CSV",
+  "settingsExportText": "Un fichier CSV avec toutes tes opérations, lisible dans Excel ou Google Sheets.",
+  "settingsExportTitle": "Exporter",
+  "settingsIncomes": "Revenus",
+  "settingsInitialBalance": "Solde de départ",
+  "settingsKeepOneAccount": "Garde au moins un compte.",
+  "settingsKeepOneCategory": "Garde au moins une catégorie de ce type.",
+  "settingsMonthlyBudget": "Budget mensuel total",
+  "settingsName": "Nom",
+  "settingsNewAccount": "Nouveau compte",
+  "settingsNewCategory": "Nouvelle catégorie",
+  "settingsNewIncome": "Nouveau revenu",
+  "settingsNone": "Aucun",
+  "settingsSamplesNo": "Aucune donnée d'exemple.",
+  "settingsSamplesRemove": "Retirer les exemples",
+  "settingsSamplesRemoved": "Exemples retirés",
+  "settingsSamplesTitle": "Données d'exemple",
+  "settingsSamplesYes": "Le carnet contient des données d'exemple.",
+  "settingsSaved": "Paramètres enregistrés",
+  "settingsTabAppearance": "Apparence",
+  "settingsTabData": "Données",
+  "settingsTabMoney": "Devise et budget",
+  "settingsTheme": "Thème",
+  "settingsThemeAuto": "Automatique",
+  "settingsThemeAutoDesc": "Suit le réglage du téléphone",
+  "settingsThemeDark": "Sombre",
+  "settingsThemeDarkDesc": "Mode nuit permanent",
+  "settingsThemeLight": "Clair",
+  "settingsThemeLightDesc": "Toujours clair",
+  "settingsTitle": "Paramètres",
+  "settingsWipeButton": "Effacer toutes les données",
+  "settingsWipeText": "Supprime toutes les opérations, objectifs et dettes. Tes catégories, comptes et réglages sont gardés. Exporte un CSV avant si tu veux garder une trace.",
+  "settingsWipeTitle": "Tout effacer",
+  "settingsWiped": "Données effacées",
+  "sheetsAccount": "Compte",
+  "sheetsAdjust": "Ajuster",
+  "sheetsAdjustExplain": "Un ajustement corrige le solde d'un compte sans compter comme revenu ou dépense.",
+  "sheetsAdjustIntro": "Indique ce qu'il y a vraiment sur le compte. La différence est enregistrée comme un ajustement, qui ne compte ni comme revenu ni comme dépense.",
+  "sheetsAdjustNoteHint": "Frais bancaires, oubli…",
+  "sheetsAdjustTitle": "Ajuster : {name}",
+  "@sheetsAdjustTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsAmount": "Montant",
+  "sheetsAmountPositive": "Indique un montant supérieur à zéro.",
+  "sheetsBalanceAdjusted": "Solde ajusté ({amount})",
+  "@sheetsBalanceAdjusted": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsBalanceAlreadyRight": "Le solde est déjà juste.",
+  "sheetsBookBalance": "Solde dans le carnet : {amount}",
+  "@sheetsBookBalance": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsCategory": "Catégorie",
+  "sheetsDate": "Date",
+  "sheetsDebtAccountHint": "Choisis un compte pour que l'argent reçu ou prêté apparaisse dans son solde, ou « Ne pas toucher à mes comptes » pour une dette ancienne.",
+  "sheetsDebtAdded": "Dette ajoutée",
+  "sheetsDebtDeleteHint": "Supprimer la dette efface aussi ses remboursements enregistrés.",
+  "sheetsDebtDeleted": "Dette supprimée",
+  "sheetsDebtDue": "Échéance",
+  "sheetsDebtEditTitle": "Modifier la dette",
+  "sheetsDebtExplain": "Ce mouvement se gère depuis Plus › Dettes.",
+  "sheetsDebtIOwe": "Je dois",
+  "sheetsDebtLeftMax": "Le reste dû est de {amount}.",
+  "@sheetsDebtLeftMax": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsDebtLeftToPay": "Reste à payer : {left} sur {total}",
+  "@sheetsDebtLeftToPay": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsDebtLeftToReceive": "Reste à recevoir : {left} sur {total}",
+  "@sheetsDebtLeftToReceive": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsDebtNewTitle": "Nouvelle dette",
+  "sheetsDebtOwedToMe": "On me doit",
+  "sheetsDebtPaidFrom": "Payé depuis",
+  "sheetsDebtPaidOutOf": "L'argent est sorti de",
+  "sheetsDebtPerson": "Personne ou organisme",
+  "sheetsDebtPersonHintLent": "À qui as-tu prêté ?",
+  "sheetsDebtPersonHintOwe": "Qui t'a prêté l'argent ?",
+  "sheetsDebtPersonMissing": "Indique la personne ou l'organisme.",
+  "sheetsDebtReceivedIn": "Reçu sur",
+  "sheetsDebtReceivedOn": "J'ai reçu l'argent sur",
+  "sheetsDebtRepayTitle": "Rembourser {person}",
+  "@sheetsDebtRepayTitle": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsDebtRepaymentFromTitle": "Remboursement de {person}",
+  "@sheetsDebtRepaymentFromTitle": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsDebtSettled": "Dette soldée",
+  "sheetsDebtTotal": "Montant total",
+  "sheetsDebtUpdated": "Dette mise à jour",
+  "sheetsDeleteIfMistake": "Tu peux le supprimer ici si c'était une erreur.",
+  "sheetsDeleteMovement": "Supprimer ce mouvement",
+  "sheetsExpenseAdded": "Dépense ajoutée",
+  "sheetsFromAccount": "Depuis le compte",
+  "sheetsGoalCreate": "Créer l'objectif",
+  "sheetsGoalCreated": "Objectif créé",
+  "sheetsGoalDeadline": "Date visée (facultatif)",
+  "sheetsGoalDeleteHint": "Supprimer l'objectif efface aussi ses mouvements : l'argent revient sur les comptes d'origine.",
+  "sheetsGoalDeleted": "Objectif supprimé",
+  "sheetsGoalEditTitle": "Modifier l'objectif",
+  "sheetsGoalInitial": "Déjà mis de côté (facultatif)",
+  "sheetsGoalNameHint": "Fonds d'urgence, voyage, voiture…",
+  "sheetsGoalNameMissing": "Donne un nom à l'objectif.",
+  "sheetsGoalNewTitle": "Nouvel objectif d'épargne",
+  "sheetsGoalPutAside": "Mettre de côté",
+  "sheetsGoalPutAsideDone": "{amount} mis de côté",
+  "@sheetsGoalPutAsideDone": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsGoalPutAsideTitle": "Mettre de côté : {name}",
+  "@sheetsGoalPutAsideTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsGoalSaved": "Déjà épargné : {amount}",
+  "@sheetsGoalSaved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsGoalSavedOf": "Déjà épargné : {amount} sur {target}",
+  "@sheetsGoalSavedOf": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsGoalTarget": "Montant visé",
+  "sheetsGoalUpdated": "Objectif mis à jour",
+  "sheetsGoalWithdraw": "Retirer",
+  "sheetsGoalWithdrawDone": "{amount} retirés de l'épargne",
+  "@sheetsGoalWithdrawDone": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsGoalWithdrawMax": "Tu ne peux pas retirer plus que {amount}.",
+  "@sheetsGoalWithdrawMax": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsGoalWithdrawTitle": "Retirer de : {name}",
+  "@sheetsGoalWithdrawTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsIcon": "Icône",
+  "sheetsIncomeAdded": "Revenu ajouté",
+  "sheetsInfoAccount": "Compte : {account}",
+  "@sheetsInfoAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsInfoAmount": "Montant : {amount}",
+  "@sheetsInfoAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsInfoDate": "Date : {date}",
+  "@sheetsInfoDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsLoanAdded": "Prêt ajouté",
+  "sheetsMovementDeleted": "Mouvement supprimé",
+  "sheetsName": "Nom",
+  "sheetsNote": "Note",
+  "sheetsPickIcon": "Choisir une icône",
+  "sheetsRealBalance": "Solde réel",
+  "sheetsRealBalanceMissing": "Indique le solde réel du compte.",
+  "sheetsRepaymentSaved": "Remboursement enregistré",
+  "sheetsSaveExplain": "Ce mouvement se gère depuis Plus › Épargne.",
+  "sheetsSaveRepayment": "Enregistrer le remboursement",
+  "sheetsSuggested": "suggérée d'après la note",
+  "sheetsToAccount": "Vers le compte",
+  "sheetsTransferSameAccount": "Choisis deux comptes différents pour un transfert.",
+  "sheetsTransferSaved": "Transfert enregistré",
+  "sheetsTxDeleted": "Opération supprimée",
+  "sheetsTxEditTitle": "Modifier l'opération",
+  "sheetsTxNoteHint": "Marché, taxi, facture ENEO…",
+  "sheetsTxUpdated": "Opération mise à jour",
+  "sheetsUpdate": "Mettre à jour",
+  "stateGroupTransfer": "Transfert",
+  "stateNoCategory": "Sans catégorie",
+  "stateSampleDebtTontine": "Tontine du quartier",
+  "stateSampleGoalEmergency": "Fonds d'urgence",
+  "stateSampleNoteCinema": "Cinéma et sortie",
+  "stateSampleNoteDoctor": "Consultation",
+  "stateSampleNoteEneo": "Électricité ENEO",
+  "stateSampleNoteFreelance": "Mission freelance",
+  "stateSampleNoteFuel": "Carburant",
+  "stateSampleNoteGroceries": "Courses du mois",
+  "stateSampleNoteInternet": "Forfait internet",
+  "stateSampleNoteLessons": "Cours d'anglais",
+  "stateSampleNoteLunch": "Déjeuner au tourne-dos",
+  "stateSampleNoteMotoTaxi": "Moto-taxi",
+  "stateSampleNoteParents": "Aide aux parents",
+  "stateSampleNotePharmacy": "Pharmacie",
+  "stateSampleNotePhone": "Téléphone",
+  "stateSampleNoteRent": "Loyer",
+  "stateSampleNoteRentAdvance": "Avance pour son loyer",
+  "stateSampleNoteSalary": "Salaire",
+  "stateSampleNoteShoes": "Chaussures",
+  "stateSampleNoteSupermarket": "Supermarché",
+  "stateSampleNoteTopUp": "Recharge",
+  "stateSampleNoteUtilities": "Électricité et eau",
+  "stateSampleNoteWeekend": "Week-end",
+  "stateSampleNoteWeeklyMarket": "Marché de la semaine",
+  "stateSampleNoteWithdrawal": "Retrait au guichet",
+  "statementAccounts": "Comptes",
+  "statementCustom": "Dates au choix",
+  "statementFrom": "Du",
+  "statementHelp": "« Aperçu et impression » ouvre l'impression Android, qui permet aussi d'enregistrer en PDF. « Partager » l'envoie par WhatsApp, e-mail ou vers tes fichiers.",
+  "statementIncludeCats": "Inclure les dépenses par catégorie",
+  "statementIncludePlans": "Inclure l'épargne et les dettes",
+  "statementIntro": "Un document A4 prêt à imprimer : soldes d'ouverture et de clôture, toutes les opérations de la période avec le solde après chaque ligne, puis les dépenses par catégorie.",
+  "statementPdfFailed": "La création du PDF a échoué.",
+  "statementPeriod": "Période",
+  "statementPickPeriod": "Choisis une période valide.",
+  "statementPlansAllOnly": "Seulement pour le relevé de tous les comptes",
+  "statementPreview": "Aperçu et impression",
+  "statementShare": "Partager le PDF",
+  "statementTitle": "Relevé PDF",
+  "statementTo": "Au",
+  "statementYear": "Année {year}",
+  "@statementYear": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "statsDailySpend": "dépense courante par jour",
+  "statsNoExpenses": "Aucune dépense ce mois-ci.",
+  "statsNothingToCompare": "Rien à comparer pour l'instant.",
+  "statsOpsThisMonth": "opérations ce mois-ci",
+  "statsPercent": "{value} %",
+  "@statsPercent": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "statsSavingsRate": "taux d'épargne",
+  "statsSixMonths": "Six derniers mois",
+  "statsTopExpenses": "Plus grosses dépenses",
+  "statsVsPrevMonth": "dépenses vs mois précédent",
+  "statsWhereEmpty": "Les dépenses du mois apparaîtront ici, réparties par catégorie.",
+  "statsWhereMoneyGoes": "Où part l'argent",
+  "tabAccounts": "Comptes",
+  "tabCategories": "Catégories",
+  "tabMore": "Plus",
+  "tabOps": "Opérations",
+  "tabStats": "Statistiques",
+  "totalsExpenses": "Dépenses",
+  "totalsIncome": "Revenus",
+  "typeAdjust": "Ajustement",
+  "typeDebt": "Dette",
+  "typeExpense": "Dépense",
+  "typeIncome": "Revenu",
+  "typeSave": "Épargne",
+  "typeTransfer": "Virement",
+  "unnamedAccount": "Compte",
+  "unnamedCategory": "Sans nom",
+  "yes": "Oui"
+}

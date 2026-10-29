@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'format.dart';
+import 'i18n.dart';
 import 'models.dart';
 import 'state.dart';
 
@@ -14,7 +15,7 @@ class ImportPlan {
   final List<Account> newAccounts = [];
   final List<Goal> newGoals = [];
   final List<Debt> newDebts = [];
-  final List<String> errors = []; // "ligne 12 : …"
+  final List<String> errors = []; // "ligne 12 : …" / "line 12: …"
   int duplicates = 0;
   String? currency; // from the file, when it differs from the app's
   bool get isEmpty => txs.isEmpty;
@@ -90,6 +91,7 @@ String? _date(String v) {
   return isoDate(DateTime(int.parse(m[3]!), int.parse(m[2]!), int.parse(m[1]!)));
 }
 
+/// Type words: the French codes carnet237 writes, plus English aliases.
 const _types = {
   'revenu': TxType.income,
   'depense': TxType.expense,
@@ -97,22 +99,56 @@ const _types = {
   'ajustement': TxType.adjust,
   'epargne': TxType.save,
   'dette': TxType.debt,
+  'income': TxType.income,
+  'expense': TxType.expense,
+  'transfer': TxType.transfer,
+  'adjustment': TxType.adjust,
+  'adjust': TxType.adjust,
+  'savings': TxType.save,
+  'saving': TxType.save,
+  'save': TxType.save,
+  'debt': TxType.debt,
+};
+
+/// Column names: the French headers carnet237 writes, plus English aliases.
+const _headers = {
+  'date': ['date'],
+  'type': ['type'],
+  'libelle': ['libelle', 'label', 'description'],
+  'categorie': ['categorie', 'category'],
+  'compte': ['compte', 'account'],
+  'vers_compte': ['vers_compte', 'to_account'],
+  'montant': ['montant', 'amount'],
+  'devise': ['devise', 'currency'],
+  'note': ['note'],
+  'objectif': ['objectif', 'goal'],
+  'personne': ['personne', 'person'],
+  'sens': ['sens', 'direction'],
+  'role': ['role'],
+  'id': ['id'],
 };
 
 ImportPlan planImport(AppState s, String text) {
   final plan = ImportPlan();
   final rows = parseCsv(text);
   if (rows.isEmpty) {
-    plan.errors.add('Le fichier est vide.');
+    plan.errors.add(tr.importErrEmpty);
     return plan;
   }
-  final head = rows.first.map(_key).toList();
-  int col(String n) => head.indexOf(n);
+  final head = rows.first.map((h) => _key(h).replaceAll(RegExp(r'[ -]'), '_')).toList();
+  int col(String n) {
+    for (final a in _headers[n]!) {
+      final i = head.indexOf(a);
+      if (i >= 0) return i;
+    }
+    return -1;
+  }
+
   final cDate = col('date'), cType = col('type'), cLabel = col('libelle'), cCat = col('categorie'), cAcc = col('compte'), cTo = col('vers_compte');
   final cAmount = col('montant'), cCur = col('devise'), cNote = col('note'), cGoal = col('objectif'), cPerson = col('personne'), cSens = col('sens');
   final cRole = col('role'), cId = col('id');
   if (cDate < 0 || cType < 0 || cAmount < 0) {
-    plan.errors.add("Ce fichier n'est pas un export carnet237 : il manque les colonnes date, type ou montant.");
+    plan.errors.add(tr.importErrNotExport);
     return plan;
   }
 
@@ -138,17 +174,12 @@ ImportPlan planImport(AppState s, String text) {
   }
 
   String category(String name, bool income) {
-    final k = '${income ? 'i' : 'o'}:${_key(name.isEmpty ? (income ? 'Autre revenu' : 'Autre') : name)}';
+    final other = income ? tr.defCatAutreIn : tr.defCatAutre;
+    final k = '${income ? 'i' : 'o'}:${_key(name.isEmpty ? other : name)}';
     return cats[k] ??= () {
       final color = palette.firstWhere((p) => !usedColors.contains(p), orElse: () => palette[(s.settings.cats.length + plan.newCats.length) % palette.length]);
       usedColors.add(color);
-      final c = Category(
-        id: newId('c-'),
-        name: name.trim().isEmpty ? (income ? 'Autre revenu' : 'Autre') : name.trim(),
-        icon: 'tag',
-        income: income,
-        color: color,
-      );
+      final c = Category(id: newId('c-'), name: name.trim().isEmpty ? other : name.trim(), icon: 'tag', income: income, color: color);
       plan.newCats.add(c);
       return c.id;
     }();
@@ -157,12 +188,12 @@ ImportPlan planImport(AppState s, String text) {
   for (var i = 1; i < rows.length; i++) {
     final r = rows[i];
     String at(int c) => c >= 0 && c < r.length ? r[c].trim() : '';
-    final line = 'ligne ${i + 1}';
+    final line = '${i + 1}';
     final date = _date(at(cDate));
     final type = _types[_key(at(cType))];
     final raw = parseAmount(at(cAmount).replaceAll(' ', '').replaceAll(' ', ''));
     if (date == null || type == null || raw == null || raw == 0) {
-      plan.errors.add('$line : date, type ou montant illisible');
+      plan.errors.add(tr.importErrUnreadable(line));
       continue;
     }
     final cur = at(cCur);
@@ -186,7 +217,11 @@ ImportPlan planImport(AppState s, String text) {
       case TxType.save:
         dir = sign;
         var name = at(cGoal);
-        if (name.isEmpty) name = RegExp(r"^(?:Épargne|Retrait d'épargne) : (.+)$").firstMatch(label)?[1] ?? 'Épargne importée';
+        if (name.isEmpty) {
+          name =
+              RegExp(r"^(?:Épargne|Retrait d'épargne|Savings|Savings withdrawal|Withdrawal from savings) ?: (.+)$").firstMatch(label)?[1] ??
+              tr.importSavingsGoal;
+        }
         goal = (goals[_key(name)] ??= () {
           final g = Goal(id: newId('g-'), name: name);
           plan.newGoals.add(g);
@@ -195,12 +230,12 @@ ImportPlan planImport(AppState s, String text) {
       case TxType.debt:
         var person = at(cPerson);
         bool? owe = switch (_key(at(cSens))) {
-          'je_dois' || 'je dois' => true,
-          'on_me_doit' || 'on me doit' => false,
+          'je_dois' || 'je dois' || 'i_owe' || 'i owe' => true,
+          'on_me_doit' || 'on me doit' || 'owed_to_me' || 'owed to me' => false,
           _ => null,
         };
         final role = _key(at(cRole));
-        if (role.isNotEmpty) init = role.startsWith('pret') || role.startsWith('init');
+        if (role.isNotEmpty) init = role.startsWith('pret') || role.startsWith('init') || role.startsWith('loan');
         // Older exports only have the label: "Emprunt auprès de X", "Prêt à X",
         // "Remboursement à X" (I repay) or "Remboursement de X" (I am repaid).
         for (final (re, o, ini) in [
@@ -208,6 +243,11 @@ ImportPlan planImport(AppState s, String text) {
           (RegExp(r'^Prêt à (.+)$'), false, true),
           (RegExp(r'^Remboursement à (.+)$'), true, false),
           (RegExp(r'^Remboursement de (.+)$'), false, false),
+          // Same labels from an English export.
+          (RegExp(r'^Borrowed from (.+)$'), true, true),
+          (RegExp(r'^(?:Loan|Lent) to (.+)$'), false, true),
+          (RegExp(r'^Repayment to (.+)$'), true, false),
+          (RegExp(r'^Repayment from (.+)$'), false, false),
         ]) {
           final m = re.firstMatch(label);
           if (m != null) {
@@ -217,7 +257,7 @@ ImportPlan planImport(AppState s, String text) {
           }
         }
         if (person.isEmpty || owe == null) {
-          plan.errors.add('$line : dette sans personne ni sens');
+          plan.errors.add(tr.importErrDebt(line));
           continue;
         }
         final k = '${owe ? 'owe' : 'lent'}:${_key(person)}';

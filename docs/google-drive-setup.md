@@ -1,56 +1,101 @@
-# Activer la sauvegarde Google Drive de carnet237
+# Configurer la synchronisation Google Drive de carnet237 (de A à Z)
 
-La sauvegarde utilise ton propre projet Google Cloud. Il faut le créer une seule fois, en 10 minutes environ.
-Tout est gratuit : l'app n'utilise que l'API Google Drive, sur un dossier privé.
+Le projet Google Cloud est la « carte d'identité » de l'app auprès de Google. Il ne voit aucune
+donnée : chaque utilisateur se connecte avec son propre compte, et ses sauvegardes vont dans son
+propre Drive, chiffrées avec son code. Tout est gratuit.
 
-## Valeurs dont tu auras besoin
+## Les valeurs à avoir sous la main
 
 | Élément | Valeur |
 |---|---|
 | Nom du package Android | `com.ndi.carnet237` |
-| Empreinte SHA-1 (clé de ce PC) | `C4:37:A1:1B:DD:BC:5C:51:FE:2E:08:00:61:DF:27:54:45:2E:92:5F` |
+| Empreinte SHA-1 de la clé qui signe l'APK (ce PC) | `C4:37:A1:1B:DD:BC:5C:51:FE:2E:08:00:61:DF:27:54:45:2E:92:5F` |
 | Accès demandé (scope) | `https://www.googleapis.com/auth/drive.appdata` |
 
-L'empreinte vient de la clé de développement de ce PC (`%USERPROFILE%\.android\debug.keystore`),
-celle qui signe l'APK aujourd'hui. Pour compiler sur un autre PC, ou avec une clé de publication pour
-le Play Store, ajoute l'empreinte SHA-1 de cette autre clé dans un second identifiant Android (étape 4).
+Pour retrouver l'empreinte SHA-1 d'un APK :
 
-## Étapes
+```powershell
+& "$env:LOCALAPPDATA\Android\Sdk\build-tools\<version>\apksigner.bat" verify --print-certs build\app\outputs\flutter-apk\app-release.apk
+```
 
-1. Va sur <https://console.cloud.google.com/> et connecte-toi avec ton compte Google.
-2. **Crée un projet** : menu en haut › *Nouveau projet* › nom `carnet237` › *Créer*.
-3. **Active l'API Drive** : *API et services › Bibliothèque* › cherche **Google Drive API** › *Activer*.
-4. **Écran de consentement OAuth** (*API et services › Écran de consentement OAuth*, ou *Google Auth Platform*) :
-   - Type d'utilisateur : **Externe** ;
-   - Nom de l'application : `carnet237`, puis ton e-mail comme adresse d'assistance et de contact ;
-   - Accès aux données : ajoute le scope `.../auth/drive.appdata` ;
-   - **Utilisateurs test** : ajoute ton adresse Gmail, et celles des personnes qui testeront l'app.
-     Tant que l'app est « en test », seules ces adresses peuvent se connecter.
-5. **Identifiants** (*API et services › Identifiants › Créer des identifiants › ID client OAuth*) :
-   - **ID client « Android »** : nom du package `com.ndi.carnet237`, empreinte SHA-1 ci-dessus ;
-   - **ID client « Application Web »** : un nom comme `carnet237 web`, sans URL à remplir.
-     Copie l'**ID client** affiché, qui ressemble à `1234567890-abc…apps.googleusercontent.com`.
-6. Colle cet ID client **Web** dans `lib/config.dart` :
+## Étape 1 — Le projet
 
+1. Ouvre <https://console.cloud.google.com/> avec le compte Google qui « possède » l'app.
+2. En haut, à côté du logo, ouvre le sélecteur de projet › **Nouveau projet**.
+3. Nom : `carnet237`. Organisation : « Aucune organisation ». Touche **Créer**.
+4. Sélectionne ce projet. Dans *Paramètres du projet*, note le **numéro du projet** (par exemple
+   `1050417282744`) : tous tes ID clients commenceront par ce nombre.
+
+## Étape 2 — L'API Google Drive
+
+1. Menu ☰ › **API et services › Bibliothèque**.
+2. Cherche **Google Drive API** › **Activer**.
+
+## Étape 3 — Google Auth Platform (écran de consentement)
+
+Menu ☰ › **Google Auth Platform** (anciennement « Écran de consentement OAuth ») › **Commencer**.
+
+1. **Informations sur l'application** : nom `carnet237`, adresse e-mail d'assistance (elle sera
+   visible des utilisateurs : une adresse dédiée est possible).
+2. **Audience** : **Externe**.
+3. **Coordonnées** : ton adresse e-mail (Google t'écrira ici, elle n'est pas montrée aux utilisateurs).
+4. Accepte la politique, puis **Créer**.
+
+Ensuite, dans le menu de gauche de Google Auth Platform :
+
+- **Accès aux données** › *Ajouter ou supprimer des champs d'application* › coche ou colle
+  `https://www.googleapis.com/auth/drive.appdata` › *Mettre à jour* › **Enregistrer**.
+- **Audience** › *Utilisateurs test* › **Ajouter des utilisateurs** › ton adresse Gmail (celle que tu
+  choisis sur le téléphone) › *Enregistrer*.
+
+## Étape 4 — Les deux ID clients
+
+Google Auth Platform › **Clients** › **Créer un client**, deux fois :
+
+1. **Type : Android**
+   - Nom : `carnet237 Android`
+   - Nom du package : `com.ndi.carnet237`
+   - Empreinte SHA-1 : `C4:37:A1:1B:DD:BC:5C:51:FE:2E:08:00:61:DF:27:54:45:2E:92:5F`
+   - **Créer**. Il n'y a rien à copier pour ce client.
+2. **Type : Application Web**
+   - Nom : `carnet237 Web`
+   - Ne remplis ni « Origines JavaScript » ni « URI de redirection ».
+   - **Créer**, puis **copie l'ID client** (`<numéro du projet>-xxxx.apps.googleusercontent.com`).
+     Ignore le « code secret du client » : l'app n'en a pas besoin, ne le partage pas.
+
+Vérifie que les **deux** ID clients commencent par le **même numéro de projet**.
+
+## Étape 5 — Mettre l'ID dans l'app
+
+1. Dans `lib/config.dart`, colle l'ID client **Web** :
    ```dart
-   const googleServerClientId = '1234567890-abc...apps.googleusercontent.com';
+   const googleServerClientId = '<numéro>-xxxx.apps.googleusercontent.com';
    ```
+2. Recompile : `flutter build apk --release --split-per-abi`, et installe l'APK.
 
-7. Recompile l'APK (`flutter build apk --release`) et installe-le.
+## Étape 6 — Tester
 
-## Dans l'app
+1. Attends **5 à 10 minutes** après les modifications dans la console.
+2. Dans l'app : **Plus › Sécurité** › active un code, puis **Plus › Synchronisation Google Drive ›
+   Se connecter avec Google**, avec l'adresse ajoutée comme utilisateur test.
+3. Touche **Synchroniser maintenant**, puis **Afficher** : la sauvegarde doit apparaître.
 
-1. **Plus › Sécurité** : active un code. Il chiffre tes sauvegardes, donc il est obligatoire.
-2. **Plus › Synchronisation Google Drive** › *Se connecter avec Google* › *Synchroniser maintenant*.
-3. Il n'y a pas de synchronisation automatique : l'app ne va sur internet que quand on touche un bouton.
-   Une notification rappelle de synchroniser si la dernière sauvegarde date de plus de 7 jours.
+## Étape 7 — Ouvrir à tes proches
 
-Pour **restaurer sur un autre téléphone** : installe l'app, connecte le même compte Google, puis
-touche une sauvegarde › *Restaurer*. Il faut le code qui était actif au moment de cette sauvegarde.
+Google Auth Platform › **Audience** › **Publier l'application** › confirmer : l'état passe à
+**« En production »**. N'importe quel compte Google peut alors se connecter, sans que tu connaisses
+les adresses, et l'autorisation n'expire plus au bout de 7 jours. Le scope `drive.appdata` ne donne
+accès qu'au dossier caché de l'app ; si la console te demande malgré tout une vérification, suis ses
+indications.
 
 ## En cas d'erreur
 
-- **« Connexion Google impossible (…) »** : l'empreinte SHA-1, le nom du package ou l'ID client Web
-  ne correspondent pas, ou ton adresse n'est pas dans les utilisateurs test.
-- **« Google Drive a refusé la demande (403) »** : l'API Google Drive n'est pas activée dans le projet.
-- Après une modification dans la console Google, attends quelques minutes avant de réessayer.
+| Message | Cause probable |
+|---|---|
+| `[28444] Developer console is not set up correctly` | ID client Android absent, dans un autre projet, ou package/SHA-1 différent ; ou Branding non enregistré |
+| `[10]` ou `DEVELOPER_ERROR` | Empreinte SHA-1 différente de celle de la clé qui signe l'APK |
+| « Accès bloqué : l'app n'a pas terminé la procédure de validation » | Mode Test et adresse absente des utilisateurs test |
+| `Google Drive a refusé la demande (403)` | API Google Drive non activée |
+
+Si tu changes de PC ou de clé de signature, ajoute un **nouvel ID client Android** avec la nouvelle
+empreinte SHA-1 (on peut en avoir plusieurs), sans toucher à l'ID Web.

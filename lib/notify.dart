@@ -43,11 +43,13 @@ class Notifier extends ChangeNotifier {
 
   Future<void> init() async {
     tzdata.initializeTimeZones();
+    String id = '';
     try {
-      tz.setLocalLocation(tz.getLocation((await FlutterTimezone.getLocalTimezone()).identifier));
+      id = (await FlutterTimezone.getLocalTimezone()).identifier;
     } catch (_) {
-      tz.setLocalLocation(tz.getLocation('Africa/Douala'));
+      // Unknown: fall back to the phone's current offset below.
     }
+    tz.setLocalLocation(_location(id));
     await _plugin.initialize(settings: const InitializationSettings(android: AndroidInitializationSettings('ic_stat_carnet')));
 
     daily = await prefs.readPref('n_daily') != '0';
@@ -71,6 +73,34 @@ class Notifier extends ChangeNotifier {
     ready = true;
     notifyListeners();
     await reschedule();
+  }
+
+  /// The compact time zone database leaves out alias zones, and many African
+  /// capitals are aliases (Africa/Douala is Africa/Lagos): map them to their
+  /// canonical zone, then fall back to a fixed offset from the phone's clock.
+  static const _aliases = {
+    'Lagos': ['Douala', 'Libreville', 'Malabo', 'Bangui', 'Brazzaville', 'Kinshasa', 'Luanda', 'Porto-Novo', 'Niamey'],
+    'Abidjan': ['Dakar', 'Bamako', 'Conakry', 'Lome', 'Ouagadougou', 'Banjul', 'Freetown', 'Nouakchott', 'Accra', 'Timbuktu'],
+    'Maputo': ['Kigali', 'Bujumbura', 'Lubumbashi', 'Blantyre', 'Gaborone', 'Harare', 'Lusaka'],
+    'Nairobi': ['Addis_Ababa', 'Asmara', 'Dar_es_Salaam', 'Djibouti', 'Kampala', 'Mogadishu'],
+  };
+
+  static tz.Location _location(String id) {
+    final city = id.startsWith('Africa/') ? id.substring(7) : '';
+    final canonical = [
+      for (final e in _aliases.entries)
+        if (e.value.contains(city)) 'Africa/${e.key}',
+    ];
+    final h = DateTime.now().timeZoneOffset.inHours;
+    final fixed = h == 0 ? 'Etc/UTC' : 'Etc/GMT${h > 0 ? '-' : '+'}${h.abs()}'; // Etc signs are inverted
+    for (final name in [id, ...canonical, fixed]) {
+      try {
+        if (name.isNotEmpty) return tz.getLocation(name);
+      } catch (_) {
+        // Try the next candidate.
+      }
+    }
+    return tz.UTC;
   }
 
   /// Asks Android 13+ for the permission, once, after the first unlock.

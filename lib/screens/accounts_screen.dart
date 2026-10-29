@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../format.dart';
-import '../icons.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/design.dart';
 import '../widgets/sheets.dart';
 import 'settings_screen.dart';
 
@@ -16,102 +16,142 @@ class AccountsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
-    final f = fmtOf(context);
     final b = s.balances();
     final list = s.activeAccounts;
     final onAccounts = list.fold<double>(0, (a, x) => a + (b[x.id] ?? 0));
     final net = onAccounts + s.totalSaved + s.totalLent - s.totalOwed;
-
-    Widget row(String l, String v, [Color? c]) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          Expanded(child: Text(l)),
-          Text(v, style: numStyle.copyWith(color: c ?? context.c.ink)),
-        ],
-      ),
-    );
+    final positive = list.fold<double>(0, (a, x) => a + ((b[x.id] ?? 0) > 0 ? b[x.id]! : 0));
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
       children: [
-        Panel(
+        GradientCard(
+          tone: HeroTone.blue,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Label('Patrimoine net'),
+              const HeroLabel('Patrimoine net'),
               const SizedBox(height: 4),
-              FittedBox(child: Money(net, size: 28, color: net < 0 ? context.c.expense : null)),
-              const SizedBox(height: 10),
-              row('Sur mes comptes', f.money(onAccounts)),
-              row('Épargne mise de côté', f.money(s.totalSaved)),
-              row('On me doit', f.money(s.totalLent, signed: true), context.c.income),
-              row('Je dois', f.money(-s.totalOwed, signed: true), context.c.expense),
+              FittedBox(
+                alignment: Alignment.centerLeft,
+                child: AnimatedMoney(net, size: 30, color: Colors.white, weight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: HeroStat(label: 'Sur mes comptes', icon: 'wallet', value: onAccounts),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: HeroStat(label: 'Épargne', icon: 'piggy-bank', value: s.totalSaved),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: HeroStat(label: 'On me doit', icon: 'arrow-up-right', value: s.totalLent),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: HeroStat(label: 'Je dois', icon: 'arrow-down-left', value: -s.totalOwed),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
         const SizedBox(height: 18),
-        Row(
-          children: [
-            const Text('Mes comptes', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-            const Spacer(),
-            TextButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen(initialTab: 2))),
-              child: const Text('Gérer les comptes'),
-            ),
-          ],
+        SectionTitle(
+          icon: 'wallet',
+          text: 'Mes comptes',
+          trailing: TextButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen(initialTab: 2))),
+            child: const Text('Gérer'),
+          ),
         ),
-        const SizedBox(height: 6),
-        for (final a in list) ...[
-          Panel(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    IconBadge(icon: a.icon, color: context.c.accent),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(a.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                          Text(
-                            '${plural(s.txs.where((t) => s.accountOf(t) == a.id || t.to == a.id).length, 'opération')}${a.id == s.settings.defaultAccount ? ' · par défaut' : ''}',
-                            style: TextStyle(color: context.c.muted, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Money(b[a.id] ?? 0, size: 16, color: (b[a.id] ?? 0) < 0 ? context.c.expense : null),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                const Divider(),
-                Row(
-                  children: [
-                    TextButton.icon(
-                      icon: Icon(appIcon('list'), size: 18),
-                      label: const Text('Opérations'),
-                      onPressed: () {
-                        s.setFilters(cat: null, acc: a.id);
-                        onShowOps();
-                      },
-                    ),
-                    TextButton.icon(
-                      icon: Icon(appIcon('sliders-horizontal'), size: 18),
-                      label: const Text('Ajuster le solde'),
-                      onPressed: () => openAdjustSheet(context, a.id),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+        for (var i = 0; i < list.length; i++) ...[
+          FadeIn(
+            index: i,
+            child: _AccountCard(id: list[i].id, share: positive > 0 ? ((b[list[i].id] ?? 0) / positive).clamp(0.0, 1.0) : 0, onShowOps: onShowOps),
           ),
           const SizedBox(height: 10),
         ],
       ],
+    );
+  }
+}
+
+class _AccountCard extends StatelessWidget {
+  final String id;
+  final double share;
+  final VoidCallback onShowOps;
+  const _AccountCard({required this.id, required this.share, required this.onShowOps});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.watch<AppState>();
+    final a = s.accById(id)!;
+    final bal = s.balances()[id] ?? 0;
+    final count = s.txs.where((t) => s.accountOf(t) == id || t.to == id).length;
+    return SoftCard(
+      onTap: () {
+        s.setFilters(cat: null, acc: id);
+        onShowOps();
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              IconBadge(icon: a.icon, color: context.c.accent, size: 44),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(a.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15.5)),
+                        ),
+                        if (id == s.settings.defaultAccount) ...[const SizedBox(width: 6), Pill('par défaut', color: context.c.accent)],
+                      ],
+                    ),
+                    Text(plural(count, 'opération'), style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+                  ],
+                ),
+              ),
+              AnimatedMoney(bal, size: 17, weight: FontWeight.w600, color: bal < 0 ? context.c.expense : null),
+            ],
+          ),
+          // The share only means something for accounts that hold money.
+          if (bal > 0 && share > 0) ...[
+            const SizedBox(height: 12),
+            Gauge(value: share, color: context.c.accent, height: 5),
+            const SizedBox(height: 4),
+            Text('${(share * 100).round()} % de ton argent disponible', style: TextStyle(color: context.c.muted, fontSize: 11.5)),
+          ],
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ActionChipButton(
+                icon: 'list',
+                label: 'Opérations',
+                onPressed: () {
+                  s.setFilters(cat: null, acc: id);
+                  onShowOps();
+                },
+              ),
+              ActionChipButton(icon: 'sliders-horizontal', label: 'Ajuster le solde', onPressed: () => openAdjustSheet(context, id)),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

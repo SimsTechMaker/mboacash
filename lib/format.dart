@@ -16,7 +16,7 @@ class Fmt {
   String money(double v, {bool signed = false}) {
     final s = '${_n.format(v.abs())} $symbol';
     if (v < 0) return '−$s';
-    return signed ? '+$s' : s;
+    return signed && v > 0 ? '+$s' : s; // no "+0"
   }
 
   /// Same but with plain spaces and ASCII minus, for PDF and CSV.

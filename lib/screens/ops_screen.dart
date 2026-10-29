@@ -8,6 +8,7 @@ import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/design.dart';
 import '../widgets/sheets.dart';
 import 'budget_assistant_screen.dart';
 
@@ -44,8 +45,7 @@ class OpsScreen extends StatelessWidget {
         if (current && s.txs.isNotEmpty) ...[const SizedBox(height: 12), _ForecastCard(forecast: ins.forecast())],
         if (advice.isNotEmpty) ...[
           const SizedBox(height: 18),
-          _SectionTitle(icon: 'sparkles', text: 'Conseils'),
-          const SizedBox(height: 8),
+          const SectionTitle(icon: 'sparkles', text: 'Conseils'),
           SizedBox(
             height: 128,
             child: ListView.separated(
@@ -58,8 +58,7 @@ class OpsScreen extends StatelessWidget {
         ],
         if (due.isNotEmpty) ...[
           const SizedBox(height: 18),
-          _SectionTitle(icon: 'repeat', text: 'Habituels pas encore saisis'),
-          const SizedBox(height: 8),
+          const SectionTitle(icon: 'repeat', text: 'Habituels pas encore saisis'),
           Card(
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -165,19 +164,6 @@ class OpsScreen extends StatelessWidget {
       ],
     );
   }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String icon, text;
-  const _SectionTitle({required this.icon, required this.text});
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Icon(appIcon(icon), size: 18, color: context.c.accent),
-      const SizedBox(width: 8),
-      Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-    ],
-  );
 }
 
 /// Gradient summary card: month balance, income and expenses, budget.

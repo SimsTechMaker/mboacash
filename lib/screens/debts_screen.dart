@@ -7,6 +7,7 @@ import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/design.dart';
 import '../widgets/sheets.dart';
 
 class DebtsScreen extends StatefulWidget {
@@ -28,19 +29,8 @@ class _DebtsScreenState extends State<DebtsScreen> {
         return (a.due.isEmpty ? '9' : a.due).compareTo(b.due.isEmpty ? '9' : b.due);
       });
 
-    Widget kpi(String l, double v, Color c) => Expanded(
-      child: Panel(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Label(l),
-            const SizedBox(height: 4),
-            FittedBox(child: Money(v, size: 18, color: c)),
-          ],
-        ),
-      ),
-    );
+    final balance = s.totalLent - s.totalOwed;
+    final open = s.debts.where((d) => s.debtLeft(d) > 0).length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Dettes')),
@@ -52,7 +42,34 @@ class _DebtsScreenState extends State<DebtsScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
         children: [
-          Row(children: [kpi('Je dois', s.totalOwed, context.c.expense), const SizedBox(width: 10), kpi('On me doit', s.totalLent, context.c.income)]),
+          GradientCard(
+            tone: HeroTone.amber,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const HeroLabel('Solde des dettes'),
+                const SizedBox(height: 4),
+                FittedBox(
+                  alignment: Alignment.centerLeft,
+                  child: AnimatedMoney(balance, signed: true, size: 28, color: Colors.white, weight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                Text(open == 0 ? 'Aucune dette en cours' : '${plural(open, 'dette')} en cours', style: const TextStyle(color: heroSoft, fontSize: 12.5)),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: HeroStat(label: 'Je dois', icon: 'arrow-down-left', value: s.totalOwed),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: HeroStat(label: 'On me doit', icon: 'arrow-up-right', value: s.totalLent),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 14),
           SegmentedButton<bool>(
             showSelectedIcon: false,
@@ -71,7 +88,13 @@ class _DebtsScreenState extends State<DebtsScreen> {
                 text: owe ? "Note l'argent que tu as emprunté et suis tes remboursements." : "Note l'argent que tu as prêté et suis ce qu'on te rembourse.",
               ),
             ),
-          for (final d in list) ...[_DebtCard(debt: d), const SizedBox(height: 10)],
+          for (var i = 0; i < list.length; i++) ...[
+            FadeIn(
+              index: i,
+              child: _DebtCard(debt: list[i]),
+            ),
+            const SizedBox(height: 10),
+          ],
         ],
       ),
     );
@@ -90,69 +113,87 @@ class _DebtCard extends StatelessWidget {
     final left = s.debtLeft(d), paid = d.amount - left;
     final settled = left <= 0;
     final late = !settled && d.due.isNotEmpty && d.due.compareTo(todayIso()) < 0;
-    return Opacity(
-      opacity: settled ? 0.7 : 1,
-      child: Panel(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+    final pct = d.amount > 0 ? paid / d.amount : 0.0;
+    final tone = settled
+        ? context.c.income
+        : d.owe
+        ? context.c.expense
+        : context.c.income;
+    return AnimatedOpacity(
+      opacity: settled ? 0.72 : 1,
+      duration: const Duration(milliseconds: 300),
+      child: SoftCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                IconBadge(icon: d.owe ? 'arrow-down-left' : 'arrow-up-right', color: slot(d.owe ? 'c4' : 'c8')),
-                const SizedBox(width: 12),
+                RingProgress(
+                  value: pct,
+                  color: context.c.income,
+                  size: 54,
+                  child: Icon(appIcon(settled ? 'check' : (d.owe ? 'arrow-down-left' : 'arrow-up-right')), size: 20, color: slot(d.owe ? 'c4' : 'c8')),
+                ),
+                const SizedBox(width: 14),
                 Expanded(
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Flexible(
-                        child: Text(d.person, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(d.person, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15.5)),
+                          ),
+                          if (d.sample) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              'EXEMPLE',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: context.c.warn),
+                            ),
+                          ],
+                        ],
                       ),
-                      if (d.sample) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          'EXEMPLE',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: context.c.warn),
-                        ),
-                      ],
+                      const SizedBox(height: 2),
+                      Text('${f.money(paid)} remboursés sur ${f.money(d.amount)}', style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+                      Text(
+                        'depuis le ${longDate(d.date)}${d.note.isNotEmpty ? ' · ${d.note}' : ''}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: context.c.muted, fontSize: 12),
+                      ),
                     ],
                   ),
                 ),
-                Money(left, size: 15, color: settled ? null : (d.owe ? context.c.expense : context.c.income)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${f.money(paid)} remboursés sur ${f.money(d.amount)} · depuis le ${longDate(d.date)}${d.note.isNotEmpty ? ' · ${d.note}' : ''}',
-              style: TextStyle(color: context.c.muted, fontSize: 13),
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: Gauge(value: d.amount > 0 ? paid / d.amount : 0, color: context.c.income, height: 6),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    AnimatedMoney(left, size: 16, weight: FontWeight.w600, color: tone),
+                    const SizedBox(height: 4),
+                    if (settled)
+                      Pill('Soldée', color: context.c.income)
+                    else if (late)
+                      Pill('En retard', color: context.c.expense)
+                    else if (d.due.isNotEmpty)
+                      Pill(longDate(d.due), color: context.c.muted),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                if (settled)
-                  Pill('Soldée', color: context.c.income)
-                else if (late)
-                  Pill('En retard', color: context.c.expense)
-                else if (d.due.isNotEmpty)
-                  Pill('Échéance ${longDate(d.due)}', color: context.c.muted),
               ],
             ),
-            const SizedBox(height: 6),
-            const Divider(),
+            const SizedBox(height: 12),
             Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 if (!settled)
-                  TextButton.icon(
-                    icon: Icon(appIcon('check'), size: 18),
-                    label: Text(d.owe ? 'Je rembourse' : 'On me rembourse'),
+                  ActionChipButton(
+                    icon: 'check',
+                    label: d.owe ? 'Je rembourse' : 'On me rembourse',
+                    primary: true,
                     onPressed: () => openDebtPaySheet(context, d),
                   ),
-                TextButton.icon(
-                  icon: Icon(appIcon('pencil'), size: 18),
-                  label: const Text('Modifier'),
+                ActionChipButton(
+                  icon: 'pencil',
+                  label: 'Modifier',
                   onPressed: () => openDebtSheet(context, debt: d),
                 ),
               ],

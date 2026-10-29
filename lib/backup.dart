@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
-import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'package:flutter/foundation.dart' show ChangeNotifier, debugPrint;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 
@@ -197,12 +197,19 @@ class DriveBackup extends ChangeNotifier {
       lastError = e.message;
       rethrow;
     } on GoogleSignInException catch (e) {
-      lastError = e.code == GoogleSignInExceptionCode.canceled ? 'Connexion annulée.' : 'Connexion Google impossible (${e.code.name}).';
+      // Full details go to the log (adb logcat / flutter run) for diagnosis;
+      // the short Google description is shown to the user.
+      debugPrint('carnet237 GoogleSignInException: $e');
+      // Closing Google's consent screen comes back as unknownError "[16] Cancelled by user".
+      final cancelled = e.code == GoogleSignInExceptionCode.canceled || (e.description ?? '').contains('[16]');
+      lastError = cancelled ? 'Connexion annulée.' : 'Connexion Google impossible (${e.code.name}${e.description == null ? '' : ' : ${e.description}'}).';
       throw BackupException(lastError!);
     } on drive.DetailedApiRequestError catch (e) {
-      lastError = 'Google Drive a refusé la demande (${e.status}).';
+      debugPrint('carnet237 Drive error: ${e.status} ${e.message}');
+      lastError = 'Google Drive a refusé la demande (${e.status}${e.message == null ? '' : ' : ${e.message}'}).';
       throw BackupException(lastError!);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('carnet237 backup error: $e\n$st');
       lastError = 'Opération impossible. Vérifie ta connexion internet.';
       throw BackupException(lastError!);
     } finally {

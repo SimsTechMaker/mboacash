@@ -45,8 +45,13 @@ Future<void> main() async {
   // Everything below is local: no network access at startup.
   await state.load();
   await backup.init();
-  await notifier.init();
-  if (!lock.locked) unawaited(notifier.askPermissionOnce());
+  // Reminders are optional: a failure here must not stop the rest of startup.
+  try {
+    await notifier.init();
+    if (!lock.locked) unawaited(notifier.askPermissionOnce());
+  } catch (e, st) {
+    debugPrint('carnet237 notifications disabled: $e\n$st');
+  }
   unawaited(cleanExportFiles());
 }
 
@@ -103,9 +108,14 @@ class _LockGateState extends State<LockGate> with WidgetsBindingObserver {
         // accessibility services behind the lock screen.
         Offstage(offstage: locked, child: widget.child),
         if (locked)
-          // Its own navigator, so the lock screen can open dialogs above the app's routes.
+          // Its own navigator, so the lock screen can open dialogs above the
+          // app's routes. HeroControllerScope.none: MaterialApp's hero
+          // controller belongs to the app's navigator; sharing it with this one
+          // broke every later Navigator.push once the lock screen went away.
           Positioned.fill(
-            child: Navigator(onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => const LockScreen())),
+            child: HeroControllerScope.none(
+              child: Navigator(onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => const LockScreen())),
+            ),
           ),
       ],
     );

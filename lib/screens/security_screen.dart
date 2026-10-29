@@ -5,6 +5,7 @@ import '../icons.dart';
 import '../security.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/design.dart';
 import 'lock_screen.dart';
 
 class SecurityScreen extends StatelessWidget {
@@ -44,22 +45,34 @@ class SecurityScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Panel(
+          GradientCard(
+            tone: l.hasPin ? HeroTone.green : HeroTone.amber,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   children: [
-                    IconBadge(icon: l.hasPin ? 'lock' : 'lock-open', color: l.hasPin ? context.c.income : context.c.muted),
-                    const SizedBox(width: 12),
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(15)),
+                      child: Icon(appIcon(l.hasPin ? 'shield-check' : 'shield'), color: Colors.white, size: 26),
+                    ),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(l.hasPin ? 'Code de verrouillage activé' : 'Aucun code', style: const TextStyle(fontWeight: FontWeight.w600)),
                           Text(
-                            l.hasPin ? "L'app demande ton code à l'ouverture." : "N'importe qui ayant ton téléphone peut ouvrir l'app.",
-                            style: TextStyle(color: context.c.muted, fontSize: 13),
+                            l.hasPin ? 'App protégée' : 'App non protégée',
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            l.hasPin
+                                ? "Code activé${l.biometric && l.biometricAvailable ? ' · empreinte' : ''}. L'app le demande à l'ouverture."
+                                : "N'importe qui ayant ton téléphone peut ouvrir l'app.",
+                            style: const TextStyle(color: heroSoft, fontSize: 12.5),
                           ),
                         ],
                       ),
@@ -68,18 +81,19 @@ class SecurityScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 if (!l.hasPin)
-                  FilledButton.icon(icon: Icon(appIcon('lock')), label: const Text('Activer un code'), onPressed: enable)
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF8A5216)),
+                    icon: Icon(appIcon('lock')),
+                    label: const Text('Activer un code'),
+                    onPressed: enable,
+                  )
                 else
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      OutlinedButton(onPressed: change, child: const Text('Changer le code')),
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(foregroundColor: context.c.expense),
-                        onPressed: disable,
-                        child: const Text('Retirer le code'),
-                      ),
+                      _HeroButton(label: 'Changer le code', onPressed: change),
+                      _HeroButton(label: 'Retirer le code', onPressed: disable),
                     ],
                   ),
               ],
@@ -153,4 +167,20 @@ class SecurityScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Outlined white button for use on a gradient card.
+class _HeroButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+  const _HeroButton({required this.label, required this.onPressed});
+  @override
+  Widget build(BuildContext context) => OutlinedButton(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: Colors.white,
+      side: const BorderSide(color: Color(0x80FFFFFF)),
+    ),
+    onPressed: onPressed,
+    child: Text(label),
+  );
 }

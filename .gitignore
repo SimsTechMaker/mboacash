@@ -55,6 +55,9 @@ key.properties
 *.p12
 .env
 .env.*
+# OAuth client files downloaded from Google Cloud (they hold the client secret)
+client_secret*.json
+google-services.json
 
 # Built packages handed out by hand
 *.apk

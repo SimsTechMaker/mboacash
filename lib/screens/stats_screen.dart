@@ -8,6 +8,7 @@ import '../state.dart';
 import '../theme.dart';
 import '../widgets/charts.dart';
 import '../widgets/common.dart';
+import '../widgets/design.dart';
 import '../widgets/sheets.dart';
 
 class StatsScreen extends StatelessWidget {
@@ -42,17 +43,26 @@ class StatsScreen extends StatelessWidget {
       return BarPair(shortMonth(m), x.income, x.expense, m == s.month);
     }).toList();
 
-    Widget kpi(String l, String v, [Color? c]) => Expanded(
-      child: Panel(
+    final prev = s.sums(s.monthTxs(shiftMonth(s.month, -1))).expense;
+    final delta = prev > 0 ? (sum.expense - prev) / prev : null;
+
+    Widget tile(String icon, String label, String value, {Color? color}) => Expanded(
+      child: SoftCard(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Label(l),
-            const SizedBox(height: 4),
+            Icon(appIcon(icon), size: 18, color: color ?? context.c.accent),
+            const SizedBox(height: 8),
             FittedBox(
-              child: Text(v, style: numStyle.copyWith(fontSize: 16, color: c ?? context.c.ink)),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                style: numStyle.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: color ?? context.c.ink),
+              ),
             ),
+            const SizedBox(height: 2),
+            Text(label, maxLines: 2, style: TextStyle(color: context.c.muted, fontSize: 11.5)),
           ],
         ),
       ),
@@ -63,28 +73,64 @@ class StatsScreen extends StatelessWidget {
       children: [
         const Center(child: MonthNav()),
         const SizedBox(height: 14),
+        GradientCard(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    HeroStat(label: 'Revenus', icon: 'arrow-down-left', value: sum.income),
+                    const SizedBox(height: 12),
+                    HeroStat(label: 'Dépenses', icon: 'arrow-up-right', value: sum.expense),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                children: [
+                  RingProgress(
+                    value: rate == null ? 0 : rate.clamp(0, 1).toDouble(),
+                    color: const Color(0xFF9BE3C6),
+                    size: 84,
+                    stroke: 9,
+                    child: Text(
+                      rate == null ? '—' : '${(rate * 100).round()} %',
+                      style: numStyle.copyWith(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text("taux d'épargne", style: TextStyle(color: heroSoft, fontSize: 11.5)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
         Row(
           children: [
-            kpi('Revenus', f.money(sum.income), context.c.income),
+            tile('calendar', 'dépense courante par jour', f.money(ordinary / days)),
             const SizedBox(width: 10),
-            kpi('Dépenses', f.money(sum.expense), context.c.expense),
+            tile('receipt', 'opérations ce mois-ci', '${list.length}'),
+            const SizedBox(width: 10),
+            tile(
+              delta != null && delta > 0 ? 'trending-up' : 'trending-down',
+              'dépenses vs mois précédent',
+              delta == null ? '—' : '${delta > 0 ? '+' : ''}${(delta * 100).round()} %',
+              color: delta == null
+                  ? null
+                  : delta > 0
+                  ? context.c.expense
+                  : context.c.income,
+            ),
           ],
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            kpi("Taux d'épargne", rate == null ? '—' : '${(rate * 100).round()} %', rate != null && rate < 0 ? context.c.expense : null),
-            const SizedBox(width: 10),
-            kpi('Dépense courante par jour', f.money(ordinary / days)),
-          ],
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
+        const SectionTitle(icon: 'chart-pie', text: "Où part l'argent"),
         Panel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text("Où part l'argent", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 12),
               if (rows.isEmpty)
                 Text('Les dépenses du mois apparaîtront ici, réparties par catégorie.', style: TextStyle(color: context.c.muted))
               else ...[
@@ -137,22 +183,23 @@ class StatsScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
+        SectionTitle(
+          icon: 'chart-column',
+          text: 'Six derniers mois',
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _Key(color: context.c.income, label: 'Revenus'),
+              const SizedBox(width: 10),
+              _Key(color: context.c.expense, label: 'Dépenses'),
+            ],
+          ),
+        ),
         Panel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text('Six derniers mois', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-                  ),
-                  _Key(color: context.c.income, label: 'Revenus'),
-                  const SizedBox(width: 10),
-                  _Key(color: context.c.expense, label: 'Dépenses'),
-                ],
-              ),
-              const SizedBox(height: 12),
               if (bars.every((b) => b.a == 0 && b.b == 0))
                 Text("Rien à comparer pour l'instant.", style: TextStyle(color: context.c.muted))
               else
@@ -160,13 +207,12 @@ class StatsScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
+        const SectionTitle(icon: 'flame', text: 'Plus grosses dépenses'),
         Panel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Plus grosses dépenses', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 6),
               if (top.isEmpty) Text('Aucune dépense ce mois-ci.', style: TextStyle(color: context.c.muted)),
               for (final t in top.take(5))
                 TxTile(

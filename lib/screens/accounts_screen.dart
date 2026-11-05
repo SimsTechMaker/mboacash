@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n.dart';
+import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/design.dart';
 import '../widgets/sheets.dart';
+import 'savings_screen.dart';
 import 'settings_screen.dart';
 
 class AccountsScreen extends StatelessWidget {
@@ -31,17 +33,17 @@ class AccountsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              HeroLabel(l.accountsNetWorth),
+              HeroLabel(l.accountsSpendable),
               const SizedBox(height: 4),
               FittedBox(
                 alignment: Alignment.centerLeft,
-                child: AnimatedMoney(net, size: 30, color: Colors.white, weight: FontWeight.w600),
+                child: AnimatedMoney(onAccounts, size: 30, color: Colors.white, weight: FontWeight.w600),
               ),
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
-                    child: HeroStat(label: l.accountsOnAccounts, icon: 'wallet', value: onAccounts),
+                    child: HeroStat(label: l.accountsNetWorth, icon: 'landmark', value: net),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -80,7 +82,69 @@ class AccountsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
         ],
+        const SizedBox(height: 8),
+        SectionTitle(
+          icon: 'piggy-bank',
+          text: context.l.accountsSavings,
+          trailing: TextButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SavingsScreen())),
+            child: Text(context.l.catsManage),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Text(context.l.accountsSavingsHelp, style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+        ),
+        if (s.goals.isEmpty)
+          Panel(
+            child: EmptyState(
+              icon: 'piggy-bank',
+              text: context.l.savingsEmpty,
+              action: OutlinedButton(onPressed: () => openGoalSheet(context), child: Text(context.l.savingsNewGoal)),
+            ),
+          ),
+        for (final g in s.goals) ...[_SavingsCard(goal: g), const SizedBox(height: 10)],
       ],
+    );
+  }
+}
+
+/// A savings account: its money is set apart until moved to a normal account.
+class _SavingsCard extends StatelessWidget {
+  final Goal goal;
+  const _SavingsCard({required this.goal});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.watch<AppState>();
+    final saved = s.goalSaved(goal);
+    final l = context.l;
+    return SoftCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              IconBadge(icon: goal.icon, color: slot(goal.color), size: 44),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(goal.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15.5)),
+              ),
+              AnimatedMoney(saved, size: 17, weight: FontWeight.w600),
+            ],
+          ),
+          if (goal.target > 0) ...[const SizedBox(height: 12), Gauge(value: (saved / goal.target).clamp(0.0, 1.0), color: slot(goal.color), height: 5)],
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ActionChipButton(icon: 'plus', label: l.savingsPutAside, primary: true, onPressed: () => openGoalMoveSheet(context, goal, -1)),
+              ActionChipButton(icon: 'arrow-left-right', label: l.accountsSavingsBack, onPressed: () => openGoalMoveSheet(context, goal, 1)),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

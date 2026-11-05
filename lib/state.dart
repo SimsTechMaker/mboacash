@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 import 'db.dart';
@@ -21,7 +23,9 @@ class AppState extends ChangeNotifier {
   List<Tx> txs = [];
   List<Goal> goals = [];
   List<Debt> debts = [];
-  String month = monthKey(DateTime.now());
+  List<Scheduled> scheduled = [];
+  List<ClosedPeriod> closed = []; // oldest first
+  late Period view = settings.openPeriod; // the period on screen
   bool ready = false;
 
   // Journal filters, shared between tabs (e.g. "Opérations" on an account card).
@@ -35,6 +39,7 @@ class AppState extends ChangeNotifier {
   Map<String, Category>? _catIdx;
   Map<String, Account>? _accIdx;
   final _monthCache = <String, List<Tx>>{};
+  final _periodCache = <String, List<Tx>>{};
   Map<String, double>? _balances;
 
   void _changed() {
@@ -42,6 +47,7 @@ class AppState extends ChangeNotifier {
     _catIdx = null;
     _accIdx = null;
     _monthCache.clear();
+    _periodCache.clear();
     _balances = null;
     notifyListeners();
   }
@@ -49,12 +55,16 @@ class AppState extends ChangeNotifier {
   Future<void> load() async {
     await store.open();
     settings = await store.loadSettings();
-    final labels = settings.labelsLang;
     _applyLang(settings);
-    if (settings.labelsLang != labels) await store.saveSettings(settings);
+    // Also pins the open period of data saved before periods existed: without
+    // it, the period would silently follow the calendar and never need closing.
+    await store.saveSettings(settings);
     txs = await store.loadTxs();
     goals = await store.loadGoals();
     debts = await store.loadDebts();
+    scheduled = await store.loadScheduled();
+    closed = await store.loadPeriods();
+    view = openPeriod;
     ready = true;
     _changed();
   }
@@ -78,7 +88,9 @@ class AppState extends ChangeNotifier {
   // ---------- computations ----------
   List<Tx> monthTxs(String key) => _monthCache[key] ??= List.unmodifiable(txs.where((t) => t.date.startsWith(key)));
 
-  /// What a movement adds to the month's income (> 0) or expenses (< 0).
+  List<Tx> periodTxs(Period p) => _periodCache[p.key] ??= List.unmodifiable(txs.where((t) => p.contains(t.date)));
+
+  /// What a movement adds to the period's income (> 0) or expenses (< 0).
   /// Savings and debts count by direction when real money moves: putting
   /// aside or lending is an expense, taking back, borrowing or being repaid is
   /// income. Transfers, adjustments and debts kept "outside my accounts" don't.
@@ -145,15 +157,67 @@ class AppState extends ChangeNotifier {
   double debtPaid(Debt d) => txs.where((t) => t.type == TxType.debt && t.debt == d.id && !t.init).fold(0.0, (s, t) => s + t.amount);
   double debtLeft(Debt d) => (d.amount - debtPaid(d)).clamp(0, double.infinity).toDouble();
 
+  /// Money that can really be spent: every account, savings excluded.
+  double get spendable => activeAccounts.fold(0.0, (a, x) => a + (balances()[x.id] ?? 0));
+
+  /// [spendable] as it stood at the end of [iso].
+  double spendableAt(String iso) {
+    final ids = {for (final a in activeAccounts) a.id};
+    var total = activeAccounts.fold(0.0, (a, x) => a + x.initial);
+    for (final t in txs) {
+      if (t.date.compareTo(iso) > 0) continue;
+      for (final e in effects(t)) {
+        if (ids.contains(e.account)) total += e.delta;
+      }
+    }
+    return total;
+  }
+
+  /// The money a period starts with: what the previous one left.
+  double carriedInto(Period p) => spendableAt(shiftDays(p.start, -1));
+
   double get totalSaved => goals.fold(0.0, (s, g) => s + goalSaved(g));
   double get totalOwed => debts.where((d) => d.owe).fold(0.0, (s, d) => s + debtLeft(d));
   double get totalLent => debts.where((d) => !d.owe).fold(0.0, (s, d) => s + debtLeft(d));
 
   // ---------- navigation helpers ----------
-  void setMonth(String m) {
-    month = m;
+  Period get openPeriod => settings.openPeriod;
+  bool get viewingOpen => view == openPeriod;
+
+  /// The open period's end date has passed: it is waiting to be closed.
+  bool get periodEnded => todayIso().compareTo(openPeriod.end) > 0;
+
+  void setView(Period p) {
+    view = p;
     catFilter = null;
     notifyListeners();
+  }
+
+  /// The period just before [p]: a closed one if there is one, otherwise
+  /// worked out from the current rhythm.
+  Period previousPeriod(Period p) {
+    for (final c in closed.reversed) {
+      if (c.end.compareTo(p.start) < 0) return c.end == shiftDays(p.start, -1) ? c.period : Period(shiftDays(c.end, 1), shiftDays(p.start, -1));
+    }
+    return p.previous(settings.periodKind, settings.periodAnchor);
+  }
+
+  Period nextPeriod(Period p) {
+    final open = openPeriod;
+    if (p.end.compareTo(open.start) >= 0) return p.next(settings.periodKind, settings.periodAnchor);
+    for (final c in closed) {
+      if (c.start.compareTo(p.end) > 0) return c.period;
+    }
+    return open;
+  }
+
+  /// The period holding [date], for jumping to a movement just saved.
+  Period periodOf(String date) {
+    var p = view;
+    for (var i = 0; i < 600 && !p.contains(date); i++) {
+      p = date.compareTo(p.start) < 0 ? previousPeriod(p) : nextPeriod(p);
+    }
+    return p;
   }
 
   void setFilters({String? cat, String? acc}) {
@@ -166,6 +230,7 @@ class AppState extends ChangeNotifier {
   Future<void> saveTx(Tx t) async {
     await store.saveTx(t);
     final i = txs.indexWhere((x) => x.id == t.id);
+    final from = i >= 0 && txs[i].date.compareTo(t.date) < 0 ? txs[i].date : t.date;
     if (i >= 0) {
       // The proof photo was replaced or removed: drop the old file.
       if (txs[i].proof.isNotEmpty && txs[i].proof != t.proof) await Proofs.delete(txs[i].proof);
@@ -173,14 +238,17 @@ class AppState extends ChangeNotifier {
     } else {
       txs.add(t);
     }
+    await _refreshClosed(from);
     _changed();
   }
 
   Future<void> deleteTx(String id) async {
     await store.deleteTx(id);
-    final proof = txs.where((t) => t.id == id).firstOrNull?.proof ?? '';
+    final old = txs.where((t) => t.id == id).firstOrNull;
+    final proof = old?.proof ?? '';
     if (proof.isNotEmpty) await Proofs.delete(proof);
     txs.removeWhere((t) => t.id == id);
+    if (old != null) await _refreshClosed(old.date);
     _changed();
   }
 
@@ -198,6 +266,140 @@ class AppState extends ChangeNotifier {
     await store.saveSettings(s);
     settings = s;
     _changed();
+  }
+
+  // ---------- budget periods ----------
+
+  /// The figures of [p] as they stand, for the closing screen and the history.
+  ClosedPeriod summarize(Period p, {String? id, int? closedAt, String? kind, double? budget}) {
+    final list = periodTxs(p);
+    final sum = sums(list);
+    final by = <String, double>{};
+    for (final t in list) {
+      if (flow(t) < 0 && t.type != TxType.save) by[flowKey(t)] = (by[flowKey(t)] ?? 0) - flow(t);
+    }
+    final top = by.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    return ClosedPeriod(
+      id: id ?? newId('p-'),
+      start: p.start,
+      end: p.end,
+      kind: kind ?? settings.periodKind,
+      opening: carriedInto(p),
+      income: sum.income,
+      expense: sum.expense,
+      saved: list.where((t) => t.type == TxType.save).fold(0.0, (a, t) => a - t.dir * t.amount),
+      closing: spendableAt(p.end),
+      budget: budget ?? settings.budget,
+      spent: budgetSpent(list),
+      count: list.length,
+      top: jsonEncode([
+        for (final e in top.take(5)) [group(e.key).name, e.value],
+      ]),
+      closedAt: closedAt,
+    );
+  }
+
+  /// Keeps the stored summaries true when a movement dated in a closed period
+  /// is added, changed or removed. Everything after it moves too: what one
+  /// period leaves is what the next one starts with.
+  Future<void> _refreshClosed(String date) async {
+    if (closed.isEmpty || date.compareTo(closed.last.end) > 0) return;
+    _balances = null;
+    _periodCache.clear();
+    for (var i = 0; i < closed.length; i++) {
+      final c = closed[i];
+      if (c.end.compareTo(date) < 0) continue;
+      closed[i] = summarize(c.period, id: c.id, closedAt: c.closedAt, kind: c.kind, budget: c.budget);
+      await store.savePeriod(closed[i]);
+    }
+  }
+
+  /// Stores the open period's summary and opens the next one.
+  Future<void> closePeriod() async {
+    final c = summarize(openPeriod);
+    await store.savePeriod(c);
+    closed = [...closed, c];
+    final next = openPeriod.next(settings.periodKind, settings.periodAnchor);
+    final s = settings.copy()
+      ..periodStart = next.start
+      ..periodEnd = next.end;
+    await store.saveSettings(s);
+    settings = s;
+    view = next;
+    _changed();
+  }
+
+  /// Undoes the last closing: its summary goes and it is the open period again.
+  Future<void> reopenLast() async {
+    final c = closed.last;
+    await store.deletePeriod(c.id);
+    closed = closed.sublist(0, closed.length - 1);
+    final s = settings.copy()
+      ..periodStart = c.start
+      ..periodEnd = c.end;
+    await store.saveSettings(s);
+    settings = s;
+    view = c.period;
+    _changed();
+  }
+
+  /// Sets the rhythm from now on, on the open period. Closed periods stay as
+  /// they are, so the open one cannot start before the last one ended.
+  Future<void> setPeriod(String kind, String start, String end) async {
+    final s = settings.copy()
+      ..periodKind = kind
+      ..periodStart = start
+      ..periodEnd = end
+      ..periodAnchor = parseIso(start).day;
+    await store.saveSettings(s);
+    settings = s;
+    view = s.openPeriod;
+    _changed();
+  }
+
+  // ---------- agenda ----------
+
+  /// Planned movements whose date has come, waiting for confirmation.
+  List<Scheduled> get dueScheduled {
+    final today = todayIso();
+    return scheduled.where((x) => x.next.compareTo(today) <= 0).toList()..sort((a, b) => a.next.compareTo(b.next));
+  }
+
+  Future<void> saveScheduled(Scheduled x) async {
+    await store.saveScheduled(x);
+    scheduled = [...scheduled.where((y) => y.id != x.id), x]..sort((a, b) => a.next.compareTo(b.next));
+    _changed();
+  }
+
+  Future<void> deleteScheduled(String id) async {
+    await store.deleteScheduled(id);
+    scheduled = scheduled.where((x) => x.id != id).toList();
+    _changed();
+  }
+
+  /// Moves past this occurrence; a one-off is finished.
+  Future<void> skipScheduled(Scheduled x) async {
+    final next = x.after(x.next);
+    if (next == null) return deleteScheduled(x.id);
+    x.next = next;
+    await saveScheduled(x);
+  }
+
+  /// Records the occurrence as a real movement, then moves past it.
+  Future<void> confirmScheduled(Scheduled x, {required double amount, required String date}) async {
+    await saveTx(
+      Tx(
+        id: newId(),
+        type: x.type,
+        amount: amount,
+        cat: x.type == TxType.transfer ? 'transfer' : x.cat,
+        account: x.account,
+        to: x.type == TxType.transfer ? x.to : '',
+        date: date,
+        note: x.note,
+      ),
+    );
+    await skipScheduled(x);
   }
 
   Future<void> saveGoal(Goal g) async {
@@ -260,6 +462,8 @@ class AppState extends ChangeNotifier {
     txs.clear();
     goals.clear();
     debts.clear();
+    scheduled = [];
+    closed = [];
     await Proofs.prune({});
     _changed();
   }
@@ -294,6 +498,8 @@ class AppState extends ChangeNotifier {
     'txs': txs.map((t) => t.toRow()).toList(),
     'goals': goals.map((g) => g.toRow()).toList(),
     'debts': debts.map((d) => d.toRow()).toList(),
+    'scheduled': scheduled.map((x) => x.toRow()).toList(),
+    'periods': closed.map((x) => x.toRow()).toList(),
   };
 
   /// [snapshot] plus the proof photos, base64-encoded: a complete backup.
@@ -308,18 +514,24 @@ class AppState extends ChangeNotifier {
     final t = rows('txs').map(Tx.fromRow).toList();
     final g = rows('goals').map(Goal.fromRow).toList();
     final d = rows('debts').map(Debt.fromRow).toList();
+    // Older backups have neither of these.
+    final sc = rows('scheduled').map(Scheduled.fromRow).toList();
+    final cp = rows('periods').map(ClosedPeriod.fromRow).toList()..sort((a, b) => a.start.compareTo(b.start));
     for (final x in t) {
       if (x.proof.isNotEmpty && !Proofs.isValidName(x.proof)) x.proof = '';
     }
     final proofs = data['proofs'] is Map ? Map<String, dynamic>.from(data['proofs'] as Map) : const <String, dynamic>{};
     _applyLang(s);
-    await store.replaceAll(s, t, g, d);
+    await store.replaceAll(s, t, g, d, sc, cp);
     await Proofs.import(proofs);
     await Proofs.prune({for (final x in t) x.proof});
     settings = s;
     txs = t;
     goals = g;
     debts = d;
+    scheduled = sc;
+    closed = cp;
+    view = s.openPeriod;
     catFilter = null;
     accFilter = null;
     _changed();
@@ -445,7 +657,7 @@ class AppState extends ChangeNotifier {
 
     await store.saveMany(list);
     txs.addAll(list);
-    month = monthKey(now);
+    view = periodOf(todayIso());
     _changed();
   }
 }

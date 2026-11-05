@@ -49,6 +49,19 @@ String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
 String monthLabel(String key, {bool year = true}) => _cap((year ? DateFormat.yMMMM(intlLocale) : DateFormat.MMMM(intlLocale)).format(parseIso('$key-01')));
 
+/// "Novembre 2026" for a calendar month, otherwise "25 oct. – 24 nov.".
+String periodLabel(Period p) {
+  final a = parseIso(p.start), b = parseIso(p.end);
+  final wholeMonth = a.day == 1 && p.start.substring(0, 7) == p.end.substring(0, 7) && DateTime(b.year, b.month, b.day + 1).day == 1;
+  if (wholeMonth) return monthLabel(p.start.substring(0, 7));
+  final d = DateFormat.MMMd(intlLocale);
+  final year = a.year != b.year || a.year != DateTime.now().year;
+  return '${d.format(a)} – ${d.format(b)}${year ? ' ${b.year}' : ''}';
+}
+
+String shortPeriod(Period p) =>
+    periodLabel(p) == monthLabel(p.start.substring(0, 7)) ? shortMonth(p.start.substring(0, 7)) : DateFormat.MMMd(intlLocale).format(parseIso(p.start));
+
 String shortMonth(String key) => DateFormat.MMM(intlLocale).format(parseIso('$key-01'));
 String longDate(String iso) => DateFormat.yMMMMd(intlLocale).format(parseIso(iso));
 String dayLabel(String iso) => _cap(DateFormat.MMMMEEEEd(intlLocale).format(parseIso(iso)));

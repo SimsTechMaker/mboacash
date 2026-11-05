@@ -11,6 +11,7 @@ import 'i18n.dart';
 import 'icons.dart';
 import 'notify.dart';
 import 'screens/accounts_screen.dart';
+import 'screens/agenda_screen.dart';
 import 'screens/categories_screen.dart';
 import 'screens/lock_screen.dart';
 import 'screens/more_screen.dart';
@@ -220,6 +221,14 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
           duration: const Duration(milliseconds: 200),
           child: Text(title, key: ValueKey(title)),
         ),
+        actions: [
+          if (index == 0)
+            IconButton(
+              tooltip: l.agendaTitle,
+              icon: Icon(appIcon('calendar')),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AgendaScreen())),
+            ),
+        ],
       ),
       body: ready
           // The pages stay alive in the IndexedStack (scroll positions kept);

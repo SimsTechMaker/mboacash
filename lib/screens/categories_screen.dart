@@ -28,7 +28,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     // Savings and debts appear as two extra groups on whichever side their
     // money went this month.
     final by = <String, double>{}, count = <String, int>{};
-    for (final t in s.monthTxs(s.month)) {
+    for (final t in s.periodTxs(s.view)) {
       final v = s.flow(t);
       if (income ? v <= 0 : v >= 0) continue;
       final k = s.flowKey(t);
@@ -50,7 +50,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final unused = cats.where((c) => (by[c.id] ?? 0) == 0).toList();
     final overCaps = income ? 0 : used.where((c) => c.cap > 0 && (by[c.id] ?? 0) > c.cap).length;
     final l = context.l;
-    final monthName = monthLabel(s.month, year: false);
+    final monthName = periodLabel(s.view);
     final monthLower = lang == 'fr' ? monthName.toLowerCase() : monthName;
 
     return ListView(

@@ -8,6 +8,9 @@
   "accountsOnAccounts": "Sur mes comptes",
   "accountsOps": "Opérations",
   "accountsOwedToMe": "On me doit",
+  "accountsSavings": "Comptes d'épargne",
+  "accountsSavingsBack": "Transférer vers un compte",
+  "accountsSavingsHelp": "Cet argent est mis à part : pour l'utiliser, transfère-le vers un compte normal.",
   "accountsShare": "{pct} % de ton argent disponible",
   "@accountsShare": {
     "placeholders": {
@@ -16,7 +19,36 @@
       }
     }
   },
+  "accountsSpendable": "Argent utilisable",
   "add": "Ajouter",
+  "agendaAll": "Tout ce qui est programmé",
+  "agendaConfirmHelp": "Corrige le montant ou la date si besoin. Rien n'est compté avant ta confirmation.",
+  "agendaConfirmed": "Opération enregistrée",
+  "agendaDayEmpty": "Rien ce jour-là.",
+  "agendaDueCount": "{count, plural, one{{count} opération à confirmer} other{{count} opérations à confirmer}}",
+  "@agendaDueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agendaDueText": "Elles ne comptent dans tes soldes qu'une fois confirmées.",
+  "agendaEdit": "Modifier l'opération programmée",
+  "agendaNew": "Programmer",
+  "agendaNoteHint": "Loyer, abonnement, tontine…",
+  "agendaPlanned": "Programmée",
+  "agendaRepeat": "Répéter",
+  "agendaRepeat2weeks": "Toutes les 2 semaines",
+  "agendaRepeatMonth": "Chaque mois",
+  "agendaRepeatOnce": "Une seule fois",
+  "agendaRepeatQuarter": "Chaque trimestre",
+  "agendaRepeatWeek": "Chaque semaine",
+  "agendaRepeatYear": "Chaque année",
+  "agendaSaved": "Opération programmée",
+  "agendaSkip": "Passer",
+  "agendaTitle": "Agenda",
+  "agendaToConfirm": "À confirmer",
   "appTitle": "my-nkap",
   "assistantApplied": "Budget et plafonds appliqués",
   "assistantApply": "Appliquer ce budget",
@@ -193,7 +225,7 @@
     }
   },
   "catsManage": "Gérer",
-  "catsNoOps": "Aucune opération ce mois-ci",
+  "catsNoOps": "Aucune opération sur cette période",
   "catsOver": "Dépassé",
   "catsOverCaps": "{count, plural, one{{count} plafond dépassé} other{{count} plafonds dépassés}}",
   "@catsOverCaps": {
@@ -203,7 +235,7 @@
       }
     }
   },
-  "catsReceivedIn": "Reçu en {month}",
+  "catsReceivedIn": "Reçu · {month}",
   "@catsReceivedIn": {
     "placeholders": {
       "month": {
@@ -219,7 +251,7 @@
       }
     }
   },
-  "catsSpentIn": "Dépensé en {month}",
+  "catsSpentIn": "Dépensé · {month}",
   "@catsSpentIn": {
     "placeholders": {
       "month": {
@@ -235,7 +267,7 @@
       }
     }
   },
-  "catsUnused": "Sans opération ce mois-ci",
+  "catsUnused": "Sans opération sur cette période",
   "close": "Fermer",
   "commonBorrowFrom": "Emprunt auprès de {who}",
   "@commonBorrowFrom": {
@@ -266,11 +298,11 @@
       }
     }
   },
-  "commonNextMonth": "Mois suivant",
+  "commonNextPeriod": "Période suivante",
   "commonNoCategory": "Sans catégorie",
   "commonNone": "Aucune",
   "commonOffAccounts": "Hors comptes",
-  "commonPrevMonth": "Mois précédent",
+  "commonPrevPeriod": "Période précédente",
   "commonRepayFrom": "Remboursement de {who}",
   "@commonRepayFrom": {
     "placeholders": {
@@ -671,7 +703,7 @@
       }
     }
   },
-  "insNoSavingText": "D'habitude tu mets {amount} de côté par mois.",
+  "insNoSavingText": "D'habitude tu mets {amount} de côté par période.",
   "@insNoSavingText": {
     "placeholders": {
       "amount": {
@@ -679,8 +711,8 @@
       }
     }
   },
-  "insNoSavingTitle": "Pas encore d'épargne ce mois-ci",
-  "insWarnTextCurrent": "{spent} dépensés, à ce rythme, tu finirais le mois à {projected} contre {avg} en moyenne.",
+  "insNoSavingTitle": "Pas encore d'épargne sur cette période",
+  "insWarnTextCurrent": "{spent} dépensés, à ce rythme, tu finirais la période à {projected} contre {avg} en moyenne.",
   "@insWarnTextCurrent": {
     "placeholders": {
       "spent": {
@@ -758,6 +790,7 @@
       }
     }
   },
+  "moreAgendaSub": "Dépenses et revenus programmés",
   "moreAssistant": "Assistant budget",
   "moreAssistantSub": "Budget et plafonds selon tes revenus et tes objectifs",
   "moreBadgeDrive": "Drive connecté",
@@ -798,7 +831,7 @@
   "moreNotifications": "Notifications",
   "moreNotificationsSub": "Rappels, budget, échéances, synchronisation",
   "moreSavings": "Épargne",
-  "moreSavingsEmpty": "Crée un objectif et mets de l'argent de côté",
+  "moreSavingsEmpty": "Crée un compte d'épargne et mets de l'argent de côté",
   "moreSavingsSub": "{count, plural, one{{count} objectif} other{{count} objectifs}} · {amount} mis de côté",
   "@moreSavingsSub": {
     "placeholders": {
@@ -821,6 +854,7 @@
   "newOperation": "Nouvelle opération",
   "next": "Suivant",
   "no": "Non",
+  "notificationsAgendaSub": "Le jour d'une opération programmée, et quand une période se termine",
   "notificationsAllow": "Autoriser",
   "notificationsBlocked": "Les notifications sont bloquées pour my-nkap.",
   "notificationsBlockedHelp": "Autorise-les pour recevoir les rappels. Si rien ne s'affiche, va dans Réglages Android › Applications › my-nkap › Notifications.",
@@ -842,6 +876,23 @@
     }
   },
   "notificationsTitle": "Notifications",
+  "notifyAgendaBody": "{amount} à confirmer dans l'app.",
+  "@notifyAgendaBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyAgendaTitle": "Prévu aujourd'hui : {label}",
+  "@notifyAgendaTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyChAgenda": "Agenda et fin de période",
   "notifyChBudget": "Budget et plafonds",
   "notifyChDaily": "Rappel quotidien",
   "notifyChDebts": "Échéances de dettes",
@@ -887,8 +938,8 @@
     }
   },
   "notifyIn3Days": "dans 3 jours",
-  "notifyMonthBudget": "Budget du mois",
-  "notifyNearBody": "Déjà {spent} sur {cap}. Il reste {left} pour le mois.",
+  "notifyMonthBudget": "Budget de la période",
+  "notifyNearBody": "Déjà {spent} sur {cap}. Il reste {left} pour la période.",
   "@notifyNearBody": {
     "placeholders": {
       "spent": {
@@ -910,7 +961,7 @@
       }
     }
   },
-  "notifyOverBody": "Tu as dépensé {spent} ce mois-ci pour un plafond de {cap}.",
+  "notifyOverBody": "Tu as dépensé {spent} sur cette période pour un plafond de {cap}.",
   "@notifyOverBody": {
     "placeholders": {
       "spent": {
@@ -929,6 +980,15 @@
       }
     }
   },
+  "notifyPeriodBody": "Vois ton bilan de {period} et ferme-la.",
+  "@notifyPeriodBody": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyPeriodTitle": "Ta période est terminée",
   "notifySyncNever": "Tu n'as pas encore sauvegardé tes données sur Google Drive.",
   "notifySyncOld": "Ta dernière sauvegarde Google Drive date de plus de 7 jours.",
   "notifySyncTitle": "Pense à synchroniser",
@@ -974,7 +1034,7 @@
   },
   "opsDueTitle": "Habituels pas encore saisis",
   "opsEmptyFirst": "Ton carnet est vide. Ajoute ta première dépense avec le bouton +, ou charge quelques exemples pour voir le carnet rempli.",
-  "opsEmptyMonth": "Aucune opération en {month}.",
+  "opsEmptyMonth": "Aucune opération pour {month}.",
   "@opsEmptyMonth": {
     "placeholders": {
       "month": {
@@ -982,7 +1042,7 @@
       }
     }
   },
-  "opsEmptyMonthAccount": "Aucune opération en {month} sur ce compte.",
+  "opsEmptyMonthAccount": "Aucune opération pour {month} sur ce compte.",
   "@opsEmptyMonthAccount": {
     "placeholders": {
       "month": {
@@ -1012,8 +1072,8 @@
       }
     }
   },
-  "opsForecastTitle": "Prévision de fin de mois",
-  "opsHeroBalance": "SOLDE DU MOIS",
+  "opsForecastTitle": "Prévision de fin de période",
+  "opsHeroBalance": "Solde de la période",
   "opsJournal": "Journal",
   "opsLoadSamples": "Charger des exemples",
   "opsRecurringPlanned": "prévu le {date}",
@@ -1033,6 +1093,123 @@
     }
   },
   "opsSamplesLoaded": "Exemples chargés. Tu pourras les retirer dans Paramètres › Données.",
+  "periodAvailable": "Disponible",
+  "periodBudgetSpent": "Dépensé sur un budget de {budget}",
+  "@periodBudgetSpent": {
+    "placeholders": {
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "periodCarried": "Reporté",
+  "periodChange": "Modifier",
+  "periodClose": "Fermer la période",
+  "periodCloseConfirmText": "Le résumé sera gardé dans l'historique. La période {next} s'ouvre avec {amount} reportés.",
+  "@periodCloseConfirmText": {
+    "placeholders": {
+      "next": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "periodCloseConfirmTitle": "Fermer la période ?",
+  "periodClosed": "Période fermée",
+  "periodCount": "{count, plural, one{{count} opération} other{{count} opérations}}",
+  "@periodCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodDays": "{count, plural, one{{count} jour} other{{count} jours}}",
+  "@periodDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodDueWarning": "{count, plural, one{{count} opération programmée attend ta confirmation.} other{{count} opérations programmées attendent ta confirmation.}}",
+  "@periodDueWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodEnd": "Fin",
+  "periodEndBeforeStart": "La fin doit venir après le début.",
+  "periodEndedText": "Vois ton bilan, puis ferme-la pour ouvrir la suivante.",
+  "periodEndedTitle": "Période terminée : {period}",
+  "@periodEndedTitle": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "periodFormHelp": "Tu choisis le jour où ta période commence, par exemple le jour de ta paie. Les périodes fermées ne changent pas.",
+  "periodHistory": "Périodes fermées",
+  "periodHistoryEmpty": "Le résumé de chaque période fermée sera gardé ici.",
+  "periodHistorySub": "Reçu {income} · dépensé {expense}",
+  "@periodHistorySub": {
+    "placeholders": {
+      "income": {
+        "type": "String"
+      },
+      "expense": {
+        "type": "String"
+      }
+    }
+  },
+  "periodKind2weeks": "2 semaines",
+  "periodKindCustom": "Personnalisé",
+  "periodKindMonth": "Mensuel",
+  "periodKindQuarter": "Trimestriel",
+  "periodKindSemester": "Semestriel",
+  "periodLeft": "Restant",
+  "periodLeftHelp": "Cet argent reste sur tes comptes et passe à la période suivante.",
+  "periodNotEnded": "Cette période se termine le {date}. Tu pourras la fermer à partir de cette date.",
+  "@periodNotEnded": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "periodOpenLabel": "Période en cours",
+  "periodPutAside": "Mettre de côté sur {amount} restants ?",
+  "@periodPutAside": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "periodReopen": "Rouvrir la période",
+  "periodReopenText": "Elle redevient la période en cours et son résumé est retiré de l'historique. Aucune opération n'est effacée.",
+  "periodReopenTitle": "Rouvrir cette période ?",
+  "periodReopened": "Période rouverte",
+  "periodReview": "Bilan de la période",
+  "periodSaved": "Période enregistrée",
+  "periodSaved2": "Mis en épargne",
+  "periodSeeOps": "Voir ses opérations",
+  "periodStart": "Début",
+  "periodStartTooEarly": "La période ne peut pas commencer avant le {date} : elle chevaucherait une période fermée.",
+  "@periodStartTooEarly": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "periodTop": "Plus grosses dépenses",
+  "periodsTitle": "Périodes budgétaires",
   "proofAdd": "Ajouter un justificatif (photo, reçu)",
   "proofCamera": "Prendre une photo",
   "proofGallery": "Choisir dans la galerie",
@@ -1049,9 +1226,9 @@
       }
     }
   },
-  "savingsEmpty": "Crée un objectif (fonds d'urgence, voyage, voiture…) puis mets de l'argent de côté depuis tes comptes. L'argent épargné quitte le compte et s'ajoute à l'objectif.",
-  "savingsMyGoals": "Mes objectifs",
-  "savingsNewGoal": "Nouvel objectif",
+  "savingsEmpty": "Crée un compte d'épargne (fonds d'urgence, voyage, voiture…) puis mets de l'argent de côté.",
+  "savingsMyGoals": "Mes comptes d'épargne",
+  "savingsNewGoal": "Nouveau compte d'épargne",
   "savingsNoTarget": "Fixe un montant à tes objectifs pour suivre tes progrès",
   "savingsOfTarget": "sur {amount}",
   "@savingsOfTarget": {
@@ -1172,7 +1349,7 @@
   "settingsInitialBalance": "Solde de départ",
   "settingsKeepOneAccount": "Garde au moins un compte.",
   "settingsKeepOneCategory": "Garde au moins une catégorie de ce type.",
-  "settingsMonthlyBudget": "Budget mensuel total",
+  "settingsMonthlyBudget": "Budget total par période",
   "settingsName": "Nom",
   "settingsNewAccount": "Nouveau compte",
   "settingsNewCategory": "Nouvelle catégorie",
@@ -1304,16 +1481,16 @@
   "sheetsDeleteMovement": "Supprimer ce mouvement",
   "sheetsExpenseAdded": "Dépense ajoutée",
   "sheetsFromAccount": "Depuis le compte",
-  "sheetsGoalCreate": "Créer l'objectif",
-  "sheetsGoalCreated": "Objectif créé",
+  "sheetsGoalCreate": "Créer le compte",
+  "sheetsGoalCreated": "Compte d'épargne créé",
   "sheetsGoalDeadline": "Date visée (facultatif)",
   "sheetsGoalDeleteHint": "Supprimer l'objectif efface aussi ses mouvements : l'argent revient sur les comptes d'origine.",
-  "sheetsGoalDeleted": "Objectif supprimé",
-  "sheetsGoalEditTitle": "Modifier l'objectif",
+  "sheetsGoalDeleted": "Compte d'épargne supprimé",
+  "sheetsGoalEditTitle": "Modifier le compte d'épargne",
   "sheetsGoalInitial": "Déjà mis de côté (facultatif)",
   "sheetsGoalNameHint": "Fonds d'urgence, voyage, voiture…",
-  "sheetsGoalNameMissing": "Donne un nom à l'objectif.",
-  "sheetsGoalNewTitle": "Nouvel objectif d'épargne",
+  "sheetsGoalNameMissing": "Donne un nom au compte d'épargne.",
+  "sheetsGoalNewTitle": "Nouveau compte d'épargne",
   "sheetsGoalPutAside": "Mettre de côté",
   "sheetsGoalPutAsideDone": "{amount} mis de côté",
   "@sheetsGoalPutAsideDone": {
@@ -1350,8 +1527,8 @@
       }
     }
   },
-  "sheetsGoalTarget": "Montant visé",
-  "sheetsGoalUpdated": "Objectif mis à jour",
+  "sheetsGoalTarget": "Montant visé (facultatif)",
+  "sheetsGoalUpdated": "Compte d'épargne mis à jour",
   "sheetsGoalWithdraw": "Retirer",
   "sheetsGoalWithdrawDone": "{amount} retirés de l'épargne",
   "@sheetsGoalWithdrawDone": {
@@ -1413,6 +1590,15 @@
   "sheetsRepaymentSaved": "Remboursement enregistré",
   "sheetsSaveExplain": "Ce mouvement se gère depuis Plus › Épargne.",
   "sheetsSaveRepayment": "Enregistrer le remboursement",
+  "sheetsSavingsNotEnough": "Ce compte d'épargne ne contient que {amount}.",
+  "@sheetsSavingsNotEnough": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsSavingsToSavings": "Passe par un compte normal pour déplacer de l'argent entre deux comptes d'épargne.",
   "sheetsSuggested": "suggérée d'après la note",
   "sheetsToAccount": "Vers le compte",
   "sheetsTransferSameAccount": "Choisis deux comptes différents pour un transfert.",
@@ -1473,9 +1659,9 @@
     }
   },
   "statsDailySpend": "dépense courante par jour",
-  "statsNoExpenses": "Aucune dépense ce mois-ci.",
+  "statsNoExpenses": "Aucune dépense sur cette période.",
   "statsNothingToCompare": "Rien à comparer pour l'instant.",
-  "statsOpsThisMonth": "opérations ce mois-ci",
+  "statsOpsThisMonth": "opérations sur la période",
   "statsPercent": "{value} %",
   "@statsPercent": {
     "placeholders": {
@@ -1485,16 +1671,323 @@
     }
   },
   "statsSavingsRate": "taux d'épargne",
-  "statsSixMonths": "Six derniers mois",
+  "statsSixMonths": "Six dernières périodes",
+  "statsTabAnalyses": "Analyses",
+  "statsTabFigures": "Chiffres",
   "statsTopExpenses": "Plus grosses dépenses",
-  "statsVsPrevMonth": "dépenses vs mois précédent",
-  "statsWhereEmpty": "Les dépenses du mois apparaîtront ici, réparties par catégorie.",
+  "statsVsPrevMonth": "dépenses vs période précédente",
+  "statsWhereEmpty": "Les dépenses de la période apparaîtront ici, réparties par catégorie.",
   "statsWhereMoneyGoes": "Où part l'argent",
+  "sumAccountOnly": "Toutes tes dépenses passent par {account}.",
+  "@sumAccountOnly": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "sumAccountRow": "{count, plural, one{{count} dépense} other{{count} dépenses}}",
+  "@sumAccountRow": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sumAccountTop": "{account} est le compte qui dépense le plus ({pct} % du total).",
+  "@sumAccountTop": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "sumBiggestShare": "Tes {count} plus grosses dépenses font {pct} % du total.",
+  "@sumBiggestShare": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "sumCategoryUp": "{name} a augmenté de {pct} % (+{amount}).",
+  "@sumCategoryUp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sumCompared": "Comparé à : {period}.",
+  "@sumCompared": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "sumComparedSoFar": "Comparé au même nombre de jours de la période précédente : {period}.",
+  "@sumComparedSoFar": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "sumDayEven": "Tes dépenses sont bien réparties sur la journée.",
+  "sumDayTitle": "Selon le moment de la journée",
+  "sumElapsedTile": "Jours écoulés",
+  "sumEmpty": "Rien à résumer sur cette période. Choisis-en une autre ou note tes opérations.",
+  "sumEssential": "L'essentiel",
+  "sumEssentialEmpty": "Rien de marquant pour l'instant : il faut un peu plus d'opérations.",
+  "sumGoalBehind": "À ce rythme, {name} sera atteint vers le {eta}, après ton échéance du {deadline}.",
+  "@sumGoalBehind": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "eta": {
+        "type": "String"
+      },
+      "deadline": {
+        "type": "String"
+      }
+    }
+  },
+  "sumGoalEta": "À {amount} par mois, objectif atteint vers le {date}.",
+  "@sumGoalEta": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "sumGoalFar": "À {amount} par mois, l'objectif reste hors de portée.",
+  "@sumGoalFar": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sumGoalLate": "En retard",
+  "sumGoalNoPace": "Pas de rythme à mesurer sur cette période.",
+  "sumGoalsTitle": "Au rythme actuel",
+  "sumHabitInsight": "« {note} » revient {count} fois : {amount} au total.",
+  "@sumHabitInsight": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sumHabitRow": "{count} fois · {amount} en moyenne",
+  "@sumHabitRow": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sumHabitsNone": "Aucune note ne revient au moins 3 fois sur cette période.",
+  "sumKept": "Tu as gardé {pct} % de tes revenus.",
+  "@sumKept": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "sumMonthEven": "Tes dépenses sont bien réparties sur le mois.",
+  "sumMonthTitle": "Selon le moment du mois",
+  "sumNetSaved": "Mis de côté (net)",
+  "sumNew": "Nouveau",
+  "sumNoSpendDays": "{count, plural, one{{count} jour sans dépense sur {total}.} other{{count} jours sans dépense sur {total}.}}",
+  "@sumNoSpendDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "sumNoSpendNone": "Pas un seul jour sans dépense sur cette période.",
+  "sumNoSpendStreak": "{count, plural, one{Ta plus longue série : {count} jour.} other{Ta plus longue série : {count} jours d'affilée.}}",
+  "@sumNoSpendStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sumNoSpendTile": "Jours sans dépense",
+  "sumNoSpending": "Aucune dépense sur cette période.",
+  "sumNotEnough": "Encore trop peu de dépenses pour en tirer une conclusion.",
+  "sumOverspent": "Tu as dépensé {amount} de plus que tu n'as gagné.",
+  "@sumOverspent": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sumPartEnd": "Fin (à partir du 21)",
+  "sumPartMiddle": "Milieu (du 11 au 20)",
+  "sumPartStart": "Début (du 1er au 10)",
+  "sumPeakMoment": "Tu dépenses surtout {moment} ({pct} % du total).",
+  "@sumPeakMoment": {
+    "placeholders": {
+      "moment": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "sumPeakWeekday": "Tu dépenses surtout le {day} ({pct} % du total).",
+  "@sumPeakWeekday": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "sumRange3Months": "3 mois",
+  "sumRange6Months": "6 mois",
+  "sumRangeAll": "Tout",
+  "sumRangeCurrent": "Cette période",
+  "sumRangePrevious": "Précédente",
+  "sumRangeYear": "1 an",
+  "sumSmallCount": "Petites dépenses",
+  "sumSmallInsight": "{count, plural, one{{count} petite dépense sous {limit} : {amount} au total.} other{{count} petites dépenses sous {limit} : {amount} au total. Ça s'accumule !}}",
+  "@sumSmallInsight": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sumSmallNone": "Pas de petites dépenses qui s'accumulent sur cette période.",
+  "sumSmallShare": "Des dépenses",
+  "sumSmallTotal": "Au total",
+  "sumSpentDown": "Tu as dépensé {pct} % de moins que sur la période précédente.",
+  "@sumSpentDown": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "sumSpentDownSoFar": "Tu as dépensé {pct} % de moins qu'au même stade de la période précédente.",
+  "@sumSpentDownSoFar": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "sumSpentUp": "Tu as dépensé {pct} % de plus que sur la période précédente.",
+  "@sumSpentUp": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "sumSpentUpSoFar": "Tu as dépensé {pct} % de plus qu'au même stade de la période précédente.",
+  "@sumSpentUpSoFar": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "sumStreakTile": "Plus longue série",
+  "sumTimeAfternoon": "Après-midi (12 h – 18 h)",
+  "sumTimeEvening": "Soir (18 h – 22 h)",
+  "sumTimeMorning": "Matin (5 h – 12 h)",
+  "sumTimeNight": "Nuit (22 h – 5 h)",
+  "sumTimedSample": "{count, plural, =0{Aucune dépense saisie le jour même : l'heure n'est connue que pour celles-là.} one{D'après {count} dépense saisie le jour même, la seule dont l'heure est connue.} other{D'après {count} dépenses saisies le jour même, les seules dont l'heure est connue.}}",
+  "@sumTimedSample": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sumTitle": "Résumé intelligent",
+  "sumTopCategory": "{name} pèse {pct} % de tes dépenses ({amount}).",
+  "@sumTopCategory": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sumTopicAccounts": "Comptes",
+  "sumTopicBiggest": "Plus grosses",
+  "sumTopicCategories": "Catégories",
+  "sumTopicHabits": "Habitudes",
+  "sumTopicMoments": "Moments",
+  "sumTopicNoSpend": "Jours sans dépense",
+  "sumTopicSavings": "Épargne",
+  "sumTopicSmall": "Petites dépenses",
+  "sumWeekEven": "Tes dépenses sont bien réparties sur la semaine.",
+  "sumWeekTitle": "Selon le jour de la semaine",
+  "sumWhenAfternoon": "l'après-midi",
+  "sumWhenEnd": "en fin de mois",
+  "sumWhenEvening": "le soir",
+  "sumWhenMiddle": "au milieu du mois",
+  "sumWhenMorning": "le matin",
+  "sumWhenNight": "la nuit",
+  "sumWhenStart": "en début de mois",
   "tabAccounts": "Comptes",
   "tabCategories": "Catégories",
   "tabMore": "Plus",
   "tabOps": "Opérations",
-  "tabStats": "Statistiques",
+  "tabStats": "Résumé",
   "totalsExpenses": "Dépenses",
   "totalsIncome": "Revenus",
   "typeAdjust": "Ajustement",

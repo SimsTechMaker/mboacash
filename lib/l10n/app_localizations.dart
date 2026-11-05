@@ -146,17 +146,167 @@ abstract class AppLocalizations {
   /// **'On me doit'**
   String get accountsOwedToMe;
 
+  /// No description provided for @accountsSavings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comptes d\'épargne'**
+  String get accountsSavings;
+
+  /// No description provided for @accountsSavingsBack.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transférer vers un compte'**
+  String get accountsSavingsBack;
+
+  /// No description provided for @accountsSavingsHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet argent est mis à part : pour l\'utiliser, transfère-le vers un compte normal.'**
+  String get accountsSavingsHelp;
+
   /// No description provided for @accountsShare.
   ///
   /// In fr, this message translates to:
   /// **'{pct} % de ton argent disponible'**
   String accountsShare(int pct);
 
+  /// No description provided for @accountsSpendable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Argent utilisable'**
+  String get accountsSpendable;
+
   /// No description provided for @add.
   ///
   /// In fr, this message translates to:
   /// **'Ajouter'**
   String get add;
+
+  /// No description provided for @agendaAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout ce qui est programmé'**
+  String get agendaAll;
+
+  /// No description provided for @agendaConfirmHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corrige le montant ou la date si besoin. Rien n\'est compté avant ta confirmation.'**
+  String get agendaConfirmHelp;
+
+  /// No description provided for @agendaConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Opération enregistrée'**
+  String get agendaConfirmed;
+
+  /// No description provided for @agendaDayEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien ce jour-là.'**
+  String get agendaDayEmpty;
+
+  /// No description provided for @agendaDueCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} opération à confirmer} other{{count} opérations à confirmer}}'**
+  String agendaDueCount(int count);
+
+  /// No description provided for @agendaDueText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elles ne comptent dans tes soldes qu\'une fois confirmées.'**
+  String get agendaDueText;
+
+  /// No description provided for @agendaEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'opération programmée'**
+  String get agendaEdit;
+
+  /// No description provided for @agendaNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmer'**
+  String get agendaNew;
+
+  /// No description provided for @agendaNoteHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Loyer, abonnement, tontine…'**
+  String get agendaNoteHint;
+
+  /// No description provided for @agendaPlanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmée'**
+  String get agendaPlanned;
+
+  /// No description provided for @agendaRepeat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Répéter'**
+  String get agendaRepeat;
+
+  /// No description provided for @agendaRepeat2weeks.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les 2 semaines'**
+  String get agendaRepeat2weeks;
+
+  /// No description provided for @agendaRepeatMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque mois'**
+  String get agendaRepeatMonth;
+
+  /// No description provided for @agendaRepeatOnce.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une seule fois'**
+  String get agendaRepeatOnce;
+
+  /// No description provided for @agendaRepeatQuarter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque trimestre'**
+  String get agendaRepeatQuarter;
+
+  /// No description provided for @agendaRepeatWeek.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque semaine'**
+  String get agendaRepeatWeek;
+
+  /// No description provided for @agendaRepeatYear.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque année'**
+  String get agendaRepeatYear;
+
+  /// No description provided for @agendaSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Opération programmée'**
+  String get agendaSaved;
+
+  /// No description provided for @agendaSkip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer'**
+  String get agendaSkip;
+
+  /// No description provided for @agendaTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Agenda'**
+  String get agendaTitle;
+
+  /// No description provided for @agendaToConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'À confirmer'**
+  String get agendaToConfirm;
 
   /// No description provided for @appTitle.
   ///
@@ -575,7 +725,7 @@ abstract class AppLocalizations {
   /// No description provided for @catsNoOps.
   ///
   /// In fr, this message translates to:
-  /// **'Aucune opération ce mois-ci'**
+  /// **'Aucune opération sur cette période'**
   String get catsNoOps;
 
   /// No description provided for @catsOver.
@@ -593,7 +743,7 @@ abstract class AppLocalizations {
   /// No description provided for @catsReceivedIn.
   ///
   /// In fr, this message translates to:
-  /// **'Reçu en {month}'**
+  /// **'Reçu · {month}'**
   String catsReceivedIn(String month);
 
   /// No description provided for @catsShareOfTotal.
@@ -605,7 +755,7 @@ abstract class AppLocalizations {
   /// No description provided for @catsSpentIn.
   ///
   /// In fr, this message translates to:
-  /// **'Dépensé en {month}'**
+  /// **'Dépensé · {month}'**
   String catsSpentIn(String month);
 
   /// No description provided for @catsTop.
@@ -617,7 +767,7 @@ abstract class AppLocalizations {
   /// No description provided for @catsUnused.
   ///
   /// In fr, this message translates to:
-  /// **'Sans opération ce mois-ci'**
+  /// **'Sans opération sur cette période'**
   String get catsUnused;
 
   /// No description provided for @close.
@@ -674,11 +824,11 @@ abstract class AppLocalizations {
   /// **'Prêt à {who}'**
   String commonLendTo(String who);
 
-  /// No description provided for @commonNextMonth.
+  /// No description provided for @commonNextPeriod.
   ///
   /// In fr, this message translates to:
-  /// **'Mois suivant'**
-  String get commonNextMonth;
+  /// **'Période suivante'**
+  String get commonNextPeriod;
 
   /// No description provided for @commonNoCategory.
   ///
@@ -698,11 +848,11 @@ abstract class AppLocalizations {
   /// **'Hors comptes'**
   String get commonOffAccounts;
 
-  /// No description provided for @commonPrevMonth.
+  /// No description provided for @commonPrevPeriod.
   ///
   /// In fr, this message translates to:
-  /// **'Mois précédent'**
-  String get commonPrevMonth;
+  /// **'Période précédente'**
+  String get commonPrevPeriod;
 
   /// No description provided for @commonRepayFrom.
   ///
@@ -1601,19 +1751,19 @@ abstract class AppLocalizations {
   /// No description provided for @insNoSavingText.
   ///
   /// In fr, this message translates to:
-  /// **'D\'habitude tu mets {amount} de côté par mois.'**
+  /// **'D\'habitude tu mets {amount} de côté par période.'**
   String insNoSavingText(String amount);
 
   /// No description provided for @insNoSavingTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Pas encore d\'épargne ce mois-ci'**
+  /// **'Pas encore d\'épargne sur cette période'**
   String get insNoSavingTitle;
 
   /// No description provided for @insWarnTextCurrent.
   ///
   /// In fr, this message translates to:
-  /// **'{spent} dépensés, à ce rythme, tu finirais le mois à {projected} contre {avg} en moyenne.'**
+  /// **'{spent} dépensés, à ce rythme, tu finirais la période à {projected} contre {avg} en moyenne.'**
   String insWarnTextCurrent(String spent, String projected, String avg);
 
   /// No description provided for @insWarnTextPast.
@@ -1778,6 +1928,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{Code incorrect. {count} essai avant une pause.} other{Code incorrect. {count} essais avant une pause.}}'**
   String lockWrongCodeTries(int count);
 
+  /// No description provided for @moreAgendaSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépenses et revenus programmés'**
+  String get moreAgendaSub;
+
   /// No description provided for @moreAssistant.
   ///
   /// In fr, this message translates to:
@@ -1919,7 +2075,7 @@ abstract class AppLocalizations {
   /// No description provided for @moreSavingsEmpty.
   ///
   /// In fr, this message translates to:
-  /// **'Crée un objectif et mets de l\'argent de côté'**
+  /// **'Crée un compte d\'épargne et mets de l\'argent de côté'**
   String get moreSavingsEmpty;
 
   /// No description provided for @moreSavingsSub.
@@ -1994,6 +2150,12 @@ abstract class AppLocalizations {
   /// **'Non'**
   String get no;
 
+  /// No description provided for @notificationsAgendaSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le jour d\'une opération programmée, et quand une période se termine'**
+  String get notificationsAgendaSub;
+
   /// No description provided for @notificationsAllow.
   ///
   /// In fr, this message translates to:
@@ -2059,6 +2221,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Notifications'**
   String get notificationsTitle;
+
+  /// No description provided for @notifyAgendaBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} à confirmer dans l\'app.'**
+  String notifyAgendaBody(String amount);
+
+  /// No description provided for @notifyAgendaTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévu aujourd\'hui : {label}'**
+  String notifyAgendaTitle(String label);
+
+  /// No description provided for @notifyChAgenda.
+  ///
+  /// In fr, this message translates to:
+  /// **'Agenda et fin de période'**
+  String get notifyChAgenda;
 
   /// No description provided for @notifyChBudget.
   ///
@@ -2135,13 +2315,13 @@ abstract class AppLocalizations {
   /// No description provided for @notifyMonthBudget.
   ///
   /// In fr, this message translates to:
-  /// **'Budget du mois'**
+  /// **'Budget de la période'**
   String get notifyMonthBudget;
 
   /// No description provided for @notifyNearBody.
   ///
   /// In fr, this message translates to:
-  /// **'Déjà {spent} sur {cap}. Il reste {left} pour le mois.'**
+  /// **'Déjà {spent} sur {cap}. Il reste {left} pour la période.'**
   String notifyNearBody(String spent, String cap, String left);
 
   /// No description provided for @notifyNearTitle.
@@ -2153,7 +2333,7 @@ abstract class AppLocalizations {
   /// No description provided for @notifyOverBody.
   ///
   /// In fr, this message translates to:
-  /// **'Tu as dépensé {spent} ce mois-ci pour un plafond de {cap}.'**
+  /// **'Tu as dépensé {spent} sur cette période pour un plafond de {cap}.'**
   String notifyOverBody(String spent, String cap);
 
   /// No description provided for @notifyOverTitle.
@@ -2161,6 +2341,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{name} : dépassé'**
   String notifyOverTitle(String name);
+
+  /// No description provided for @notifyPeriodBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vois ton bilan de {period} et ferme-la.'**
+  String notifyPeriodBody(String period);
+
+  /// No description provided for @notifyPeriodTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ta période est terminée'**
+  String get notifyPeriodTitle;
 
   /// No description provided for @notifySyncNever.
   ///
@@ -2309,13 +2501,13 @@ abstract class AppLocalizations {
   /// No description provided for @opsEmptyMonth.
   ///
   /// In fr, this message translates to:
-  /// **'Aucune opération en {month}.'**
+  /// **'Aucune opération pour {month}.'**
   String opsEmptyMonth(String month);
 
   /// No description provided for @opsEmptyMonthAccount.
   ///
   /// In fr, this message translates to:
-  /// **'Aucune opération en {month} sur ce compte.'**
+  /// **'Aucune opération pour {month} sur ce compte.'**
   String opsEmptyMonthAccount(String month);
 
   /// No description provided for @opsFilterAll.
@@ -2351,13 +2543,13 @@ abstract class AppLocalizations {
   /// No description provided for @opsForecastTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Prévision de fin de mois'**
+  /// **'Prévision de fin de période'**
   String get opsForecastTitle;
 
   /// No description provided for @opsHeroBalance.
   ///
   /// In fr, this message translates to:
-  /// **'SOLDE DU MOIS'**
+  /// **'Solde de la période'**
   String get opsHeroBalance;
 
   /// No description provided for @opsJournal.
@@ -2389,6 +2581,252 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Exemples chargés. Tu pourras les retirer dans Paramètres › Données.'**
   String get opsSamplesLoaded;
+
+  /// No description provided for @periodAvailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disponible'**
+  String get periodAvailable;
+
+  /// No description provided for @periodBudgetSpent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépensé sur un budget de {budget}'**
+  String periodBudgetSpent(String budget);
+
+  /// No description provided for @periodCarried.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reporté'**
+  String get periodCarried;
+
+  /// No description provided for @periodChange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get periodChange;
+
+  /// No description provided for @periodClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer la période'**
+  String get periodClose;
+
+  /// No description provided for @periodCloseConfirmText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le résumé sera gardé dans l\'historique. La période {next} s\'ouvre avec {amount} reportés.'**
+  String periodCloseConfirmText(String next, String amount);
+
+  /// No description provided for @periodCloseConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer la période ?'**
+  String get periodCloseConfirmTitle;
+
+  /// No description provided for @periodClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Période fermée'**
+  String get periodClosed;
+
+  /// No description provided for @periodCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} opération} other{{count} opérations}}'**
+  String periodCount(int count);
+
+  /// No description provided for @periodDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} jour} other{{count} jours}}'**
+  String periodDays(int count);
+
+  /// No description provided for @periodDueWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} opération programmée attend ta confirmation.} other{{count} opérations programmées attendent ta confirmation.}}'**
+  String periodDueWarning(int count);
+
+  /// No description provided for @periodEnd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin'**
+  String get periodEnd;
+
+  /// No description provided for @periodEndBeforeStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'La fin doit venir après le début.'**
+  String get periodEndBeforeStart;
+
+  /// No description provided for @periodEndedText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vois ton bilan, puis ferme-la pour ouvrir la suivante.'**
+  String get periodEndedText;
+
+  /// No description provided for @periodEndedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Période terminée : {period}'**
+  String periodEndedTitle(String period);
+
+  /// No description provided for @periodFormHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu choisis le jour où ta période commence, par exemple le jour de ta paie. Les périodes fermées ne changent pas.'**
+  String get periodFormHelp;
+
+  /// No description provided for @periodHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Périodes fermées'**
+  String get periodHistory;
+
+  /// No description provided for @periodHistoryEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le résumé de chaque période fermée sera gardé ici.'**
+  String get periodHistoryEmpty;
+
+  /// No description provided for @periodHistorySub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçu {income} · dépensé {expense}'**
+  String periodHistorySub(String income, String expense);
+
+  /// No description provided for @periodKind2weeks.
+  ///
+  /// In fr, this message translates to:
+  /// **'2 semaines'**
+  String get periodKind2weeks;
+
+  /// No description provided for @periodKindCustom.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personnalisé'**
+  String get periodKindCustom;
+
+  /// No description provided for @periodKindMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mensuel'**
+  String get periodKindMonth;
+
+  /// No description provided for @periodKindQuarter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trimestriel'**
+  String get periodKindQuarter;
+
+  /// No description provided for @periodKindSemester.
+  ///
+  /// In fr, this message translates to:
+  /// **'Semestriel'**
+  String get periodKindSemester;
+
+  /// No description provided for @periodLeft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restant'**
+  String get periodLeft;
+
+  /// No description provided for @periodLeftHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet argent reste sur tes comptes et passe à la période suivante.'**
+  String get periodLeftHelp;
+
+  /// No description provided for @periodNotEnded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette période se termine le {date}. Tu pourras la fermer à partir de cette date.'**
+  String periodNotEnded(String date);
+
+  /// No description provided for @periodOpenLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Période en cours'**
+  String get periodOpenLabel;
+
+  /// No description provided for @periodPutAside.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mettre de côté sur {amount} restants ?'**
+  String periodPutAside(String amount);
+
+  /// No description provided for @periodReopen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rouvrir la période'**
+  String get periodReopen;
+
+  /// No description provided for @periodReopenText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elle redevient la période en cours et son résumé est retiré de l\'historique. Aucune opération n\'est effacée.'**
+  String get periodReopenText;
+
+  /// No description provided for @periodReopenTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rouvrir cette période ?'**
+  String get periodReopenTitle;
+
+  /// No description provided for @periodReopened.
+  ///
+  /// In fr, this message translates to:
+  /// **'Période rouverte'**
+  String get periodReopened;
+
+  /// No description provided for @periodReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bilan de la période'**
+  String get periodReview;
+
+  /// No description provided for @periodSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Période enregistrée'**
+  String get periodSaved;
+
+  /// No description provided for @periodSaved2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mis en épargne'**
+  String get periodSaved2;
+
+  /// No description provided for @periodSeeOps.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir ses opérations'**
+  String get periodSeeOps;
+
+  /// No description provided for @periodStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Début'**
+  String get periodStart;
+
+  /// No description provided for @periodStartTooEarly.
+  ///
+  /// In fr, this message translates to:
+  /// **'La période ne peut pas commencer avant le {date} : elle chevaucherait une période fermée.'**
+  String periodStartTooEarly(String date);
+
+  /// No description provided for @periodTop.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus grosses dépenses'**
+  String get periodTop;
+
+  /// No description provided for @periodsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Périodes budgétaires'**
+  String get periodsTitle;
 
   /// No description provided for @proofAdd.
   ///
@@ -2447,19 +2885,19 @@ abstract class AppLocalizations {
   /// No description provided for @savingsEmpty.
   ///
   /// In fr, this message translates to:
-  /// **'Crée un objectif (fonds d\'urgence, voyage, voiture…) puis mets de l\'argent de côté depuis tes comptes. L\'argent épargné quitte le compte et s\'ajoute à l\'objectif.'**
+  /// **'Crée un compte d\'épargne (fonds d\'urgence, voyage, voiture…) puis mets de l\'argent de côté.'**
   String get savingsEmpty;
 
   /// No description provided for @savingsMyGoals.
   ///
   /// In fr, this message translates to:
-  /// **'Mes objectifs'**
+  /// **'Mes comptes d\'épargne'**
   String get savingsMyGoals;
 
   /// No description provided for @savingsNewGoal.
   ///
   /// In fr, this message translates to:
-  /// **'Nouvel objectif'**
+  /// **'Nouveau compte d\'épargne'**
   String get savingsNewGoal;
 
   /// No description provided for @savingsNoTarget.
@@ -2807,7 +3245,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMonthlyBudget.
   ///
   /// In fr, this message translates to:
-  /// **'Budget mensuel total'**
+  /// **'Budget total par période'**
   String get settingsMonthlyBudget;
 
   /// No description provided for @settingsName.
@@ -3227,13 +3665,13 @@ abstract class AppLocalizations {
   /// No description provided for @sheetsGoalCreate.
   ///
   /// In fr, this message translates to:
-  /// **'Créer l\'objectif'**
+  /// **'Créer le compte'**
   String get sheetsGoalCreate;
 
   /// No description provided for @sheetsGoalCreated.
   ///
   /// In fr, this message translates to:
-  /// **'Objectif créé'**
+  /// **'Compte d\'épargne créé'**
   String get sheetsGoalCreated;
 
   /// No description provided for @sheetsGoalDeadline.
@@ -3251,13 +3689,13 @@ abstract class AppLocalizations {
   /// No description provided for @sheetsGoalDeleted.
   ///
   /// In fr, this message translates to:
-  /// **'Objectif supprimé'**
+  /// **'Compte d\'épargne supprimé'**
   String get sheetsGoalDeleted;
 
   /// No description provided for @sheetsGoalEditTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Modifier l\'objectif'**
+  /// **'Modifier le compte d\'épargne'**
   String get sheetsGoalEditTitle;
 
   /// No description provided for @sheetsGoalInitial.
@@ -3275,13 +3713,13 @@ abstract class AppLocalizations {
   /// No description provided for @sheetsGoalNameMissing.
   ///
   /// In fr, this message translates to:
-  /// **'Donne un nom à l\'objectif.'**
+  /// **'Donne un nom au compte d\'épargne.'**
   String get sheetsGoalNameMissing;
 
   /// No description provided for @sheetsGoalNewTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Nouvel objectif d\'épargne'**
+  /// **'Nouveau compte d\'épargne'**
   String get sheetsGoalNewTitle;
 
   /// No description provided for @sheetsGoalPutAside.
@@ -3317,13 +3755,13 @@ abstract class AppLocalizations {
   /// No description provided for @sheetsGoalTarget.
   ///
   /// In fr, this message translates to:
-  /// **'Montant visé'**
+  /// **'Montant visé (facultatif)'**
   String get sheetsGoalTarget;
 
   /// No description provided for @sheetsGoalUpdated.
   ///
   /// In fr, this message translates to:
-  /// **'Objectif mis à jour'**
+  /// **'Compte d\'épargne mis à jour'**
   String get sheetsGoalUpdated;
 
   /// No description provided for @sheetsGoalWithdraw.
@@ -3439,6 +3877,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Enregistrer le remboursement'**
   String get sheetsSaveRepayment;
+
+  /// No description provided for @sheetsSavingsNotEnough.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte d\'épargne ne contient que {amount}.'**
+  String sheetsSavingsNotEnough(String amount);
+
+  /// No description provided for @sheetsSavingsToSavings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passe par un compte normal pour déplacer de l\'argent entre deux comptes d\'épargne.'**
+  String get sheetsSavingsToSavings;
 
   /// No description provided for @sheetsSuggested.
   ///
@@ -3761,7 +4211,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsNoExpenses.
   ///
   /// In fr, this message translates to:
-  /// **'Aucune dépense ce mois-ci.'**
+  /// **'Aucune dépense sur cette période.'**
   String get statsNoExpenses;
 
   /// No description provided for @statsNothingToCompare.
@@ -3773,7 +4223,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsOpsThisMonth.
   ///
   /// In fr, this message translates to:
-  /// **'opérations ce mois-ci'**
+  /// **'opérations sur la période'**
   String get statsOpsThisMonth;
 
   /// No description provided for @statsPercent.
@@ -3791,8 +4241,20 @@ abstract class AppLocalizations {
   /// No description provided for @statsSixMonths.
   ///
   /// In fr, this message translates to:
-  /// **'Six derniers mois'**
+  /// **'Six dernières périodes'**
   String get statsSixMonths;
+
+  /// No description provided for @statsTabAnalyses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Analyses'**
+  String get statsTabAnalyses;
+
+  /// No description provided for @statsTabFigures.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chiffres'**
+  String get statsTabFigures;
 
   /// No description provided for @statsTopExpenses.
   ///
@@ -3803,13 +4265,13 @@ abstract class AppLocalizations {
   /// No description provided for @statsVsPrevMonth.
   ///
   /// In fr, this message translates to:
-  /// **'dépenses vs mois précédent'**
+  /// **'dépenses vs période précédente'**
   String get statsVsPrevMonth;
 
   /// No description provided for @statsWhereEmpty.
   ///
   /// In fr, this message translates to:
-  /// **'Les dépenses du mois apparaîtront ici, réparties par catégorie.'**
+  /// **'Les dépenses de la période apparaîtront ici, réparties par catégorie.'**
   String get statsWhereEmpty;
 
   /// No description provided for @statsWhereMoneyGoes.
@@ -3817,6 +4279,480 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Où part l\'argent'**
   String get statsWhereMoneyGoes;
+
+  /// No description provided for @sumAccountOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes tes dépenses passent par {account}.'**
+  String sumAccountOnly(String account);
+
+  /// No description provided for @sumAccountRow.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} dépense} other{{count} dépenses}}'**
+  String sumAccountRow(int count);
+
+  /// No description provided for @sumAccountTop.
+  ///
+  /// In fr, this message translates to:
+  /// **'{account} est le compte qui dépense le plus ({pct} % du total).'**
+  String sumAccountTop(String account, String pct);
+
+  /// No description provided for @sumBiggestShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tes {count} plus grosses dépenses font {pct} % du total.'**
+  String sumBiggestShare(int count, String pct);
+
+  /// No description provided for @sumCategoryUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} a augmenté de {pct} % (+{amount}).'**
+  String sumCategoryUp(String name, String pct, String amount);
+
+  /// No description provided for @sumCompared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comparé à : {period}.'**
+  String sumCompared(String period);
+
+  /// No description provided for @sumComparedSoFar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comparé au même nombre de jours de la période précédente : {period}.'**
+  String sumComparedSoFar(String period);
+
+  /// No description provided for @sumDayEven.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tes dépenses sont bien réparties sur la journée.'**
+  String get sumDayEven;
+
+  /// No description provided for @sumDayTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Selon le moment de la journée'**
+  String get sumDayTitle;
+
+  /// No description provided for @sumElapsedTile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jours écoulés'**
+  String get sumElapsedTile;
+
+  /// No description provided for @sumEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à résumer sur cette période. Choisis-en une autre ou note tes opérations.'**
+  String get sumEmpty;
+
+  /// No description provided for @sumEssential.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'essentiel'**
+  String get sumEssential;
+
+  /// No description provided for @sumEssentialEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien de marquant pour l\'instant : il faut un peu plus d\'opérations.'**
+  String get sumEssentialEmpty;
+
+  /// No description provided for @sumGoalBehind.
+  ///
+  /// In fr, this message translates to:
+  /// **'À ce rythme, {name} sera atteint vers le {eta}, après ton échéance du {deadline}.'**
+  String sumGoalBehind(String name, String eta, String deadline);
+
+  /// No description provided for @sumGoalEta.
+  ///
+  /// In fr, this message translates to:
+  /// **'À {amount} par mois, objectif atteint vers le {date}.'**
+  String sumGoalEta(String amount, String date);
+
+  /// No description provided for @sumGoalFar.
+  ///
+  /// In fr, this message translates to:
+  /// **'À {amount} par mois, l\'objectif reste hors de portée.'**
+  String sumGoalFar(String amount);
+
+  /// No description provided for @sumGoalLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'En retard'**
+  String get sumGoalLate;
+
+  /// No description provided for @sumGoalNoPace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de rythme à mesurer sur cette période.'**
+  String get sumGoalNoPace;
+
+  /// No description provided for @sumGoalsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au rythme actuel'**
+  String get sumGoalsTitle;
+
+  /// No description provided for @sumHabitInsight.
+  ///
+  /// In fr, this message translates to:
+  /// **'« {note} » revient {count} fois : {amount} au total.'**
+  String sumHabitInsight(String note, int count, String amount);
+
+  /// No description provided for @sumHabitRow.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} fois · {amount} en moyenne'**
+  String sumHabitRow(int count, String amount);
+
+  /// No description provided for @sumHabitsNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune note ne revient au moins 3 fois sur cette période.'**
+  String get sumHabitsNone;
+
+  /// No description provided for @sumKept.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu as gardé {pct} % de tes revenus.'**
+  String sumKept(String pct);
+
+  /// No description provided for @sumMonthEven.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tes dépenses sont bien réparties sur le mois.'**
+  String get sumMonthEven;
+
+  /// No description provided for @sumMonthTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Selon le moment du mois'**
+  String get sumMonthTitle;
+
+  /// No description provided for @sumNetSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mis de côté (net)'**
+  String get sumNetSaved;
+
+  /// No description provided for @sumNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau'**
+  String get sumNew;
+
+  /// No description provided for @sumNoSpendDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} jour sans dépense sur {total}.} other{{count} jours sans dépense sur {total}.}}'**
+  String sumNoSpendDays(int count, int total);
+
+  /// No description provided for @sumNoSpendNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas un seul jour sans dépense sur cette période.'**
+  String get sumNoSpendNone;
+
+  /// No description provided for @sumNoSpendStreak.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{Ta plus longue série : {count} jour.} other{Ta plus longue série : {count} jours d\'affilée.}}'**
+  String sumNoSpendStreak(int count);
+
+  /// No description provided for @sumNoSpendTile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jours sans dépense'**
+  String get sumNoSpendTile;
+
+  /// No description provided for @sumNoSpending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune dépense sur cette période.'**
+  String get sumNoSpending;
+
+  /// No description provided for @sumNotEnough.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encore trop peu de dépenses pour en tirer une conclusion.'**
+  String get sumNotEnough;
+
+  /// No description provided for @sumOverspent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu as dépensé {amount} de plus que tu n\'as gagné.'**
+  String sumOverspent(String amount);
+
+  /// No description provided for @sumPartEnd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin (à partir du 21)'**
+  String get sumPartEnd;
+
+  /// No description provided for @sumPartMiddle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Milieu (du 11 au 20)'**
+  String get sumPartMiddle;
+
+  /// No description provided for @sumPartStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Début (du 1er au 10)'**
+  String get sumPartStart;
+
+  /// No description provided for @sumPeakMoment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu dépenses surtout {moment} ({pct} % du total).'**
+  String sumPeakMoment(String moment, String pct);
+
+  /// No description provided for @sumPeakWeekday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu dépenses surtout le {day} ({pct} % du total).'**
+  String sumPeakWeekday(String day, String pct);
+
+  /// No description provided for @sumRange3Months.
+  ///
+  /// In fr, this message translates to:
+  /// **'3 mois'**
+  String get sumRange3Months;
+
+  /// No description provided for @sumRange6Months.
+  ///
+  /// In fr, this message translates to:
+  /// **'6 mois'**
+  String get sumRange6Months;
+
+  /// No description provided for @sumRangeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout'**
+  String get sumRangeAll;
+
+  /// No description provided for @sumRangeCurrent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette période'**
+  String get sumRangeCurrent;
+
+  /// No description provided for @sumRangePrevious.
+  ///
+  /// In fr, this message translates to:
+  /// **'Précédente'**
+  String get sumRangePrevious;
+
+  /// No description provided for @sumRangeYear.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 an'**
+  String get sumRangeYear;
+
+  /// No description provided for @sumSmallCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Petites dépenses'**
+  String get sumSmallCount;
+
+  /// No description provided for @sumSmallInsight.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} petite dépense sous {limit} : {amount} au total.} other{{count} petites dépenses sous {limit} : {amount} au total. Ça s\'accumule !}}'**
+  String sumSmallInsight(int count, String limit, String amount);
+
+  /// No description provided for @sumSmallNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de petites dépenses qui s\'accumulent sur cette période.'**
+  String get sumSmallNone;
+
+  /// No description provided for @sumSmallShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des dépenses'**
+  String get sumSmallShare;
+
+  /// No description provided for @sumSmallTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au total'**
+  String get sumSmallTotal;
+
+  /// No description provided for @sumSpentDown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu as dépensé {pct} % de moins que sur la période précédente.'**
+  String sumSpentDown(String pct);
+
+  /// No description provided for @sumSpentDownSoFar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu as dépensé {pct} % de moins qu\'au même stade de la période précédente.'**
+  String sumSpentDownSoFar(String pct);
+
+  /// No description provided for @sumSpentUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu as dépensé {pct} % de plus que sur la période précédente.'**
+  String sumSpentUp(String pct);
+
+  /// No description provided for @sumSpentUpSoFar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu as dépensé {pct} % de plus qu\'au même stade de la période précédente.'**
+  String sumSpentUpSoFar(String pct);
+
+  /// No description provided for @sumStreakTile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus longue série'**
+  String get sumStreakTile;
+
+  /// No description provided for @sumTimeAfternoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Après-midi (12 h – 18 h)'**
+  String get sumTimeAfternoon;
+
+  /// No description provided for @sumTimeEvening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soir (18 h – 22 h)'**
+  String get sumTimeEvening;
+
+  /// No description provided for @sumTimeMorning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Matin (5 h – 12 h)'**
+  String get sumTimeMorning;
+
+  /// No description provided for @sumTimeNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nuit (22 h – 5 h)'**
+  String get sumTimeNight;
+
+  /// No description provided for @sumTimedSample.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucune dépense saisie le jour même : l\'heure n\'est connue que pour celles-là.} one{D\'après {count} dépense saisie le jour même, la seule dont l\'heure est connue.} other{D\'après {count} dépenses saisies le jour même, les seules dont l\'heure est connue.}}'**
+  String sumTimedSample(int count);
+
+  /// No description provided for @sumTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résumé intelligent'**
+  String get sumTitle;
+
+  /// No description provided for @sumTopCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} pèse {pct} % de tes dépenses ({amount}).'**
+  String sumTopCategory(String name, String pct, String amount);
+
+  /// No description provided for @sumTopicAccounts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comptes'**
+  String get sumTopicAccounts;
+
+  /// No description provided for @sumTopicBiggest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus grosses'**
+  String get sumTopicBiggest;
+
+  /// No description provided for @sumTopicCategories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégories'**
+  String get sumTopicCategories;
+
+  /// No description provided for @sumTopicHabits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Habitudes'**
+  String get sumTopicHabits;
+
+  /// No description provided for @sumTopicMoments.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moments'**
+  String get sumTopicMoments;
+
+  /// No description provided for @sumTopicNoSpend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jours sans dépense'**
+  String get sumTopicNoSpend;
+
+  /// No description provided for @sumTopicSavings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épargne'**
+  String get sumTopicSavings;
+
+  /// No description provided for @sumTopicSmall.
+  ///
+  /// In fr, this message translates to:
+  /// **'Petites dépenses'**
+  String get sumTopicSmall;
+
+  /// No description provided for @sumWeekEven.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tes dépenses sont bien réparties sur la semaine.'**
+  String get sumWeekEven;
+
+  /// No description provided for @sumWeekTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Selon le jour de la semaine'**
+  String get sumWeekTitle;
+
+  /// No description provided for @sumWhenAfternoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'l\'après-midi'**
+  String get sumWhenAfternoon;
+
+  /// No description provided for @sumWhenEnd.
+  ///
+  /// In fr, this message translates to:
+  /// **'en fin de mois'**
+  String get sumWhenEnd;
+
+  /// No description provided for @sumWhenEvening.
+  ///
+  /// In fr, this message translates to:
+  /// **'le soir'**
+  String get sumWhenEvening;
+
+  /// No description provided for @sumWhenMiddle.
+  ///
+  /// In fr, this message translates to:
+  /// **'au milieu du mois'**
+  String get sumWhenMiddle;
+
+  /// No description provided for @sumWhenMorning.
+  ///
+  /// In fr, this message translates to:
+  /// **'le matin'**
+  String get sumWhenMorning;
+
+  /// No description provided for @sumWhenNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'la nuit'**
+  String get sumWhenNight;
+
+  /// No description provided for @sumWhenStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'en début de mois'**
+  String get sumWhenStart;
 
   /// No description provided for @tabAccounts.
   ///
@@ -3845,7 +4781,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabStats.
   ///
   /// In fr, this message translates to:
-  /// **'Statistiques'**
+  /// **'Résumé'**
   String get tabStats;
 
   /// No description provided for @totalsExpenses.

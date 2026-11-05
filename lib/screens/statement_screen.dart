@@ -20,6 +20,8 @@ class StatementScreen extends StatefulWidget {
   State<StatementScreen> createState() => _StatementScreenState();
 }
 
+String _month(AppState s) => s.view.start.substring(0, 7);
+
 class _StatementScreenState extends State<StatementScreen> {
   _Period period = _Period.current;
   late String from, to;
@@ -30,7 +32,7 @@ class _StatementScreenState extends State<StatementScreen> {
   @override
   void initState() {
     super.initState();
-    final m = context.read<AppState>().month;
+    final m = context.read<AppState>().view.start.substring(0, 7);
     from = '$m-01';
     to = _lastDay(m);
   }
@@ -44,14 +46,14 @@ class _StatementScreenState extends State<StatementScreen> {
     String a, b;
     switch (period) {
       case _Period.current:
-        a = '${s.month}-01';
-        b = _lastDay(s.month);
+        a = '${_month(s)}-01';
+        b = _lastDay(_month(s));
       case _Period.previous:
-        final p = shiftMonth(s.month, -1);
+        final p = shiftMonth(_month(s), -1);
         a = '$p-01';
         b = _lastDay(p);
       case _Period.year:
-        final y = s.month.substring(0, 4);
+        final y = _month(s).substring(0, 4);
         a = '$y-01-01';
         b = '$y-12-31';
       case _Period.custom:
@@ -88,7 +90,7 @@ class _StatementScreenState extends State<StatementScreen> {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
-    final prev = shiftMonth(s.month, -1);
+    final prev = shiftMonth(_month(s), -1);
     final l = context.l;
     return Scaffold(
       appBar: AppBar(title: Text(l.statementTitle)),
@@ -108,9 +110,9 @@ class _StatementScreenState extends State<StatementScreen> {
                   selected: period == p,
                   onSelected: (_) => setState(() => period = p),
                   label: Text(switch (p) {
-                    _Period.current => monthLabel(s.month),
+                    _Period.current => monthLabel(_month(s)),
                     _Period.previous => monthLabel(prev),
-                    _Period.year => l.statementYear(s.month.substring(0, 4)),
+                    _Period.year => l.statementYear(_month(s).substring(0, 4)),
                     _Period.custom => l.statementCustom,
                   }),
                 ),

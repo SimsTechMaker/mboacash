@@ -103,6 +103,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ),
                 const Divider(),
                 SwitchListTile(
+                  secondary: Icon(appIcon('calendar-clock')),
+                  title: Text(l.notifyChAgenda),
+                  subtitle: Text(l.notificationsAgendaSub),
+                  value: n.agenda,
+                  onChanged: (v) => n.set(agenda: v),
+                ),
+                const Divider(),
+                SwitchListTile(
                   secondary: Icon(appIcon('cloud')),
                   title: Text(l.notifyChSync),
                   subtitle: Text(l.notificationsSyncDesc),

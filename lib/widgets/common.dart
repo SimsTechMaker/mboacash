@@ -158,7 +158,7 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-/// Month selector used by Operations, Categories and Statistics.
+/// Budget period selector used by Operations, Categories and Statistics.
 class MonthNav extends StatelessWidget {
   const MonthNav({super.key});
 
@@ -176,23 +176,23 @@ class MonthNav extends StatelessWidget {
         children: [
           IconButton(
             visualDensity: VisualDensity.compact,
-            tooltip: context.l.commonPrevMonth,
+            tooltip: context.l.commonPrevPeriod,
             icon: Icon(appIcon('chevron-left'), size: 20),
-            onPressed: () => s.setMonth(shiftMonth(s.month, -1)),
+            onPressed: () => s.setView(s.previousPeriod(s.view)),
           ),
           SizedBox(
-            width: 128,
+            width: 176,
             child: Text(
-              monthLabel(s.month),
+              periodLabel(s.view),
               textAlign: TextAlign.center,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            tooltip: context.l.commonNextMonth,
+            tooltip: context.l.commonNextPeriod,
             icon: Icon(appIcon('chevron-right'), size: 20),
-            onPressed: () => s.setMonth(shiftMonth(s.month, 1)),
+            onPressed: () => s.setView(s.nextPeriod(s.view)),
           ),
         ],
       ),
@@ -375,6 +375,7 @@ DropdownButtonFormField<String> accountDropdown(
   required String value,
   required ValueChanged<String> onChanged,
   bool allowNone = false,
+  bool savings = false,
   List<String> extra = const [],
 }) {
   final s = context.read<AppState>();
@@ -391,6 +392,20 @@ DropdownButtonFormField<String> accountDropdown(
         child: Row(children: [Icon(appIcon(a.icon), size: 18), const SizedBox(width: 8), Text(a.name)]),
       ),
     ),
+    // Savings accounts, as "goal:<id>": they only take part in transfers.
+    if (savings)
+      ...s.goals.map(
+        (g) => DropdownMenuItem(
+          value: 'goal:${g.id}',
+          child: Row(
+            children: [
+              Icon(appIcon(g.icon), size: 18, color: slot(g.color)),
+              const SizedBox(width: 8),
+              Text(g.name),
+            ],
+          ),
+        ),
+      ),
   ];
   final v = items.any((i) => i.value == value) ? value : items.first.value!;
   return DropdownButtonFormField<String>(

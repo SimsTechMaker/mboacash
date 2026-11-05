@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../backup.dart';
 import '../export.dart';
+import '../format.dart';
 import '../i18n.dart';
 import '../icons.dart';
 import '../security.dart';
@@ -10,8 +11,10 @@ import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/design.dart';
+import 'agenda_screen.dart';
 import 'backup_screen.dart';
 import 'file_backup_screen.dart';
+import 'periods_screen.dart';
 import 'budget_assistant_screen.dart';
 import 'debts_screen.dart';
 import 'import_screen.dart';
@@ -51,6 +54,8 @@ class MoreScreen extends StatelessWidget {
         openDebts.isEmpty ? l.moreDebtsEmpty : l.moreDebtsSub(f.money(s.totalOwed), f.money(s.totalLent)),
         () => go(const DebtsScreen()),
       ),
+      ('calendar-clock', 'c5', l.agendaTitle, l.moreAgendaSub, () => go(const AgendaScreen())),
+      ('calendar-check', 'c3', l.periodsTitle, periodLabel(s.openPeriod), () => go(const PeriodsScreen())),
       ('wand-sparkles', 'c7', l.moreAssistant, l.moreAssistantSub, () => go(const BudgetAssistantScreen())),
     ];
     final data = <_Item>[

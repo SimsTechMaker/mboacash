@@ -62,7 +62,7 @@ class _TxFormState extends State<_TxForm> {
     to = t?.to.isNotEmpty == true ? t!.to : (other?.id ?? account);
     cat = t?.cat ?? r?.cat ?? s.activeCats(false).first.id;
     final today = todayIso();
-    date = t?.date ?? (r != null || today.startsWith(s.month) ? today : '${s.month}-01');
+    date = t?.date ?? (r != null || s.view.contains(today) ? today : s.view.start);
     if (t != null || r != null) {
       amount.text = Fmt(s.settings.currency).number(t?.amount ?? r!.amount);
       note.text = t?.note ?? r!.note;
@@ -93,6 +93,7 @@ class _TxFormState extends State<_TxForm> {
     setState(() {
       type = t;
       if (t != TxType.transfer) {
+        if (account.startsWith('goal:')) account = widget.state.settings.defaultAccount;
         final income = t == TxType.income;
         final c = widget.state.catById(cat);
         if (c == null || c.income != income || c.archived) cat = widget.state.activeCats(income).first.id;
@@ -105,6 +106,7 @@ class _TxFormState extends State<_TxForm> {
     final v = parseAmount(amount.text);
     if (v == null || v <= 0) return toast(context, context.l.sheetsAmountPositive);
     if (type == TxType.transfer && to == account) return toast(context, context.l.sheetsTransferSameAccount);
+    if (type == TxType.transfer && (account.startsWith('goal:') || to.startsWith('goal:'))) return _saveSavingsTransfer(v);
     final t = widget.tx;
     final id = t?.id ?? newId();
     if (newProof != null) proof = await Proofs.save(id, newProof!);
@@ -122,11 +124,40 @@ class _TxFormState extends State<_TxForm> {
       created: t?.created,
     );
     await s.saveTx(tx);
-    if (!date.startsWith(s.month)) s.setMonth(date.substring(0, 7));
+    if (!s.view.contains(date)) s.setView(s.periodOf(date));
     if (!mounted) return;
     Navigator.pop(context);
     final l = context.l;
     toast(context, t != null ? l.sheetsTxUpdated : {TxType.expense: l.sheetsExpenseAdded, TxType.income: l.sheetsIncomeAdded}[type] ?? l.sheetsTransferSaved);
+  }
+
+  /// A transfer with a savings account on one side is a savings movement:
+  /// money going in counts as an expense, money coming back as income.
+  Future<void> _saveSavingsTransfer(double v) async {
+    final s = widget.state;
+    final l = context.l;
+    if (account.startsWith('goal:') && to.startsWith('goal:')) return toast(context, l.sheetsSavingsToSavings);
+    final out = account.startsWith('goal:');
+    final g = s.goalById((out ? account : to).substring(5));
+    if (g == null) return;
+    if (out && v > s.goalSaved(g)) return toast(context, l.sheetsSavingsNotEnough(fmtOf(context).money(s.goalSaved(g))));
+    await s.saveTx(
+      Tx(
+        id: newId(),
+        type: TxType.save,
+        amount: v,
+        cat: 'save',
+        account: out ? to : account,
+        dir: out ? 1 : -1,
+        goal: g.id,
+        date: date,
+        note: note.text.trim(),
+      ),
+    );
+    if (!s.view.contains(date)) s.setView(s.periodOf(date));
+    if (!mounted) return;
+    Navigator.pop(context);
+    toast(context, l.sheetsTransferSaved);
   }
 
   @override
@@ -167,11 +198,19 @@ class _TxFormState extends State<_TxForm> {
           label: isT ? context.l.sheetsFromAccount : context.l.sheetsAccount,
           value: account,
           extra: [account],
+          savings: isT && widget.tx == null,
           onChanged: (v) => setState(() => account = v),
         ),
         if (isT) ...[
           const SizedBox(height: 12),
-          accountDropdown(context, label: context.l.sheetsToAccount, value: to, extra: [to], onChanged: (v) => setState(() => to = v)),
+          accountDropdown(
+            context,
+            label: context.l.sheetsToAccount,
+            value: to,
+            extra: [to],
+            savings: widget.tx == null,
+            onChanged: (v) => setState(() => to = v),
+          ),
         ],
         const SizedBox(height: 12),
         TextField(

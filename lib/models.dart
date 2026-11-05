@@ -24,6 +24,61 @@ String shiftMonth(String key, int delta) {
 
 String todayIso() => isoDate(DateTime.now());
 
+String shiftDays(String iso, int days) {
+  final d = parseIso(iso);
+  return isoDate(DateTime(d.year, d.month, d.day + days));
+}
+
+/// [d] moved by [months], on [day] of the month or its last day if shorter.
+DateTime addMonths(DateTime d, int months, int day) {
+  final last = DateTime(d.year, d.month + months + 1, 0).day;
+  return DateTime(d.year, d.month + months, day < last ? day : last);
+}
+
+const periodKinds = ['2weeks', 'month', 'quarter', 'semester', 'custom'];
+const _kindMonths = {'month': 1, 'quarter': 3, 'semester': 6};
+
+/// A budget period, both ends included. The user chooses when it starts and
+/// how long it lasts: it need not follow calendar months.
+class Period {
+  final String start, end;
+  const Period(this.start, this.end);
+
+  bool contains(String iso) => iso.compareTo(start) >= 0 && iso.compareTo(end) <= 0;
+  int get days {
+    final a = parseIso(start), b = parseIso(end);
+    // In UTC, so a daylight saving change cannot lose a day.
+    return DateTime.utc(b.year, b.month, b.day).difference(DateTime.utc(a.year, a.month, a.day)).inDays + 1;
+  }
+
+  String get key => '$start/$end';
+
+  @override
+  bool operator ==(Object other) => other is Period && other.start == start && other.end == end;
+  @override
+  int get hashCode => key.hashCode;
+
+  /// The calendar month around [d].
+  factory Period.calendarMonth(DateTime d) => Period(isoDate(DateTime(d.year, d.month, 1)), isoDate(DateTime(d.year, d.month + 1, 0)));
+
+  /// The period of [kind] starting on [start]. [anchor] is the day of the
+  /// month periods start on; [days] is the length of a custom period.
+  factory Period.from(String start, String kind, {required int anchor, int days = 30}) {
+    final months = _kindMonths[kind];
+    if (months != null) return Period(start, shiftDays(isoDate(addMonths(parseIso(start), months, anchor)), -1));
+    return Period(start, shiftDays(start, (kind == '2weeks' ? 14 : days) - 1));
+  }
+
+  Period next(String kind, int anchor) => Period.from(shiftDays(end, 1), kind, anchor: anchor, days: days);
+
+  Period previous(String kind, int anchor) {
+    final months = _kindMonths[kind];
+    if (months != null) return Period(isoDate(addMonths(parseIso(start), -months, anchor)), shiftDays(start, -1));
+    final n = kind == '2weeks' ? 14 : days;
+    return Period(shiftDays(start, -n), shiftDays(start, -1));
+  }
+}
+
 /// Palette slots shared by categories and savings goals (see theme.dart).
 const palette = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10'];
 
@@ -152,6 +207,10 @@ class Settings {
   /// Language the built-in category and account names are written in, so
   /// they can be renamed when the language changes ('' for older data: fr).
   String labelsLang;
+  // The open budget period (see [Period]); closing it opens the next one.
+  String periodKind;
+  String periodStart, periodEnd;
+  int periodAnchor; // day of the month periods start on
   List<Category> cats;
   List<Account> accounts;
   String defaultAccount;
@@ -162,13 +221,18 @@ class Settings {
     required this.theme,
     this.language = 'auto',
     this.labelsLang = '',
+    this.periodKind = 'month',
+    this.periodStart = '',
+    this.periodEnd = '',
+    this.periodAnchor = 1,
     required this.cats,
     required this.accounts,
     required this.defaultAccount,
   });
 
   factory Settings.defaults() =>
-      Settings(currency: 'XAF', budget: 0, theme: 'auto', labelsLang: lang, cats: defaultCategories(), accounts: defaultAccounts(), defaultAccount: 'cash');
+      Settings(currency: 'XAF', budget: 0, theme: 'auto', labelsLang: lang, cats: defaultCategories(), accounts: defaultAccounts(), defaultAccount: 'cash')
+        ..normalize();
 
   Settings copy() => Settings(
     currency: currency,
@@ -176,10 +240,16 @@ class Settings {
     theme: theme,
     language: language,
     labelsLang: labelsLang,
+    periodKind: periodKind,
+    periodStart: periodStart,
+    periodEnd: periodEnd,
+    periodAnchor: periodAnchor,
     cats: cats.map((c) => c.copy()).toList(),
     accounts: accounts.map((a) => a.copy()).toList(),
     defaultAccount: defaultAccount,
   );
+
+  Period get openPeriod => Period(periodStart, periodEnd);
 
   /// Renames built-in categories and accounts still bearing their default
   /// name from the [labelsLang] language into [to]. Renamed ones are kept.
@@ -200,6 +270,11 @@ class Settings {
   /// Repairs anything a bad edit could leave behind: at least one active
   /// category of each kind and one active account, and a valid default account.
   void normalize() {
+    if (periodStart.isEmpty || periodEnd.compareTo(periodStart) < 0) {
+      final p = Period.calendarMonth(DateTime.now());
+      periodStart = p.start;
+      periodEnd = p.end;
+    }
     for (final income in [false, true]) {
       if (!cats.any((c) => c.income == income && !c.archived)) {
         // Bring the built-in categories back, reviving any that were hidden.
@@ -229,6 +304,10 @@ class Settings {
     'theme': theme,
     'language': language,
     'labelsLang': labelsLang,
+    'periodKind': periodKind,
+    'periodStart': periodStart,
+    'periodEnd': periodEnd,
+    'periodAnchor': periodAnchor,
     'cats': cats.map((c) => c.toJson()).toList(),
     'accounts': accounts.map((a) => a.toJson()).toList(),
     'defaultAccount': defaultAccount,
@@ -240,6 +319,10 @@ class Settings {
       theme: ['auto', 'light', 'dark'].contains(j['theme']) ? j['theme'] : 'auto',
       language: supportedLangs.contains(j['language']) ? j['language'] : 'auto',
       labelsLang: supportedLangs.contains(j['labelsLang']) ? j['labelsLang'] : '',
+      periodKind: periodKinds.contains(j['periodKind']) ? j['periodKind'] : 'month',
+      periodStart: '${j['periodStart'] ?? ''}',
+      periodEnd: '${j['periodEnd'] ?? ''}',
+      periodAnchor: (j['periodAnchor'] as num?)?.toInt() ?? 1,
       cats: (j['cats'] as List?)?.map((e) => Category.fromJson(Map<String, dynamic>.from(e))).toList() ?? defaultCategories(),
       accounts: (j['accounts'] as List?)?.map((e) => Account.fromJson(Map<String, dynamic>.from(e))).toList() ?? defaultAccounts(),
       defaultAccount: '${j['defaultAccount'] ?? 'cash'}',
@@ -415,4 +498,153 @@ class Debt {
     sample: (r['sample'] as int?) == 1,
     created: (r['created'] as int?) ?? 0,
   );
+}
+
+const repeats = ['once', 'week', '2weeks', 'month', 'quarter', 'year'];
+
+/// A movement planned for later. It only becomes a real [Tx] when the user
+/// confirms it, so balances never count money that has not moved.
+class Scheduled {
+  final String id;
+  TxType type; // income, expense or transfer
+  double amount;
+  String cat;
+  String account;
+  String to;
+  String note;
+  String next; // date of the next occurrence
+  String repeat;
+  int day; // day of the month for monthly repeats, kept across short months
+  int created;
+
+  Scheduled({
+    required this.id,
+    required this.type,
+    required this.amount,
+    this.cat = '',
+    required this.account,
+    this.to = '',
+    this.note = '',
+    required this.next,
+    this.repeat = 'once',
+    int? day,
+    int? created,
+  }) : day = day ?? parseIso(next).day,
+       created = created ?? DateTime.now().millisecondsSinceEpoch;
+
+  /// The occurrence after [date], or null for a one-off.
+  String? after(String date) {
+    final d = parseIso(date);
+    return switch (repeat) {
+      'week' => shiftDays(date, 7),
+      '2weeks' => shiftDays(date, 14),
+      'month' => isoDate(addMonths(d, 1, day)),
+      'quarter' => isoDate(addMonths(d, 3, day)),
+      'year' => isoDate(addMonths(d, 12, day)),
+      _ => null,
+    };
+  }
+
+  /// Dates of the occurrences between [from] and [to], both included.
+  List<String> occurrences(String from, String to) {
+    final out = <String>[];
+    String? d = next;
+    while (d != null && d.compareTo(to) <= 0 && out.length < 400) {
+      if (d.compareTo(from) >= 0) out.add(d);
+      d = after(d);
+    }
+    return out;
+  }
+
+  Map<String, Object?> toRow() => {
+    'id': id,
+    'type': typeCode(type),
+    'amount': amount,
+    'cat': cat,
+    'account': account,
+    'to_acc': to,
+    'note': note,
+    'next': next,
+    'repeat': repeat,
+    'day': day,
+    'created': created,
+  };
+  factory Scheduled.fromRow(Map<String, Object?> r) => Scheduled(
+    id: r['id'] as String,
+    type: typeFromCode(r['type'] as String?),
+    amount: (r['amount'] as num).toDouble(),
+    cat: (r['cat'] as String?) ?? '',
+    account: (r['account'] as String?) ?? '',
+    to: (r['to_acc'] as String?) ?? '',
+    note: (r['note'] as String?) ?? '',
+    next: r['next'] as String,
+    repeat: repeats.contains(r['repeat']) ? r['repeat'] as String : 'once',
+    day: r['day'] as int?,
+    created: (r['created'] as int?) ?? 0,
+  );
+}
+
+/// The summary kept when a budget period is closed, so it can be found later.
+class ClosedPeriod {
+  final String id;
+  final String start, end, kind;
+  double opening, income, expense, saved, closing, budget, spent;
+  int count;
+  String top; // JSON list of [name, amount], biggest expenses first
+  int closedAt;
+
+  ClosedPeriod({
+    required this.id,
+    required this.start,
+    required this.end,
+    required this.kind,
+    required this.opening,
+    required this.income,
+    required this.expense,
+    required this.saved,
+    required this.closing,
+    required this.budget,
+    required this.spent,
+    required this.count,
+    required this.top,
+    int? closedAt,
+  }) : closedAt = closedAt ?? DateTime.now().millisecondsSinceEpoch;
+
+  Period get period => Period(start, end);
+
+  Map<String, Object?> toRow() => {
+    'id': id,
+    'start': start,
+    'end_date': end,
+    'kind': kind,
+    'opening': opening,
+    'income': income,
+    'expense': expense,
+    'saved': saved,
+    'closing': closing,
+    'budget': budget,
+    'spent': spent,
+    'count': count,
+    'top': top,
+    'closed_at': closedAt,
+  };
+  factory ClosedPeriod.fromRow(Map<String, Object?> r) {
+    double n(String k) => (r[k] as num?)?.toDouble() ?? 0;
+    return ClosedPeriod(
+      id: r['id'] as String,
+      start: r['start'] as String,
+      end: r['end_date'] as String,
+      kind: (r['kind'] as String?) ?? 'month',
+      opening: n('opening'),
+      income: n('income'),
+      expense: n('expense'),
+      saved: n('saved'),
+      closing: n('closing'),
+      budget: n('budget'),
+      spent: n('spent'),
+      count: (r['count'] as int?) ?? 0,
+      top: (r['top'] as String?) ?? '[]',
+      closedAt: (r['closed_at'] as int?) ?? 0,
+    );
+  }
 }

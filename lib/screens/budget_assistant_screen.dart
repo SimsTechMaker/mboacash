@@ -5,7 +5,6 @@ import '../format.dart';
 import '../i18n.dart';
 import '../icons.dart';
 import '../insights.dart';
-import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -32,9 +31,9 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
   void initState() {
     super.initState();
     final s = context.read<AppState>();
-    final month = monthKey(DateTime.now());
-    var v = Insights.of(s).avgIncome(month);
-    if (v <= 0) v = s.sums(s.monthTxs(month)).income;
+    final period = s.openPeriod;
+    var v = Insights.of(s).avgIncome(period);
+    if (v <= 0) v = s.sums(s.periodTxs(period)).income * Insights.of(s).monthScale;
     if (v > 0) income.text = Fmt(s.settings.currency).number((v / 1000).round() * 1000.0);
     income.addListener(() => setState(() {}));
   }
@@ -48,9 +47,11 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
   Future<void> apply(Preset p) async {
     final s = context.read<AppState>();
     final next = s.settings.copy();
-    next.budget = p.budget;
+    // The preset is per month; budgets and caps apply to the user's period.
+    final perPeriod = 1 / Insights.of(s).monthScale;
+    next.budget = p.budget * perPeriod;
     for (final c in next.cats) {
-      if (!c.income) c.cap = p.caps[c.id] ?? 0;
+      if (!c.income) c.cap = (p.caps[c.id] ?? 0) * perPeriod;
     }
     await s.saveSettings(next);
     if (!mounted) return;
@@ -95,7 +96,7 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
           Text(l.assistantIntro, style: TextStyle(color: context.c.muted)),
           const SizedBox(height: 14),
           AmountField(controller: income, label: l.assistantIncomeLabel),
-          if (Insights.of(s).avgIncome(monthKey(DateTime.now())) > 0)
+          if (Insights.of(s).avgIncome(s.openPeriod) > 0)
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(l.assistantPrefilled, style: TextStyle(color: context.c.muted, fontSize: 12.5)),

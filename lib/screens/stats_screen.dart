@@ -10,21 +10,28 @@ import '../theme.dart';
 import '../widgets/charts.dart';
 import '../widgets/common.dart';
 import '../widgets/design.dart';
+import 'summary_view.dart';
 import '../widgets/sheets.dart';
 
-class StatsScreen extends StatelessWidget {
+/// The Summary tab: smart analyses, and the period's figures one tap away.
+class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
+  @override
+  State<StatsScreen> createState() => _StatsScreenState();
+}
+
+class _StatsScreenState extends State<StatsScreen> {
+  bool figures = false;
 
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
     final f = fmtOf(context);
     final l = context.l;
-    final list = s.monthTxs(s.month);
+    final list = s.periodTxs(s.view);
     final sum = s.sums(list);
-    final first = parseIso('${s.month}-01');
-    final daysInMonth = DateTime(first.year, first.month + 1, 0).day;
-    final days = s.month == monthKey(DateTime.now()) ? DateTime.now().day : daysInMonth;
+    final today = todayIso();
+    final days = s.view.contains(today) ? Period(s.view.start, today).days : s.view.days;
     // Money put into savings counts as an expense in the totals, but it is
     // still saved: add it back for the savings rate.
     final savedNet = list.where((t) => t.type == TxType.save).fold<double>(0, (a, t) => a - t.dir * t.amount);
@@ -39,13 +46,16 @@ class StatsScreen extends StatelessWidget {
     final top = [...out]..sort((a, b) => b.amount.compareTo(a.amount));
     final ordinary = s.budgetSpent(list);
 
-    final months = [for (var k = 5; k >= 0; k--) shiftMonth(s.month, -k)];
-    final bars = months.map((m) {
-      final x = s.sums(s.monthTxs(m));
-      return BarPair(shortMonth(m), x.income, x.expense, m == s.month);
+    final periods = [s.view];
+    for (var k = 0; k < 5; k++) {
+      periods.insert(0, s.previousPeriod(periods.first));
+    }
+    final bars = periods.map((p) {
+      final x = s.sums(s.periodTxs(p));
+      return BarPair(shortPeriod(p), x.income, x.expense, p == s.view);
     }).toList();
 
-    final prev = s.sums(s.monthTxs(shiftMonth(s.month, -1))).expense;
+    final prev = s.sums(s.periodTxs(s.previousPeriod(s.view))).expense;
     final delta = prev > 0 ? (sum.expense - prev) / prev : null;
 
     Widget tile(String icon, String label, String value, {Color? color}) => Expanded(
@@ -73,157 +83,170 @@ class StatsScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
       children: [
-        const Center(child: MonthNav()),
+        SegmentedButton<bool>(
+          showSelectedIcon: false,
+          segments: [
+            ButtonSegment(value: false, label: Text(l.statsTabAnalyses)),
+            ButtonSegment(value: true, label: Text(l.statsTabFigures)),
+          ],
+          selected: {figures},
+          onSelectionChanged: (v) => setState(() => figures = v.first),
+        ),
         const SizedBox(height: 14),
-        GradientCard(
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        if (!figures) const SmartSummaryView(),
+        if (figures) ...[
+          const Center(child: MonthNav()),
+          const SizedBox(height: 14),
+          GradientCard(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      HeroStat(label: l.totalsIncome, icon: 'arrow-down-left', value: sum.income),
+                      const SizedBox(height: 12),
+                      HeroStat(label: l.totalsExpenses, icon: 'arrow-up-right', value: sum.expense),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
                   children: [
-                    HeroStat(label: l.totalsIncome, icon: 'arrow-down-left', value: sum.income),
-                    const SizedBox(height: 12),
-                    HeroStat(label: l.totalsExpenses, icon: 'arrow-up-right', value: sum.expense),
+                    RingProgress(
+                      value: rate == null ? 0 : rate.clamp(0, 1).toDouble(),
+                      color: const Color(0xFF9BE3C6),
+                      size: 84,
+                      stroke: 9,
+                      child: Text(
+                        rate == null ? '—' : l.statsPercent('${(rate * 100).round()}'),
+                        style: numStyle.copyWith(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(l.statsSavingsRate, style: const TextStyle(color: heroSoft, fontSize: 11.5)),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                children: [
-                  RingProgress(
-                    value: rate == null ? 0 : rate.clamp(0, 1).toDouble(),
-                    color: const Color(0xFF9BE3C6),
-                    size: 84,
-                    stroke: 9,
-                    child: Text(
-                      rate == null ? '—' : l.statsPercent('${(rate * 100).round()}'),
-                      style: numStyle.copyWith(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(l.statsSavingsRate, style: const TextStyle(color: heroSoft, fontSize: 11.5)),
-                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              tile('calendar', l.statsDailySpend, f.money(ordinary / days)),
+              const SizedBox(width: 10),
+              tile('receipt', l.statsOpsThisMonth, '${list.length}'),
+              const SizedBox(width: 10),
+              tile(
+                delta != null && delta > 0 ? 'trending-up' : 'trending-down',
+                l.statsVsPrevMonth,
+                delta == null ? '—' : l.statsPercent('${delta > 0 ? '+' : ''}${(delta * 100).round()}'),
+                color: delta == null
+                    ? null
+                    : delta > 0
+                    ? context.c.expense
+                    : context.c.income,
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            tile('calendar', l.statsDailySpend, f.money(ordinary / days)),
-            const SizedBox(width: 10),
-            tile('receipt', l.statsOpsThisMonth, '${list.length}'),
-            const SizedBox(width: 10),
-            tile(
-              delta != null && delta > 0 ? 'trending-up' : 'trending-down',
-              l.statsVsPrevMonth,
-              delta == null ? '—' : l.statsPercent('${delta > 0 ? '+' : ''}${(delta * 100).round()}'),
-              color: delta == null
-                  ? null
-                  : delta > 0
-                  ? context.c.expense
-                  : context.c.income,
-            ),
-          ],
-        ),
-        const SizedBox(height: 18),
-        SectionTitle(icon: 'chart-pie', text: l.statsWhereMoneyGoes),
-        Panel(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (rows.isEmpty)
-                Text(l.statsWhereEmpty, style: TextStyle(color: context.c.muted))
-              else ...[
-                Center(
-                  child: Donut(
-                    slices: [for (final r in rows) DonutSlice(r.value, slot(s.group(r.key).color))],
-                    centerTop: l.totalsExpenses,
-                    centerValue: f.compact(sum.expense),
+          const SizedBox(height: 18),
+          SectionTitle(icon: 'chart-pie', text: l.statsWhereMoneyGoes),
+          Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (rows.isEmpty)
+                  Text(l.statsWhereEmpty, style: TextStyle(color: context.c.muted))
+                else ...[
+                  Center(
+                    child: Donut(
+                      slices: [for (final r in rows) DonutSlice(r.value, slot(s.group(r.key).color))],
+                      centerTop: l.totalsExpenses,
+                      centerValue: f.compact(sum.expense),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                for (final r in rows)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Row(
-                      children: [
-                        Icon(appIcon(s.group(r.key).icon), size: 18, color: slot(s.group(r.key).color)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(text: s.group(r.key).name),
-                                          TextSpan(
-                                            text: '  ${l.statsPercent('${(r.value / sum.expense * 100).round()}')}',
-                                            style: TextStyle(color: context.c.muted, fontSize: 12),
-                                          ),
-                                        ],
+                  const SizedBox(height: 16),
+                  for (final r in rows)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Row(
+                        children: [
+                          Icon(appIcon(s.group(r.key).icon), size: 18, color: slot(s.group(r.key).color)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            TextSpan(text: s.group(r.key).name),
+                                            TextSpan(
+                                              text: '  ${l.statsPercent('${(r.value / sum.expense * 100).round()}')}',
+                                              style: TextStyle(color: context.c.muted, fontSize: 12),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Money(r.value, size: 13.5),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Gauge(value: r.value / rows.first.value, color: slot(s.group(r.key).color), height: 4),
-                            ],
+                                    Money(r.value, size: 13.5),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Gauge(value: r.value / rows.first.value, color: slot(s.group(r.key).color), height: 4),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          SectionTitle(
+            icon: 'chart-column',
+            text: l.statsSixMonths,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _Key(color: context.c.income, label: l.totalsIncome),
+                const SizedBox(width: 10),
+                _Key(color: context.c.expense, label: l.totalsExpenses),
+              ],
+            ),
+          ),
+          Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (bars.every((b) => b.a == 0 && b.b == 0))
+                  Text(l.statsNothingToCompare, style: TextStyle(color: context.c.muted))
+                else
+                  PairBars(data: bars, axis: f.compact),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          SectionTitle(icon: 'flame', text: l.statsTopExpenses),
+          Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (top.isEmpty) Text(l.statsNoExpenses, style: TextStyle(color: context.c.muted)),
+                for (final t in top.take(5))
+                  TxTile(
+                    tx: t,
+                    onTap: () => openTxSheet(context, tx: t),
                   ),
               ],
-            ],
+            ),
           ),
-        ),
-        const SizedBox(height: 18),
-        SectionTitle(
-          icon: 'chart-column',
-          text: l.statsSixMonths,
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _Key(color: context.c.income, label: l.totalsIncome),
-              const SizedBox(width: 10),
-              _Key(color: context.c.expense, label: l.totalsExpenses),
-            ],
-          ),
-        ),
-        Panel(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (bars.every((b) => b.a == 0 && b.b == 0))
-                Text(l.statsNothingToCompare, style: TextStyle(color: context.c.muted))
-              else
-                PairBars(data: bars, axis: f.compact),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-        SectionTitle(icon: 'flame', text: l.statsTopExpenses),
-        Panel(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (top.isEmpty) Text(l.statsNoExpenses, style: TextStyle(color: context.c.muted)),
-              for (final t in top.take(5))
-                TxTile(
-                  tx: t,
-                  onTap: () => openTxSheet(context, tx: t),
-                ),
-            ],
-          ),
-        ),
+        ],
       ],
     );
   }

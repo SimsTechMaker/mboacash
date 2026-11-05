@@ -11,7 +11,9 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/design.dart';
 import '../widgets/sheets.dart';
+import 'agenda_screen.dart';
 import 'budget_assistant_screen.dart';
+import 'periods_screen.dart';
 
 /// Home: month summary, forecast, advice, upcoming recurring movements, journal.
 class OpsScreen extends StatelessWidget {
@@ -21,8 +23,8 @@ class OpsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
     final f = fmtOf(context);
-    final month = s.monthTxs(s.month);
-    final current = s.month == monthKey(DateTime.now());
+    final month = s.periodTxs(s.view);
+    final current = s.view.contains(todayIso());
     final ins = Insights.of(s);
     final l = context.l;
 
@@ -35,7 +37,7 @@ class OpsScreen extends StatelessWidget {
     for (final t in list) {
       byDay.putIfAbsent(t.date, () => []).add(t);
     }
-    final advice = s.txs.isEmpty ? <Insight>[] : ins.advice(s.month, (v) => f.money(v));
+    final advice = s.txs.isEmpty ? <Insight>[] : ins.advice(s.view, (v) => f.money(v));
     final due = current ? ins.dueThisMonth : <Recurring>[];
 
     return ListView(
@@ -43,8 +45,10 @@ class OpsScreen extends StatelessWidget {
       children: [
         const Center(child: MonthNav()),
         const SizedBox(height: 14),
+        if (s.periodEnded) ...[const _PeriodEndedCard(), const SizedBox(height: 12)],
+        if (s.dueScheduled.isNotEmpty) ...[const _DueScheduledCard(), const SizedBox(height: 12)],
         _Hero(month: month),
-        if (current && s.txs.isNotEmpty) ...[const SizedBox(height: 12), _ForecastCard(forecast: ins.forecast())],
+        if (s.viewingOpen && !s.periodEnded && s.txs.isNotEmpty) ...[const SizedBox(height: 12), _ForecastCard(forecast: ins.forecast())],
         if (advice.isNotEmpty) ...[
           const SizedBox(height: 18),
           SectionTitle(icon: 'sparkles', text: l.opsAdvice),
@@ -127,8 +131,8 @@ class OpsScreen extends StatelessWidget {
                   text: s.txs.isEmpty
                       ? l.opsEmptyFirst
                       : s.accFilter != null
-                      ? l.opsEmptyMonthAccount(monthLabel(s.month))
-                      : l.opsEmptyMonth(monthLabel(s.month)),
+                      ? l.opsEmptyMonthAccount(periodLabel(s.view))
+                      : l.opsEmptyMonth(periodLabel(s.view)),
                   action: s.txs.isEmpty
                       ? OutlinedButton(
                           onPressed: () async {
@@ -170,7 +174,69 @@ class OpsScreen extends StatelessWidget {
   }
 }
 
-/// Gradient summary card: month balance, income and expenses, budget.
+/// The open period has reached its end date: invite the user to close it.
+class _PeriodEndedCard extends StatelessWidget {
+  const _PeriodEndedCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.watch<AppState>();
+    final l = context.l;
+    return SoftCard(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClosePeriodScreen())),
+      child: Row(
+        children: [
+          IconBadge(icon: 'calendar-check', color: context.c.warn),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l.periodEndedTitle(periodLabel(s.openPeriod)), style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(l.periodEndedText, style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+              ],
+            ),
+          ),
+          Icon(appIcon('chevron-right'), color: context.c.muted),
+        ],
+      ),
+    );
+  }
+}
+
+/// Planned movements whose date has come, waiting for a yes.
+class _DueScheduledCard extends StatelessWidget {
+  const _DueScheduledCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.watch<AppState>();
+    final l = context.l;
+    final due = s.dueScheduled;
+    return SoftCard(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AgendaScreen())),
+      child: Row(
+        children: [
+          IconBadge(icon: 'calendar-clock', color: context.c.accent),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l.agendaDueCount(due.length), style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(l.agendaDueText, style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+              ],
+            ),
+          ),
+          Icon(appIcon('chevron-right'), color: context.c.muted),
+        ],
+      ),
+    );
+  }
+}
+
+/// Gradient summary card: period balance, money carried over, income and
+/// expenses, budget.
 class _Hero extends StatelessWidget {
   final List<Tx> month;
   const _Hero({required this.month});
@@ -245,6 +311,15 @@ class _Hero extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [total(l.totalsIncome, 'arrow-down-left', sum.income), const SizedBox(width: 10), total(l.totalsExpenses, 'arrow-up-right', sum.expense)],
+          ),
+          const SizedBox(height: 12),
+          // What the previous period left is never lost from sight.
+          Row(
+            children: [
+              total(l.periodCarried, 'history', s.carriedInto(s.view)),
+              const SizedBox(width: 10),
+              total(l.periodAvailable, 'wallet', s.spendableAt(s.view.end)),
+            ],
           ),
           const SizedBox(height: 16),
           if (b > 0) ...[

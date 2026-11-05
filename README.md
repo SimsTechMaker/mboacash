@@ -9,7 +9,11 @@ internet n'est utilisé que lorsque l'utilisateur lance une synchronisation Goog
 - Dépenses, revenus et transferts entre comptes (Espèces, Banque, Mobile Money…), avec ajustement de solde
 - Catégories personnalisables (icônes Lucide, couleurs, plafonds mensuels), budget mensuel
 - Statistiques : répartition par catégorie, six derniers mois, plus grosses dépenses
-- Objectifs d'épargne et suivi des dettes (« je dois » / « on me doit ») ; l'épargne et les dettes
+- Périodes budgétaires au choix (2 semaines, mois, trimestre, semestre ou dates libres) : l'argent restant est reporté,
+  et le résumé de chaque période fermée est gardé
+- Agenda : dépenses et revenus programmés, confirmés à la date prévue
+- Résumé intelligent : quand je dépense le plus, habitudes, petites dépenses, comparaison entre périodes…
+- Comptes d'épargne et suivi des dettes (« je dois » / « on me doit ») ; l'épargne et les dettes
   comptent comme revenus ou dépenses selon le sens, hors budget
 - Assistant local : catégorie devinée d'après la note, opérations récurrentes, conseils mensuels,
   prévision de fin de mois, assistant budget (50/30/20, 70/20/10 ou d'après l'historique)

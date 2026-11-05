@@ -22,10 +22,11 @@ import 'state.dart';
 /// so no background task is needed:
 /// - daily reminder for the next 14 days, skipping today once something was entered;
 /// - debt due dates: 3 days before and on the day, at 9:00;
+/// - planned movements on their day at 8:00, and the end of the budget period;
 /// - sync reminder 7 days after the last Google Drive backup, if connected.
 /// Budget alerts are immediate, when an expense crosses 80 % or 100 %.
 class Notifier extends ChangeNotifier {
-  static const _dailyBase = 1000, _debtBase = 2000, _syncId = 3000, _alertBase = 4000;
+  static const _dailyBase = 1000, _debtBase = 2000, _syncId = 3000, _alertBase = 4000, _agendaBase = 5000, _periodId = 5500;
   static const _accent = Color(0xFF1D6A56);
 
   final AppState state;
@@ -34,7 +35,7 @@ class Notifier extends ChangeNotifier {
   Notifier(this.state, this.backup, this.prefs);
 
   final _plugin = FlutterLocalNotificationsPlugin();
-  bool daily = true, budget = true, debts = true, sync = true;
+  bool daily = true, budget = true, debts = true, sync = true, agenda = true;
   int hour = 20, minute = 0;
   bool ready = false;
 
@@ -57,6 +58,7 @@ class Notifier extends ChangeNotifier {
     budget = await prefs.readPref('n_budget') != '0';
     debts = await prefs.readPref('n_debts') != '0';
     sync = await prefs.readPref('n_sync') != '0';
+    agenda = await prefs.readPref('n_agenda') != '0';
     final t = (await prefs.readPref('n_time'))?.split(':');
     if (t != null && t.length == 2) {
       hour = int.tryParse(t[0]) ?? 20;
@@ -128,17 +130,19 @@ class Notifier extends ChangeNotifier {
 
   // ---------- settings ----------
 
-  Future<void> set({bool? daily, bool? budget, bool? debts, bool? sync, int? hour, int? minute}) async {
+  Future<void> set({bool? daily, bool? budget, bool? debts, bool? sync, bool? agenda, int? hour, int? minute}) async {
     this.daily = daily ?? this.daily;
     this.budget = budget ?? this.budget;
     this.debts = debts ?? this.debts;
     this.sync = sync ?? this.sync;
+    this.agenda = agenda ?? this.agenda;
     this.hour = hour ?? this.hour;
     this.minute = minute ?? this.minute;
     await prefs.writePref('n_daily', this.daily ? null : '0');
     await prefs.writePref('n_budget', this.budget ? null : '0');
     await prefs.writePref('n_debts', this.debts ? null : '0');
     await prefs.writePref('n_sync', this.sync ? null : '0');
+    await prefs.writePref('n_agenda', this.agenda ? null : '0');
     await prefs.writePref('n_time', '${this.hour}:${this.minute}');
     notifyListeners();
     await reschedule();
@@ -205,6 +209,24 @@ class Notifier extends ChangeNotifier {
         }
       }
 
+      if (agenda) {
+        final d = _details('agenda', tr.notifyChAgenda, high: true);
+        var i = 0;
+        final until = isoDate(DateTime(now.year, now.month, now.day + 14));
+        for (final x in state.scheduled) {
+          for (final date in x.occurrences(isoDate(now), until)) {
+            final at = parseIso(date);
+            final label = x.note.isNotEmpty ? x.note : state.group(x.type == TxType.transfer ? 'transfer' : x.cat).name;
+            await _at(_agendaBase + i, DateTime(at.year, at.month, at.day, 8), tr.notifyAgendaTitle(label), tr.notifyAgendaBody(f.money(x.amount)), d);
+            if (++i >= 200) break;
+          }
+          if (i >= 200) break;
+        }
+        // The day after the period's end: time to look at it and close it.
+        final end = parseIso(state.openPeriod.end);
+        await _at(_periodId, DateTime(end.year, end.month, end.day + 1, 9), tr.notifyPeriodTitle, tr.notifyPeriodBody(periodLabel(state.openPeriod)), d);
+      }
+
       if (sync && backup.connected) {
         final base = backup.lastBackup ?? now;
         var at = DateTime(base.year, base.month, base.day + 7, 10);
@@ -222,8 +244,8 @@ class Notifier extends ChangeNotifier {
 
   Future<void> _checkBudget() async {
     if (!budget) return;
-    final month = monthKey(DateTime.now());
-    final list = state.monthTxs(month).where((t) => t.type == TxType.expense);
+    final month = state.openPeriod.start;
+    final list = state.periodTxs(state.openPeriod).where((t) => t.type == TxType.expense);
     final f = Fmt(state.settings.currency);
     final d = _details('budget', tr.notifyChBudget, high: true);
     var changed = false;

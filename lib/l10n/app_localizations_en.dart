@@ -34,12 +34,98 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountsOwedToMe => 'Owed to me';
 
   @override
+  String get accountsSavings => 'Savings accounts';
+
+  @override
+  String get accountsSavingsBack => 'Move to an account';
+
+  @override
+  String get accountsSavingsHelp =>
+      'This money is set apart: to use it, move it to a normal account.';
+
+  @override
   String accountsShare(int pct) {
     return '$pct% of your available money';
   }
 
   @override
+  String get accountsSpendable => 'Money you can use';
+
+  @override
   String get add => 'Add';
+
+  @override
+  String get agendaAll => 'Everything planned';
+
+  @override
+  String get agendaConfirmHelp =>
+      'Correct the amount or date if needed. Nothing counts until you confirm.';
+
+  @override
+  String get agendaConfirmed => 'Transaction saved';
+
+  @override
+  String get agendaDayEmpty => 'Nothing on this day.';
+
+  @override
+  String agendaDueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transactions to confirm',
+      one: '$count transaction to confirm',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get agendaDueText =>
+      'They only count in your balances once confirmed.';
+
+  @override
+  String get agendaEdit => 'Edit planned transaction';
+
+  @override
+  String get agendaNew => 'Plan';
+
+  @override
+  String get agendaNoteHint => 'Rent, subscription, tontine…';
+
+  @override
+  String get agendaPlanned => 'Planned';
+
+  @override
+  String get agendaRepeat => 'Repeat';
+
+  @override
+  String get agendaRepeat2weeks => 'Every 2 weeks';
+
+  @override
+  String get agendaRepeatMonth => 'Every month';
+
+  @override
+  String get agendaRepeatOnce => 'Once';
+
+  @override
+  String get agendaRepeatQuarter => 'Every quarter';
+
+  @override
+  String get agendaRepeatWeek => 'Every week';
+
+  @override
+  String get agendaRepeatYear => 'Every year';
+
+  @override
+  String get agendaSaved => 'Transaction planned';
+
+  @override
+  String get agendaSkip => 'Skip';
+
+  @override
+  String get agendaTitle => 'Agenda';
+
+  @override
+  String get agendaToConfirm => 'To confirm';
 
   @override
   String get appTitle => 'my-nkap';
@@ -297,7 +383,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get catsManage => 'Manage';
 
   @override
-  String get catsNoOps => 'No transactions this month';
+  String get catsNoOps => 'No transactions this period';
 
   @override
   String get catsOver => 'Over';
@@ -315,7 +401,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String catsReceivedIn(String month) {
-    return 'Received in $month';
+    return 'Received · $month';
   }
 
   @override
@@ -325,7 +411,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String catsSpentIn(String month) {
-    return 'Spent in $month';
+    return 'Spent · $month';
   }
 
   @override
@@ -334,7 +420,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get catsUnused => 'No transactions this month';
+  String get catsUnused => 'No transactions this period';
 
   @override
   String get close => 'Close';
@@ -370,7 +456,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get commonNextMonth => 'Next month';
+  String get commonNextPeriod => 'Next period';
 
   @override
   String get commonNoCategory => 'No category';
@@ -382,7 +468,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonOffAccounts => 'No account';
 
   @override
-  String get commonPrevMonth => 'Previous month';
+  String get commonPrevPeriod => 'Previous period';
 
   @override
   String commonRepayFrom(String who) {
@@ -950,15 +1036,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insNoSavingText(String amount) {
-    return 'You usually put $amount aside each month.';
+    return 'You usually put $amount aside each period.';
   }
 
   @override
-  String get insNoSavingTitle => 'No savings yet this month';
+  String get insNoSavingTitle => 'No savings yet this period';
 
   @override
   String insWarnTextCurrent(String spent, String projected, String avg) {
-    return '$spent spent. At this pace you\'d end the month at $projected, vs $avg on average.';
+    return '$spent spent: at this pace you\'d end the period at $projected against $avg on average.';
   }
 
   @override
@@ -1058,6 +1144,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get moreAgendaSub => 'Planned expenses and income';
+
+  @override
   String get moreAssistant => 'Budget assistant';
 
   @override
@@ -1140,7 +1229,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moreSavings => 'Savings';
 
   @override
-  String get moreSavingsEmpty => 'Create a goal and put money aside';
+  String get moreSavingsEmpty => 'Create a savings account and put money aside';
 
   @override
   String moreSavingsSub(int count, String amount) {
@@ -1189,6 +1278,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get no => 'No';
 
   @override
+  String get notificationsAgendaSub =>
+      'On the day of a planned transaction, and when a period ends';
+
+  @override
   String get notificationsAllow => 'Allow';
 
   @override
@@ -1227,6 +1320,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'Notifications';
+
+  @override
+  String notifyAgendaBody(String amount) {
+    return '$amount to confirm in the app.';
+  }
+
+  @override
+  String notifyAgendaTitle(String label) {
+    return 'Planned today: $label';
+  }
+
+  @override
+  String get notifyChAgenda => 'Agenda and period end';
 
   @override
   String get notifyChBudget => 'Budget and caps';
@@ -1272,11 +1378,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifyIn3Days => 'in 3 days';
 
   @override
-  String get notifyMonthBudget => 'Monthly budget';
+  String get notifyMonthBudget => 'Period budget';
 
   @override
   String notifyNearBody(String spent, String cap, String left) {
-    return 'Already $spent of $cap. $left left for the month.';
+    return 'Already $spent of $cap. $left left for the period.';
   }
 
   @override
@@ -1286,13 +1392,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String notifyOverBody(String spent, String cap) {
-    return 'You\'ve spent $spent this month against a cap of $cap.';
+    return 'You\'ve spent $spent this period against a cap of $cap.';
   }
 
   @override
   String notifyOverTitle(String name) {
     return '$name: over the limit';
   }
+
+  @override
+  String notifyPeriodBody(String period) {
+    return 'See your $period review and close it.';
+  }
+
+  @override
+  String get notifyPeriodTitle => 'Your period is over';
 
   @override
   String get notifySyncNever =>
@@ -1387,12 +1501,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String opsEmptyMonth(String month) {
-    return 'No transactions in $month.';
+    return 'No transactions for $month.';
   }
 
   @override
   String opsEmptyMonthAccount(String month) {
-    return 'No transactions in $month for this account.';
+    return 'No transactions for $month on this account.';
   }
 
   @override
@@ -1415,10 +1529,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get opsForecastTitle => 'End-of-month forecast';
+  String get opsForecastTitle => 'End-of-period forecast';
 
   @override
-  String get opsHeroBalance => 'MONTH BALANCE';
+  String get opsHeroBalance => 'Period balance';
 
   @override
   String get opsJournal => 'Journal';
@@ -1439,6 +1553,172 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get opsSamplesLoaded =>
       'Examples loaded. You can remove them in Settings › Data.';
+
+  @override
+  String get periodAvailable => 'Available';
+
+  @override
+  String periodBudgetSpent(String budget) {
+    return 'Spent out of a $budget budget';
+  }
+
+  @override
+  String get periodCarried => 'Carried over';
+
+  @override
+  String get periodChange => 'Change';
+
+  @override
+  String get periodClose => 'Close the period';
+
+  @override
+  String periodCloseConfirmText(String next, String amount) {
+    return 'The summary will be kept in the history. The period $next opens with $amount carried over.';
+  }
+
+  @override
+  String get periodCloseConfirmTitle => 'Close the period?';
+
+  @override
+  String get periodClosed => 'Period closed';
+
+  @override
+  String periodCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transactions',
+      one: '$count transaction',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String periodDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '$count day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String periodDueWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned transactions are waiting for you to confirm them.',
+      one: '$count planned transaction is waiting for you to confirm it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get periodEnd => 'End';
+
+  @override
+  String get periodEndBeforeStart => 'The end must come after the start.';
+
+  @override
+  String get periodEndedText =>
+      'See your review, then close it to open the next one.';
+
+  @override
+  String periodEndedTitle(String period) {
+    return 'Period over: $period';
+  }
+
+  @override
+  String get periodFormHelp =>
+      'You choose the day your period starts, such as payday. Closed periods don\'t change.';
+
+  @override
+  String get periodHistory => 'Closed periods';
+
+  @override
+  String get periodHistoryEmpty =>
+      'The summary of each closed period will be kept here.';
+
+  @override
+  String periodHistorySub(String income, String expense) {
+    return 'In $income · out $expense';
+  }
+
+  @override
+  String get periodKind2weeks => '2 weeks';
+
+  @override
+  String get periodKindCustom => 'Custom';
+
+  @override
+  String get periodKindMonth => 'Monthly';
+
+  @override
+  String get periodKindQuarter => 'Quarterly';
+
+  @override
+  String get periodKindSemester => 'Half-yearly';
+
+  @override
+  String get periodLeft => 'Left';
+
+  @override
+  String get periodLeftHelp =>
+      'This money stays in your accounts and moves on to the next period.';
+
+  @override
+  String periodNotEnded(String date) {
+    return 'This period ends on $date. You can close it from that date.';
+  }
+
+  @override
+  String get periodOpenLabel => 'Current period';
+
+  @override
+  String periodPutAside(String amount) {
+    return 'Put some of the $amount left aside?';
+  }
+
+  @override
+  String get periodReopen => 'Reopen the period';
+
+  @override
+  String get periodReopenText =>
+      'It becomes the current period again and its summary leaves the history. No transaction is deleted.';
+
+  @override
+  String get periodReopenTitle => 'Reopen this period?';
+
+  @override
+  String get periodReopened => 'Period reopened';
+
+  @override
+  String get periodReview => 'Period review';
+
+  @override
+  String get periodSaved => 'Period saved';
+
+  @override
+  String get periodSaved2 => 'Put in savings';
+
+  @override
+  String get periodSeeOps => 'See its transactions';
+
+  @override
+  String get periodStart => 'Start';
+
+  @override
+  String periodStartTooEarly(String date) {
+    return 'The period can\'t start before $date: it would overlap a closed period.';
+  }
+
+  @override
+  String get periodTop => 'Biggest expenses';
+
+  @override
+  String get periodsTitle => 'Budget periods';
 
   @override
   String get proofAdd => 'Add a proof (photo, receipt)';
@@ -1471,13 +1751,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savingsEmpty =>
-      'Create a goal (emergency fund, trip, car…) then put money aside from your accounts. Money you save leaves the account and goes into the goal.';
+      'Create a savings account (emergency fund, trip, car…) then put money aside.';
 
   @override
-  String get savingsMyGoals => 'My goals';
+  String get savingsMyGoals => 'My savings accounts';
 
   @override
-  String get savingsNewGoal => 'New goal';
+  String get savingsNewGoal => 'New savings account';
 
   @override
   String get savingsNoTarget =>
@@ -1707,7 +1987,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep at least one category of this type.';
 
   @override
-  String get settingsMonthlyBudget => 'Total monthly budget';
+  String get settingsMonthlyBudget => 'Total budget per period';
 
   @override
   String get settingsName => 'Name';
@@ -1939,10 +2219,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sheetsFromAccount => 'From account';
 
   @override
-  String get sheetsGoalCreate => 'Create goal';
+  String get sheetsGoalCreate => 'Create the account';
 
   @override
-  String get sheetsGoalCreated => 'Goal created';
+  String get sheetsGoalCreated => 'Savings account created';
 
   @override
   String get sheetsGoalDeadline => 'Target date (optional)';
@@ -1952,10 +2232,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Deleting the goal also deletes its entries: the money goes back to the original accounts.';
 
   @override
-  String get sheetsGoalDeleted => 'Goal deleted';
+  String get sheetsGoalDeleted => 'Savings account deleted';
 
   @override
-  String get sheetsGoalEditTitle => 'Edit goal';
+  String get sheetsGoalEditTitle => 'Edit savings account';
 
   @override
   String get sheetsGoalInitial => 'Already saved (optional)';
@@ -1964,10 +2244,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sheetsGoalNameHint => 'Emergency fund, trip, car…';
 
   @override
-  String get sheetsGoalNameMissing => 'Give the goal a name.';
+  String get sheetsGoalNameMissing => 'Give the savings account a name.';
 
   @override
-  String get sheetsGoalNewTitle => 'New savings goal';
+  String get sheetsGoalNewTitle => 'New savings account';
 
   @override
   String get sheetsGoalPutAside => 'Set aside';
@@ -1993,10 +2273,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sheetsGoalTarget => 'Target amount';
+  String get sheetsGoalTarget => 'Target amount (optional)';
 
   @override
-  String get sheetsGoalUpdated => 'Goal updated';
+  String get sheetsGoalUpdated => 'Savings account updated';
 
   @override
   String get sheetsGoalWithdraw => 'Withdraw';
@@ -2066,6 +2346,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sheetsSaveRepayment => 'Save repayment';
+
+  @override
+  String sheetsSavingsNotEnough(String amount) {
+    return 'This savings account only holds $amount.';
+  }
+
+  @override
+  String get sheetsSavingsToSavings =>
+      'Go through a normal account to move money between two savings accounts.';
 
   @override
   String get sheetsSuggested => 'suggested from the note';
@@ -2232,13 +2521,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsDailySpend => 'everyday spending per day';
 
   @override
-  String get statsNoExpenses => 'No expenses this month.';
+  String get statsNoExpenses => 'No expenses this period.';
 
   @override
   String get statsNothingToCompare => 'Nothing to compare yet.';
 
   @override
-  String get statsOpsThisMonth => 'transactions this month';
+  String get statsOpsThisMonth => 'transactions this period';
 
   @override
   String statsPercent(String value) {
@@ -2249,20 +2538,350 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsSavingsRate => 'savings rate';
 
   @override
-  String get statsSixMonths => 'Last six months';
+  String get statsSixMonths => 'Last six periods';
+
+  @override
+  String get statsTabAnalyses => 'Analyses';
+
+  @override
+  String get statsTabFigures => 'Figures';
 
   @override
   String get statsTopExpenses => 'Biggest expenses';
 
   @override
-  String get statsVsPrevMonth => 'spending vs last month';
+  String get statsVsPrevMonth => 'spending vs previous period';
 
   @override
   String get statsWhereEmpty =>
-      'This month\'s expenses will show up here, split by category.';
+      'This period\'s expenses will appear here, split by category.';
 
   @override
   String get statsWhereMoneyGoes => 'Where the money goes';
+
+  @override
+  String sumAccountOnly(String account) {
+    return 'All your spending goes through $account.';
+  }
+
+  @override
+  String sumAccountRow(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count expenses',
+      one: '$count expense',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sumAccountTop(String account, String pct) {
+    return '$account is the account that spends the most ($pct% of the total).';
+  }
+
+  @override
+  String sumBiggestShare(int count, String pct) {
+    return 'Your $count biggest expenses make up $pct% of the total.';
+  }
+
+  @override
+  String sumCategoryUp(String name, String pct, String amount) {
+    return '$name went up by $pct% (+$amount).';
+  }
+
+  @override
+  String sumCompared(String period) {
+    return 'Compared with: $period.';
+  }
+
+  @override
+  String sumComparedSoFar(String period) {
+    return 'Compared with the same number of days of the previous period: $period.';
+  }
+
+  @override
+  String get sumDayEven => 'Your spending is spread evenly over the day.';
+
+  @override
+  String get sumDayTitle => 'By time of day';
+
+  @override
+  String get sumElapsedTile => 'Days elapsed';
+
+  @override
+  String get sumEmpty =>
+      'Nothing to sum up for this period. Pick another one or record your transactions.';
+
+  @override
+  String get sumEssential => 'The essentials';
+
+  @override
+  String get sumEssentialEmpty =>
+      'Nothing stands out yet: a few more transactions are needed.';
+
+  @override
+  String sumGoalBehind(String name, String eta, String deadline) {
+    return 'At this pace, you reach $name around $eta, after your deadline of $deadline.';
+  }
+
+  @override
+  String sumGoalEta(String amount, String date) {
+    return 'At $amount a month, you reach it around $date.';
+  }
+
+  @override
+  String sumGoalFar(String amount) {
+    return 'At $amount a month, this goal stays out of reach.';
+  }
+
+  @override
+  String get sumGoalLate => 'Behind';
+
+  @override
+  String get sumGoalNoPace => 'No pace to measure in this period.';
+
+  @override
+  String get sumGoalsTitle => 'At the current pace';
+
+  @override
+  String sumHabitInsight(String note, int count, String amount) {
+    return '“$note” comes up $count times: $amount in total.';
+  }
+
+  @override
+  String sumHabitRow(int count, String amount) {
+    return '$count times · $amount on average';
+  }
+
+  @override
+  String get sumHabitsNone =>
+      'No note comes up at least 3 times in this period.';
+
+  @override
+  String sumKept(String pct) {
+    return 'You kept $pct% of your income.';
+  }
+
+  @override
+  String get sumMonthEven => 'Your spending is spread evenly over the month.';
+
+  @override
+  String get sumMonthTitle => 'By part of the month';
+
+  @override
+  String get sumNetSaved => 'Put aside (net)';
+
+  @override
+  String get sumNew => 'New';
+
+  @override
+  String sumNoSpendDays(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count no-spend days out of $total.',
+      one: '$count no-spend day out of $total.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sumNoSpendNone => 'Not a single no-spend day in this period.';
+
+  @override
+  String sumNoSpendStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Your longest streak: $count days in a row.',
+      one: 'Your longest streak: $count day.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sumNoSpendTile => 'No-spend days';
+
+  @override
+  String get sumNoSpending => 'No expenses in this period.';
+
+  @override
+  String get sumNotEnough => 'Still too few expenses to draw a conclusion.';
+
+  @override
+  String sumOverspent(String amount) {
+    return 'You spent $amount more than you earned.';
+  }
+
+  @override
+  String get sumPartEnd => 'End (from the 21st)';
+
+  @override
+  String get sumPartMiddle => 'Middle (11th to 20th)';
+
+  @override
+  String get sumPartStart => 'Start (1st to 10th)';
+
+  @override
+  String sumPeakMoment(String moment, String pct) {
+    return 'You spend mostly $moment ($pct% of the total).';
+  }
+
+  @override
+  String sumPeakWeekday(String day, String pct) {
+    return 'You spend mostly on ${day}s ($pct% of the total).';
+  }
+
+  @override
+  String get sumRange3Months => '3 months';
+
+  @override
+  String get sumRange6Months => '6 months';
+
+  @override
+  String get sumRangeAll => 'All';
+
+  @override
+  String get sumRangeCurrent => 'This period';
+
+  @override
+  String get sumRangePrevious => 'Previous';
+
+  @override
+  String get sumRangeYear => '1 year';
+
+  @override
+  String get sumSmallCount => 'Small expenses';
+
+  @override
+  String sumSmallInsight(int count, String limit, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count small expenses under $limit: $amount in total. It adds up!',
+      one: '$count small expense under $limit: $amount in total.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sumSmallNone => 'No small expenses adding up in this period.';
+
+  @override
+  String get sumSmallShare => 'Of spending';
+
+  @override
+  String get sumSmallTotal => 'In total';
+
+  @override
+  String sumSpentDown(String pct) {
+    return 'You spent $pct% less than in the previous period.';
+  }
+
+  @override
+  String sumSpentDownSoFar(String pct) {
+    return 'You have spent $pct% less than at the same point of the previous period.';
+  }
+
+  @override
+  String sumSpentUp(String pct) {
+    return 'You spent $pct% more than in the previous period.';
+  }
+
+  @override
+  String sumSpentUpSoFar(String pct) {
+    return 'You have spent $pct% more than at the same point of the previous period.';
+  }
+
+  @override
+  String get sumStreakTile => 'Longest streak';
+
+  @override
+  String get sumTimeAfternoon => 'Afternoon (noon – 6pm)';
+
+  @override
+  String get sumTimeEvening => 'Evening (6pm – 10pm)';
+
+  @override
+  String get sumTimeMorning => 'Morning (5am – noon)';
+
+  @override
+  String get sumTimeNight => 'Night (10pm – 5am)';
+
+  @override
+  String sumTimedSample(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Based on $count expenses entered on the day itself, the only ones with a known time.',
+      one:
+          'Based on $count expense entered on the day itself, the only one with a known time.',
+      zero: 'No expenses entered on the day itself: the time is only known for those.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sumTitle => 'Smart summary';
+
+  @override
+  String sumTopCategory(String name, String pct, String amount) {
+    return '$name makes up $pct% of your spending ($amount).';
+  }
+
+  @override
+  String get sumTopicAccounts => 'Accounts';
+
+  @override
+  String get sumTopicBiggest => 'Biggest';
+
+  @override
+  String get sumTopicCategories => 'Categories';
+
+  @override
+  String get sumTopicHabits => 'Habits';
+
+  @override
+  String get sumTopicMoments => 'Moments';
+
+  @override
+  String get sumTopicNoSpend => 'No-spend days';
+
+  @override
+  String get sumTopicSavings => 'Savings';
+
+  @override
+  String get sumTopicSmall => 'Small expenses';
+
+  @override
+  String get sumWeekEven => 'Your spending is spread evenly over the week.';
+
+  @override
+  String get sumWeekTitle => 'By day of the week';
+
+  @override
+  String get sumWhenAfternoon => 'in the afternoon';
+
+  @override
+  String get sumWhenEnd => 'at the end of the month';
+
+  @override
+  String get sumWhenEvening => 'in the evening';
+
+  @override
+  String get sumWhenMiddle => 'in the middle of the month';
+
+  @override
+  String get sumWhenMorning => 'in the morning';
+
+  @override
+  String get sumWhenNight => 'at night';
+
+  @override
+  String get sumWhenStart => 'at the start of the month';
 
   @override
   String get tabAccounts => 'Accounts';
@@ -2277,7 +2896,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabOps => 'Transactions';
 
   @override
-  String get tabStats => 'Statistics';
+  String get tabStats => 'Summary';
 
   @override
   String get totalsExpenses => 'Expenses';

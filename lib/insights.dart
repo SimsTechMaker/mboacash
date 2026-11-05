@@ -327,33 +327,54 @@ class Insights {
 
   Forecast forecast() {
     final now = DateTime.now();
-    final month = monthKey(now);
-    final days = DateTime(now.year, now.month + 1, 0).day;
-    final day = now.day;
-    final list = s.monthTxs(month);
+    final p = s.openPeriod;
+    final days = p.days;
+    final today = todayIso();
+    final day = (Period(p.start, today.compareTo(p.end) > 0 ? p.end : today).days).clamp(1, days);
+    final list = s.periodTxs(p);
     final sum = s.sums(list);
     final budgetSpent = s.budgetSpent(list);
 
-    // Daily pace of ordinary spending: this month blended with the last three
-    // months, so the first days of a month don't swing the forecast wildly.
+    // Daily pace of ordinary spending: this period blended with the last three,
+    // so its first days don't swing the forecast wildly.
     double histDaily = 0;
-    var histMonths = 0;
+    var histPeriods = 0;
+    var past = p;
     for (var k = 1; k <= 3; k++) {
-      final m = shiftMonth(month, -k);
-      final l = s.monthTxs(m);
+      past = s.previousPeriod(past);
+      final l = s.periodTxs(past);
       if (l.isEmpty) continue;
-      final d = parseIso('$m-01');
-      histDaily += _variable(l) / DateTime(d.year, d.month + 1, 0).day;
-      histMonths++;
+      histDaily += _variable(l) / past.days;
+      histPeriods++;
     }
-    histDaily = histMonths == 0 ? 0 : histDaily / histMonths;
+    histDaily = histPeriods == 0 ? 0 : histDaily / histPeriods;
     final thisDaily = _variable(list) / day;
-    final pace = histMonths == 0 ? thisDaily : (thisDaily * day + histDaily * 7) / (day + 7);
+    final pace = histPeriods == 0 ? thisDaily : (thisDaily * day + histDaily * 7) / (day + 7);
     final remaining = days - day;
 
-    final due = dueThisMonth;
-    final dueOut = due.where((r) => !r.income).fold(0.0, (a, r) => a + r.amount);
-    final dueIn = due.where((r) => r.income).fold(0.0, (a, r) => a + r.amount);
+    // What is already planned counts in full, and a detected habit only when
+    // the agenda does not cover it.
+    final planned = <String>{};
+    double dueOut = 0, dueIn = 0;
+    for (final x in s.scheduled) {
+      if (x.type == TxType.transfer) continue;
+      final n = x.occurrences(today, p.end).length;
+      if (n == 0) continue;
+      planned.add(_norm(x.note));
+      if (x.type == TxType.income) {
+        dueIn += n * x.amount;
+      } else {
+        dueOut += n * x.amount;
+      }
+    }
+    for (final r in dueThisMonth) {
+      if (planned.contains(_norm(r.note)) || !p.contains(r.nextDate) || r.nextDate.compareTo(isoDate(now)) < 0) continue;
+      if (r.income) {
+        dueIn += r.amount;
+      } else {
+        dueOut += r.amount;
+      }
+    }
     final variableAhead = pace * remaining;
     return Forecast(
       sum.expense,
@@ -377,12 +398,14 @@ class Insights {
   // Advice
   // ---------------------------------------------------------------------------
 
-  /// Average monthly totals per [AppState.flowKey] over the 3 months before [month].
-  Map<String, double> _avgByGroup(String month, {required bool expenses}) {
+  /// Average totals per [AppState.flowKey] over the 3 periods before [p].
+  Map<String, double> _avgByGroup(Period p, {required bool expenses}) {
     final tot = <String, double>{};
     var n = 0;
+    var past = p;
     for (var k = 1; k <= 3; k++) {
-      final l = s.monthTxs(shiftMonth(month, -k));
+      past = s.previousPeriod(past);
+      final l = s.periodTxs(past);
       if (l.isEmpty) continue;
       n++;
       for (final t in l) {
@@ -393,26 +416,24 @@ class Insights {
     return n == 0 ? {} : tot.map((k, v) => MapEntry(k, v / n));
   }
 
-  double avgIncome(String month) => _avgByGroup(month, expenses: false).values.fold(0.0, (a, b) => a + b);
+  double avgIncome(Period p) => _avgByGroup(p, expenses: false).values.fold(0.0, (a, b) => a + b);
 
-  List<Insight> advice(String month, String Function(double) money) {
+  List<Insight> advice(Period p, String Function(double) money) {
     final out = <Insight>[];
-    final now = DateTime.now();
-    final current = month == monthKey(now);
-    final first = parseIso('$month-01');
-    final days = DateTime(first.year, first.month + 1, 0).day;
-    final elapsed = current ? now.day : days;
-    if (current && elapsed < 5) return out; // too early to say anything useful
-    final scale = days / elapsed; // project the current month to a full month
+    final current = p.contains(todayIso());
+    final days = p.days;
+    final elapsed = current ? Period(p.start, todayIso()).days : days;
+    if (current && elapsed < min(5, days ~/ 2)) return out; // too early to say anything useful
+    final scale = days / elapsed; // project the current period to its full length
 
-    final avg = _avgByGroup(month, expenses: true);
+    final avg = _avgByGroup(p, expenses: true);
     if (avg.isEmpty) return out;
     final cur = <String, double>{};
-    for (final t in s.monthTxs(month)) {
+    for (final t in s.periodTxs(p)) {
       final f = s.flow(t);
       if (f < 0) cur[s.flowKey(t)] = (cur[s.flowKey(t)] ?? 0) + -f;
     }
-    final income = max(avgIncome(month), 1.0);
+    final income = max(avgIncome(p), 1.0);
     for (final key in {...avg.keys, ...cur.keys}) {
       if (key == 'save' || key == 'debt') continue;
       final a = avg[key] ?? 0, c = (cur[key] ?? 0) * scale;
@@ -445,9 +466,9 @@ class Insights {
       }
     }
     // Savings habit.
-    final saved = s.monthTxs(month).where((t) => t.type == TxType.save).fold(0.0, (a, t) => a - t.dir * t.amount);
+    final saved = s.periodTxs(p).where((t) => t.type == TxType.save).fold(0.0, (a, t) => a - t.dir * t.amount);
     final avgSaved = avg['save'] ?? 0;
-    if (s.goals.isNotEmpty && saved <= 0 && avgSaved > 0 && current && now.day >= 10) {
+    if (s.goals.isNotEmpty && saved <= 0 && avgSaved > 0 && current && elapsed * 3 >= days) {
       out.add(Insight(Tone.info, 'piggy-bank', tr.insNoSavingTitle, tr.insNoSavingText(money(avgSaved)), cat: 'save', weight: avgSaved));
     }
     out.sort((a, b) => b.weight.compareTo(a.weight));
@@ -458,13 +479,17 @@ class Insights {
   // Budget presets
   // ---------------------------------------------------------------------------
 
+  /// Turns an amount per budget period into an amount per month: the
+  /// assistant reasons in months, whatever rhythm the user chose.
+  double get monthScale => s.settings.periodKind == 'month' ? 1 : 30.4 / s.openPeriod.days;
+
   static const needs = {'logement', 'factures', 'alim', 'transport', 'sante', 'telephone', 'education', 'famille'};
 
   /// Proposes a monthly budget, per-category caps and monthly savings per goal
   /// for an [income], following a rule or the user's own past spending.
   Preset preset(Rule rule, double income) {
-    final month = monthKey(DateTime.now());
-    final avg = _avgByGroup(month, expenses: true)..removeWhere((k, _) => k == 'save' || k == 'debt' || s.catById(k) == null);
+    final avg = _avgByGroup(s.openPeriod, expenses: true).map((k, v) => MapEntry(k, v * monthScale))
+      ..removeWhere((k, _) => k == 'save' || k == 'debt' || s.catById(k) == null);
     final cats = s.activeCats(false);
     final needIds = cats.where((c) => needs.contains(c.id)).map((c) => c.id).toList();
     final wantIds = cats.where((c) => !needs.contains(c.id)).map((c) => c.id).toList();

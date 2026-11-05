@@ -120,6 +120,7 @@ ThemeData buildTheme(Brightness b) {
       surfaceTintColor: Colors.transparent,
       labelTextStyle: WidgetStateProperty.resolveWith(
         (s) => TextStyle(
+          fontFamily: 'IBMPlexSans',
           fontSize: 11.5,
           fontWeight: s.contains(WidgetState.selected) ? FontWeight.w600 : FontWeight.w500,
           color: s.contains(WidgetState.selected) ? c.accent : c.muted,
@@ -147,7 +148,7 @@ ThemeData buildTheme(Brightness b) {
         backgroundColor: c.accent,
         foregroundColor: c.accentInk,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontFamily: 'IBMPlexSans', fontWeight: FontWeight.w600),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -155,7 +156,7 @@ ThemeData buildTheme(Brightness b) {
         foregroundColor: c.ink,
         side: BorderSide(color: c.line),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontFamily: 'IBMPlexSans', fontWeight: FontWeight.w600),
       ),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(
@@ -165,7 +166,7 @@ ThemeData buildTheme(Brightness b) {
         selectedForegroundColor: c.ink,
         foregroundColor: c.muted,
         side: BorderSide(color: c.surface2),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontFamily: 'IBMPlexSans', fontWeight: FontWeight.w600),
       ),
     ),
     chipTheme: ChipThemeData(
@@ -173,7 +174,7 @@ ThemeData buildTheme(Brightness b) {
       selectedColor: c.surface2,
       side: BorderSide(color: c.line),
       shape: const StadiumBorder(),
-      labelStyle: TextStyle(color: c.ink, fontSize: 13.5),
+      labelStyle: TextStyle(fontFamily: 'IBMPlexSans', color: c.ink, fontSize: 13.5),
       showCheckmark: false,
     ),
     dividerTheme: DividerThemeData(color: c.line, space: 1),
@@ -186,7 +187,7 @@ ThemeData buildTheme(Brightness b) {
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: c.ink,
-      contentTextStyle: TextStyle(color: c.bg),
+      contentTextStyle: TextStyle(fontFamily: 'IBMPlexSans', color: c.bg),
     ),
   );
 }

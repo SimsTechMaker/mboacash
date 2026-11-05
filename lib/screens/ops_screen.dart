@@ -332,12 +332,15 @@ class _Hero extends StatelessWidget {
                 Text(l.opsBudget, style: TextStyle(color: soft, fontSize: 12.5)),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(
-                    '${f.money(spent)} / ${f.money(b)}',
-                    style: numStyle.copyWith(color: white, fontSize: 12.5),
-                    overflow: TextOverflow.ellipsis,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('${f.money(spent)} / ${f.money(b)}', style: numStyle.copyWith(color: white, fontSize: 12.5)),
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   pct > 1 ? l.opsBudgetOver(f.money(spent - b)) : l.opsBudgetLeft(f.money(b - spent)),
                   style: TextStyle(color: pct > 1 ? const Color(0xFFFFC2B3) : white, fontSize: 12.5, fontWeight: FontWeight.w600),

@@ -178,15 +178,23 @@ class _AccountCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Text(
+                      a.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15.5),
+                    ),
+                    const SizedBox(height: 2),
+                    // The "default" tag sits on this line: next to the name, a
+                    // large balance would squeeze the name onto two lines.
+                    Wrap(
+                      spacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(a.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15.5)),
-                        ),
-                        if (id == s.settings.defaultAccount) ...[const SizedBox(width: 6), Pill(l.accountsDefault, color: context.c.accent)],
+                        Text(l.opsCount(count), style: TextStyle(color: context.c.muted, fontSize: 12.5)),
+                        if (id == s.settings.defaultAccount) Pill(l.accountsDefault, color: context.c.accent),
                       ],
                     ),
-                    Text(l.opsCount(count), style: TextStyle(color: context.c.muted, fontSize: 12.5)),
                   ],
                 ),
               ),

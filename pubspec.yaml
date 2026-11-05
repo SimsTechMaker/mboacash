@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.5.0+10
+version: 1.5.1+12
 
 environment:
   sdk: ^3.13.7
@@ -94,6 +94,7 @@ flutter:
   assets:
     - assets/fonts/IBMPlexSans-Regular.ttf
     - assets/fonts/IBMPlexSans-SemiBold.ttf
+    - assets/icon/logo-512.png
 
   # IBM Plex (SIL Open Font License, see assets/fonts/OFL.txt).
   fonts:
@@ -106,7 +107,3 @@ flutter:
           weight: 600
         - asset: assets/fonts/IBMPlexSans-Bold.ttf
           weight: 700
-    - family: IBMPlexMono
-      fonts:
-        - asset: assets/fonts/IBMPlexMono-Medium.ttf
-          weight: 500

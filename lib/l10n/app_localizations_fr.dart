@@ -725,7 +725,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get exportColTargetDate => 'Date visée';
 
   @override
-  String get exportCredits => 'Total crédits';
+  String get exportCredits => 'Entrées';
 
   @override
   String get exportCsvSubject => 'Export my-nkap';
@@ -736,7 +736,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get exportDebits => 'Total débits';
+  String get exportDebits => 'Sorties';
 
   @override
   String get exportDebtsLoans => 'Dettes et prêts';
@@ -761,6 +761,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String exportIssued(String date) {
     return 'Édité le $date';
   }
+
+  @override
+  String get exportJournal => 'Journal des opérations';
 
   @override
   String get exportOpening => 'Solde d\'ouverture';
@@ -2561,7 +2564,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statsTopExpenses => 'Plus grosses dépenses';
 
   @override
-  String get statsVsPrevMonth => 'dépenses vs période précédente';
+  String get statsVsPrevMonth => 'vs période précédente';
 
   @override
   String get statsWhereEmpty =>

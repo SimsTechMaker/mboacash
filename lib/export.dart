@@ -124,7 +124,7 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
     if (t.date.compareTo(o.from) < 0) opening += effectOn(t);
   }
   var run = opening, debit = 0.0, credit = 0.0;
-  final rows = <List<String>>[];
+  final rows = <_Row>[];
   for (final t in txs) {
     if (t.date.compareTo(o.from) < 0 || t.date.compareTo(o.to) > 0) continue;
     if (!s.effects(t).any((e) => scope.contains(e.account))) continue;
@@ -144,79 +144,106 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
       _ => '${v.title}${t.note.isNotEmpty ? ' - ${t.note}' : ''}',
     };
     final catName = (t.type == TxType.income || t.type == TxType.expense) ? (s.catById(t.cat)?.name ?? '') : v.title.split(RegExp(r'\s?:')).first.trim();
-    rows.add([slashDate(t.date), label, catName, accName, e < 0 ? m(-e) : '', e > 0 ? m(e) : '', m(run)]);
+    rows.add(_Row(t.date, label, [if (catName != label) catName, accName].where((x) => x.isNotEmpty).join(' · '), e, run));
   }
   final period = txs.where((t) => t.date.compareTo(o.from) >= 0 && t.date.compareTo(o.to) <= 0 && s.flow(t) != 0 && scope.contains(s.accountOf(t)));
   final sums = s.sums(period);
 
   const accent = PdfColor.fromInt(0xFF1D6A56);
+  const accentDark = PdfColor.fromInt(0xFF124A3C);
   const ink = PdfColor.fromInt(0xFF14201B);
-  const muted = PdfColor.fromInt(0xFF5A6963);
-  const line = PdfColor.fromInt(0xFFD2DBD7);
-  const zebra = PdfColor.fromInt(0xFFF7F9F8);
-  const foot = PdfColor.fromInt(0xFFE2E8E5);
-  const red = PdfColor.fromInt(0xFFB23F28);
-  const green = PdfColor.fromInt(0xFF2C7A4C);
+  const muted = PdfColor.fromInt(0xFF66756F);
+  const line = PdfColor.fromInt(0xFFE3E9E6);
+  const soft = PdfColor.fromInt(0xFFF3F6F4);
+  const track = PdfColor.fromInt(0xFFE6ECE9);
+  const red = PdfColor.fromInt(0xFFC0492F);
+  const green = PdfColor.fromInt(0xFF23805A);
+  const gold = PdfColor.fromInt(0xFFE8A33D);
+  const heroSoft = PdfColor.fromInt(0xFFCFE3DB);
 
   final theme = pw.ThemeData.withFont(base: regular, bold: bold);
-  final doc = pw.Document(title: tr.exportPdfDocTitle, author: 'my-nkap');
+  final doc = pw.Document(title: tr.exportPdfDocTitle, author: tr.appTitle);
   final accTitle = o.account.isNotEmpty ? s.accById(o.account)?.name ?? '' : tr.exportAllAccounts;
+  final logo = pw.MemoryImage((await rootBundle.load('assets/icon/logo-512.png')).buffer.asUint8List());
 
-  pw.Widget table(
-    List<String> head,
-    List<List<String>> body, {
-    List<String>? footer,
-    Map<int, pw.TableColumnWidth>? widths,
-    Set<int> right = const {},
-    Map<int, PdfColor> colors = const {},
-  }) {
-    return pw.TableHelper.fromTextArray(
-      headers: head,
-      data: [...body, ?footer],
-      border: pw.TableBorder.all(color: line, width: 0.5),
-      headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 8),
-      headerDecoration: const pw.BoxDecoration(color: accent),
-      cellStyle: const pw.TextStyle(fontSize: 8, color: ink),
-      cellPadding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-      oddRowDecoration: const pw.BoxDecoration(color: zebra),
-      columnWidths: widths,
-      cellAlignments: {for (final i in right) i: pw.Alignment.centerRight},
-      headerAlignments: {for (final i in right) i: pw.Alignment.centerRight},
-      // Rows are counted with the header as row 0, so the totals row is body.length + 1.
-      textStyleBuilder: (col, data, row) {
-        final isFoot = footer != null && row == body.length + 1;
-        return pw.TextStyle(fontSize: 8, color: isFoot ? ink : colors[col] ?? ink, fontWeight: isFoot ? pw.FontWeight.bold : pw.FontWeight.normal);
-      },
-      cellDecoration: (col, data, row) => footer != null && row == body.length + 1 ? const pw.BoxDecoration(color: foot) : const pw.BoxDecoration(),
-    );
-  }
-
-  pw.Widget box(String l, String v, bool hi) => pw.Expanded(
-    child: pw.Container(
-      margin: const pw.EdgeInsets.symmetric(horizontal: 3),
-      padding: const pw.EdgeInsets.all(8),
-      decoration: pw.BoxDecoration(
-        color: hi ? const PdfColor.fromInt(0xFFE6F2ED) : zebra,
-        border: pw.Border.all(color: line),
-        borderRadius: pw.BorderRadius.circular(4),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            l.toUpperCase(),
-            style: pw.TextStyle(fontSize: 7, color: muted, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.SizedBox(height: 4),
-          pw.Text(v, style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
-        ],
-      ),
+  /// A number on one line: it keeps its size and only shrinks if it would not
+  /// fit, so a very large amount never wraps or gets cut.
+  pw.Widget number(String text, pw.TextStyle style, {pw.Alignment align = pw.Alignment.centerRight}) => pw.Align(
+    alignment: align,
+    child: pw.FittedBox(
+      fit: pw.BoxFit.scaleDown,
+      alignment: align,
+      child: pw.Text(text, style: style),
     ),
   );
 
-  pw.Widget section(String t) => pw.Padding(
-    padding: const pw.EdgeInsets.only(top: 14, bottom: 6),
-    child: pw.Text(t, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+  /// Column width that holds the longest of [values], within reason.
+  double widthFor(Iterable<String> values, double size) {
+    final longest = values.fold<int>(0, (a, v) => v.length > a ? v.length : a);
+    return (longest * size * 0.58 + 6).clamp(52.0, 132.0);
+  }
+
+  pw.Widget bar(double share, PdfColor color, {double height = 5}) {
+    final filled = (share.clamp(0.0, 1.0) * 1000).round();
+    return pw.ClipRRect(
+      horizontalRadius: height / 2,
+      verticalRadius: height / 2,
+      child: pw.Container(
+        height: height,
+        color: track,
+        child: pw.Row(
+          children: [
+            if (filled > 0)
+              pw.Expanded(
+                flex: filled,
+                child: pw.Container(color: color),
+              ),
+            if (filled < 1000) pw.Expanded(flex: 1000 - filled, child: pw.SizedBox()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget section(String t, {String? side}) => pw.Padding(
+    padding: const pw.EdgeInsets.only(top: 18, bottom: 8),
+    child: pw.Row(
+      children: [
+        pw.Container(
+          width: 3,
+          height: 12,
+          decoration: pw.BoxDecoration(color: gold, borderRadius: pw.BorderRadius.circular(2)),
+        ),
+        pw.SizedBox(width: 7),
+        pw.Expanded(
+          child: pw.Text(
+            t,
+            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: ink),
+          ),
+        ),
+        if (side != null) pw.Text(side, style: const pw.TextStyle(fontSize: 8.5, color: muted)),
+      ],
+    ),
+  );
+
+  pw.Widget kpi(String label, String value, PdfColor color) => pw.Expanded(
+    child: pw.Container(
+      margin: const pw.EdgeInsets.symmetric(horizontal: 4),
+      padding: const pw.EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: pw.BoxDecoration(color: soft, borderRadius: pw.BorderRadius.circular(10)),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(label, style: const pw.TextStyle(fontSize: 8, color: muted)),
+          pw.SizedBox(height: 4),
+          number(
+            value,
+            pw.TextStyle(fontSize: 13.5, fontWeight: pw.FontWeight.bold, color: color),
+            align: pw.Alignment.centerLeft,
+          ),
+        ],
+      ),
+    ),
   );
 
   final byCat = <String, double>{};
@@ -224,54 +251,202 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
     byCat[s.flowKey(t)] = (byCat[s.flowKey(t)] ?? 0) - s.flow(t);
   }
   final catRows = byCat.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+  final catMax = catRows.isEmpty ? 1.0 : catRows.first.value;
+  final catAmountW = widthFor(catRows.map((r) => m(r.value)), 9.5);
+
+  pw.Widget category(MapEntry<String, double> r) {
+    final g = s.group(r.key);
+    final cap = s.catById(r.key)?.cap ?? 0;
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 4.5),
+      child: pw.Row(
+        children: [
+          pw.SizedBox(
+            width: 128,
+            child: pw.Text(g.name, maxLines: 1, style: const pw.TextStyle(fontSize: 9.5, color: ink)),
+          ),
+          pw.Expanded(child: bar(r.value / catMax, cap > 0 && r.value > cap ? red : accent, height: 7)),
+          pw.SizedBox(
+            width: 38,
+            child: pw.Text(
+              tr.exportPercent('${(r.value / sums.expense * 100).round()}'),
+              textAlign: pw.TextAlign.right,
+              style: const pw.TextStyle(fontSize: 8.5, color: muted),
+            ),
+          ),
+          pw.SizedBox(width: 10),
+          pw.SizedBox(
+            width: catAmountW,
+            child: number(m(r.value), pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: ink)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget goal(Goal g) {
+    final saved = s.goalSaved(g);
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 6),
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(color: soft, borderRadius: pw.BorderRadius.circular(8)),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+        children: [
+          pw.Row(
+            children: [
+              pw.Expanded(
+                child: pw.Text(
+                  g.name,
+                  style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: ink),
+                ),
+              ),
+              pw.SizedBox(
+                width: 170,
+                child: number(
+                  g.target > 0 ? '${m(saved)} / ${m(g.target)}' : m(saved),
+                  pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: ink),
+                ),
+              ),
+            ],
+          ),
+          if (g.target > 0) ...[pw.SizedBox(height: 6), bar(saved / g.target, accent)],
+          if (g.deadline.isNotEmpty) ...[
+            pw.SizedBox(height: 4),
+            pw.Text('${tr.exportColTargetDate} : ${longDate(g.deadline)}', style: const pw.TextStyle(fontSize: 8, color: muted)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  pw.Widget debt(Debt d) {
+    final left = s.debtLeft(d);
+    final facts = [
+      d.owe ? tr.exportIOwe : tr.exportOwedToMe,
+      '${tr.exportColAmount} ${m(d.amount)}',
+      if (d.due.isNotEmpty) '${tr.exportColDue} ${longDate(d.due)}',
+    ];
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(vertical: 6),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(bottom: pw.BorderSide(color: line, width: 0.6)),
+      ),
+      child: pw.Row(
+        children: [
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  d.person,
+                  style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: ink),
+                ),
+                pw.Text(facts.join(' · '), style: const pw.TextStyle(fontSize: 8, color: muted)),
+              ],
+            ),
+          ),
+          pw.SizedBox(
+            width: 120,
+            child: number(
+              left > 0 ? m(left) : tr.exportSettled,
+              pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: left <= 0 ? green : (d.owe ? red : ink)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // The journal reads like the app: days, then movements, with the amount and
+  // the running balance sized to the largest figures of this statement.
+  final amountW = widthFor(rows.map((r) => m(r.effect, signed: true)), 9.5);
+  final balanceW = widthFor(rows.map((r) => m(r.balance)), 8.5);
+
+  pw.Widget movement(_Row r) => pw.Container(
+    padding: const pw.EdgeInsets.symmetric(vertical: 4.5),
+    decoration: const pw.BoxDecoration(
+      border: pw.Border(bottom: pw.BorderSide(color: line, width: 0.5)),
+    ),
+    child: pw.Row(
+      children: [
+        pw.Expanded(
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(r.label, style: const pw.TextStyle(fontSize: 9.5, color: ink)),
+              if (r.detail.isNotEmpty) pw.Text(r.detail, style: const pw.TextStyle(fontSize: 7.5, color: muted)),
+            ],
+          ),
+        ),
+        pw.SizedBox(width: 8),
+        pw.SizedBox(
+          width: amountW,
+          child: number(
+            r.effect == 0 ? '-' : m(r.effect, signed: true),
+            pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: r.effect < 0 ? red : (r.effect > 0 ? green : muted)),
+          ),
+        ),
+        pw.SizedBox(width: 10),
+        pw.SizedBox(
+          width: balanceW,
+          child: number(m(r.balance), const pw.TextStyle(fontSize: 8.5, color: muted)),
+        ),
+      ],
+    ),
+  );
+
+  pw.Widget dayHeader(String date) => pw.Padding(
+    padding: const pw.EdgeInsets.only(top: 9, bottom: 2),
+    child: pw.Text(
+      dayLabel(date),
+      style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: accent),
+    ),
+  );
+
+  final journal = <pw.Widget>[];
+  for (var i = 0; i < rows.length; i++) {
+    final newDay = i == 0 || rows[i].date != rows[i - 1].date;
+    // A day's title never stays alone at the bottom of a page.
+    journal.add(
+      newDay
+          ? pw.Inseparable(
+              child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.stretch, children: [dayHeader(rows[i].date), movement(rows[i])]),
+            )
+          : movement(rows[i]),
+    );
+  }
+
+  final moved = credit + debit;
 
   doc.addPage(
     pw.MultiPage(
       theme: theme,
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 36),
+      margin: const pw.EdgeInsets.fromLTRB(32, 30, 32, 38),
       header: (ctx) => ctx.pageNumber == 1
-          ? pw.Container(
-              margin: const pw.EdgeInsets.only(bottom: 12),
-              padding: const pw.EdgeInsets.all(14),
-              color: accent,
+          ? pw.SizedBox()
+          : pw.Container(
+              margin: const pw.EdgeInsets.only(bottom: 10),
+              padding: const pw.EdgeInsets.only(bottom: 6),
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(bottom: pw.BorderSide(color: line, width: 0.6)),
+              ),
               child: pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Expanded(
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          tr.exportTitle,
-                          style: pw.TextStyle(color: PdfColors.white, fontSize: 18, fontWeight: pw.FontWeight.bold),
-                        ),
-                        pw.SizedBox(height: 4),
-                        pw.Text(tr.exportPeriod(longDate(o.from), longDate(o.to)), style: const pw.TextStyle(color: PdfColors.white, fontSize: 10)),
-                        pw.Text(accTitle, style: const pw.TextStyle(color: PdfColors.white, fontSize: 10)),
-                      ],
-                    ),
+                  pw.Image(logo, width: 14, height: 14),
+                  pw.SizedBox(width: 6),
+                  pw.Text(
+                    tr.appTitle,
+                    style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: ink),
                   ),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Text(
-                        tr.appTitle,
-                        style: pw.TextStyle(color: PdfColors.white, fontSize: 10, fontWeight: pw.FontWeight.bold),
-                      ),
-                      pw.Text(tr.exportIssued(longDate(todayIso())), style: const pw.TextStyle(color: PdfColors.white, fontSize: 9)),
-                      pw.Text(tr.exportCurrency(s.settings.currency), style: const pw.TextStyle(color: PdfColors.white, fontSize: 9)),
-                    ],
-                  ),
+                  pw.Spacer(),
+                  pw.Text('$accTitle · ${tr.exportPeriod(longDate(o.from), longDate(o.to))}', style: const pw.TextStyle(fontSize: 8, color: muted)),
                 ],
               ),
-            )
-          : pw.SizedBox(),
-      footer: (ctx) => pw.Container(
-        padding: const pw.EdgeInsets.only(top: 6),
-        decoration: const pw.BoxDecoration(
-          border: pw.Border(top: pw.BorderSide(color: line, width: 0.5)),
-        ),
+            ),
+      footer: (ctx) => pw.Padding(
+        padding: const pw.EdgeInsets.only(top: 8),
         child: pw.Row(
           children: [
             pw.Expanded(
@@ -282,21 +457,111 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
         ),
       ),
       build: (ctx) => [
-        pw.Row(
-          children: [
-            box(tr.exportOpening, m(opening), false),
-            box(tr.exportCredits, m(credit), false),
-            box(tr.exportDebits, m(debit), false),
-            box(tr.exportClosing, m(run), true),
-          ],
-        ),
-        pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 8),
-          child: pw.Text(
-            tr.exportPeriodSummary(m(sums.income), m(sums.expense), tr.opsCount(rows.length)),
-            style: const pw.TextStyle(fontSize: 8.5, color: muted),
+        pw.Container(
+          padding: const pw.EdgeInsets.fromLTRB(18, 16, 18, 16),
+          decoration: pw.BoxDecoration(
+            borderRadius: pw.BorderRadius.circular(14),
+            gradient: const pw.LinearGradient(begin: pw.Alignment.topLeft, end: pw.Alignment.bottomRight, colors: [accent, accentDark]),
+          ),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: [
+              pw.Row(
+                children: [
+                  // A white edge: the logo's tile is the same green as this card.
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(1.5),
+                    decoration: pw.BoxDecoration(color: PdfColors.white, borderRadius: pw.BorderRadius.circular(8)),
+                    child: pw.Image(logo, width: 26, height: 26),
+                  ),
+                  pw.SizedBox(width: 8),
+                  pw.Text(
+                    tr.appTitle,
+                    style: pw.TextStyle(color: PdfColors.white, fontSize: 11, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Spacer(),
+                  pw.Text(tr.exportIssued(longDate(todayIso())), style: const pw.TextStyle(color: heroSoft, fontSize: 8)),
+                ],
+              ),
+              pw.SizedBox(height: 16),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  pw.Expanded(
+                    flex: 5,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          tr.exportTitle,
+                          style: pw.TextStyle(color: PdfColors.white, fontSize: 20, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.SizedBox(height: 3),
+                        pw.Text(tr.exportPeriod(longDate(o.from), longDate(o.to)), style: const pw.TextStyle(color: heroSoft, fontSize: 9)),
+                        pw.Text('$accTitle · ${tr.exportCurrency(s.settings.currency)}', style: const pw.TextStyle(color: heroSoft, fontSize: 9)),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(width: 12),
+                  pw.Expanded(
+                    flex: 4,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Text(tr.exportClosing, style: const pw.TextStyle(color: heroSoft, fontSize: 8.5)),
+                        pw.SizedBox(height: 2),
+                        number(m(run), pw.TextStyle(color: PdfColors.white, fontSize: 22, fontWeight: pw.FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
+        pw.SizedBox(height: 10),
+        pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(horizontal: -4),
+          child: pw.Row(
+            children: [
+              kpi(tr.exportOpening, m(opening), ink),
+              kpi(tr.exportCredits, m(credit, signed: true), green),
+              kpi(tr.exportDebits, m(-debit, signed: true), red),
+            ],
+          ),
+        ),
+        if (moved > 0) ...[
+          pw.SizedBox(height: 10),
+          pw.ClipRRect(
+            horizontalRadius: 3,
+            verticalRadius: 3,
+            child: pw.Row(
+              children: [
+                if (credit > 0)
+                  pw.Expanded(
+                    flex: (credit / moved * 1000).round().clamp(1, 1000),
+                    child: pw.Container(height: 6, color: green),
+                  ),
+                if (debit > 0)
+                  pw.Expanded(
+                    flex: (debit / moved * 1000).round().clamp(1, 1000),
+                    child: pw.Container(height: 6, color: red),
+                  ),
+              ],
+            ),
+          ),
+        ],
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(top: 6),
+          child: pw.Text(
+            tr.exportPeriodSummary(m(sums.income), m(sums.expense), tr.opsCount(rows.length)),
+            style: const pw.TextStyle(fontSize: 8, color: muted),
+          ),
+        ),
+        if (o.categories && catRows.isNotEmpty) ...[section(tr.exportByCategory, side: m(sums.expense)), ...catRows.map(category)],
+        if (o.plans && o.account.isEmpty && s.goals.isNotEmpty) ...[section(tr.typeSave, side: m(s.totalSaved)), ...s.goals.map(goal)],
+        if (o.plans && o.account.isEmpty && s.debts.isNotEmpty) ...[section(tr.exportDebtsLoans), ...s.debts.map(debt)],
+        section(tr.exportJournal, side: tr.opsCount(rows.length)),
         if (rows.isEmpty)
           pw.Padding(
             padding: const pw.EdgeInsets.all(16),
@@ -304,79 +569,45 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
               child: pw.Text(tr.exportEmpty, style: const pw.TextStyle(color: muted)),
             ),
           )
-        else
-          table(
-            [tr.exportColDate, tr.exportColLabel, tr.exportColCategory, tr.exportColAccount, tr.exportColDebit, tr.exportColCredit, tr.exportColBalance],
-            rows,
-            footer: ['', tr.exportTotals, '', '', m(debit), m(credit), m(run)],
-            widths: {
-              0: const pw.FixedColumnWidth(48),
-              1: const pw.FlexColumnWidth(3),
-              2: const pw.FlexColumnWidth(1.6),
-              3: const pw.FlexColumnWidth(1.7),
-              4: const pw.FixedColumnWidth(64),
-              5: const pw.FixedColumnWidth(64),
-              6: const pw.FixedColumnWidth(68),
-            },
-            right: {4, 5, 6},
-            colors: {4: red, 5: green},
-          ),
-        if (o.categories && catRows.isNotEmpty) ...[
-          section(tr.exportByCategory),
-          table(
-            [tr.exportColCategory, tr.exportColAmount, tr.exportColShare, tr.exportColCap],
-            [
-              for (final r in catRows)
-                [
-                  s.group(r.key).name,
-                  m(r.value),
-                  tr.exportPercent('${(r.value / sums.expense * 100).round()}'),
-                  (s.catById(r.key)?.cap ?? 0) > 0 ? m(s.catById(r.key)!.cap) : '-',
-                ],
+        else ...[
+          pw.Row(
+            children: [
+              pw.Expanded(
+                child: pw.Text(tr.exportColLabel, style: const pw.TextStyle(fontSize: 7.5, color: muted)),
+              ),
+              pw.SizedBox(width: 8),
+              pw.SizedBox(
+                width: amountW,
+                child: pw.Text(
+                  tr.exportColAmount,
+                  textAlign: pw.TextAlign.right,
+                  style: const pw.TextStyle(fontSize: 7.5, color: muted),
+                ),
+              ),
+              pw.SizedBox(width: 10),
+              pw.SizedBox(
+                width: balanceW,
+                child: pw.Text(
+                  tr.exportColBalance,
+                  textAlign: pw.TextAlign.right,
+                  style: const pw.TextStyle(fontSize: 7.5, color: muted),
+                ),
+              ),
             ],
-            footer: [tr.exportTotal, m(sums.expense), tr.exportPercent('100'), ''],
-            right: {1, 2, 3},
           ),
-        ],
-        if (o.plans && o.account.isEmpty && s.goals.isNotEmpty) ...[
-          section(tr.typeSave),
-          table(
-            [tr.exportColGoal, tr.exportColSaved, tr.exportColTarget, tr.exportColProgress, tr.exportColTargetDate],
-            [
-              for (final g in s.goals)
-                [
-                  g.name,
-                  m(s.goalSaved(g)),
-                  g.target > 0 ? m(g.target) : '-',
-                  g.target > 0 ? tr.exportPercent('${(s.goalSaved(g) / g.target * 100).clamp(0, 100).round()}') : '-',
-                  g.deadline.isEmpty ? '-' : longDate(g.deadline),
-                ],
-            ],
-            right: {1, 2, 3},
-          ),
-        ],
-        if (o.plans && o.account.isEmpty && s.debts.isNotEmpty) ...[
-          section(tr.exportDebtsLoans),
-          table(
-            [tr.exportColPerson, tr.exportColDirection, tr.exportColAmount, tr.exportColRepaid, tr.exportColLeft, tr.exportColDue],
-            [
-              for (final d in s.debts)
-                [
-                  d.person,
-                  d.owe ? tr.exportIOwe : tr.exportOwedToMe,
-                  m(d.amount),
-                  m(d.amount - s.debtLeft(d)),
-                  s.debtLeft(d) > 0 ? m(s.debtLeft(d)) : tr.exportSettled,
-                  d.due.isEmpty ? '-' : longDate(d.due),
-                ],
-            ],
-            right: {2, 3, 4},
-          ),
+          ...journal,
         ],
       ],
     ),
   );
   return doc.save();
+}
+
+/// One line of the statement's journal.
+class _Row {
+  final String date, label, detail;
+  final double effect, balance;
+  const _Row(this.date, this.label, this.detail, this.effect, this.balance);
 }
 
 String statementFileName(AppState s, StatementOptions o) {

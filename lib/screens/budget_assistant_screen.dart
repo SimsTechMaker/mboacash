@@ -83,7 +83,9 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
               ],
             ),
           ),
-          Text(f.money(v), style: numStyle.copyWith(fontWeight: FontWeight.w600)),
+          FitNumber(
+            child: Text(f.money(v), style: numStyle.copyWith(fontWeight: FontWeight.w600)),
+          ),
         ],
       ),
     );
@@ -178,7 +180,7 @@ class _BudgetAssistantScreenState extends State<BudgetAssistantScreen> {
                             Icon(appIcon(s.group(e.key).icon), size: 18, color: slot(s.group(e.key).color)),
                             const SizedBox(width: 10),
                             Expanded(child: Text(s.group(e.key).name)),
-                            Text(f.money(e.value), style: numStyle),
+                            FitNumber(child: Text(f.money(e.value), style: numStyle)),
                           ],
                         ),
                       ),

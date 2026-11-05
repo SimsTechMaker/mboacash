@@ -72,7 +72,7 @@ extension Ctx on BuildContext {
   AppColors get c => Theme.of(this).extension<AppColors>()!;
 }
 
-const numStyle = TextStyle(fontFamily: 'IBMPlexMono', fontFeatures: [FontFeature.tabularFigures()]);
+const numStyle = TextStyle(fontFamily: 'IBMPlexSans', fontWeight: FontWeight.w500, fontFeatures: [FontFeature.tabularFigures()]);
 
 ThemeData buildTheme(Brightness b) {
   final c = b == Brightness.dark ? AppColors.dark : AppColors.light;

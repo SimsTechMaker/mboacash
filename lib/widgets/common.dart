@@ -83,6 +83,20 @@ class Label extends StatelessWidget {
   );
 }
 
+/// Keeps an amount on one line: it stays at its size and only shrinks when it
+/// would take more than [share] of the screen, leaving room for the label.
+class FitNumber extends StatelessWidget {
+  final Widget child;
+  final double share;
+  const FitNumber({super.key, required this.child, this.share = 0.46});
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * share),
+    child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: child),
+  );
+}
+
 class Money extends StatelessWidget {
   final double value;
   final bool signed;
@@ -91,9 +105,11 @@ class Money extends StatelessWidget {
   const Money(this.value, {super.key, this.signed = false, this.size = 15, this.color});
 
   @override
-  Widget build(BuildContext context) => Text(
-    fmtOf(context).money(value, signed: signed),
-    style: numStyle.copyWith(fontSize: size, color: color ?? context.c.ink, fontWeight: FontWeight.w500),
+  Widget build(BuildContext context) => FitNumber(
+    child: Text(
+      fmtOf(context).money(value, signed: signed),
+      style: numStyle.copyWith(fontSize: size, color: color ?? context.c.ink, fontWeight: FontWeight.w500),
+    ),
   );
 }
 
@@ -114,9 +130,12 @@ class AnimatedMoney extends StatelessWidget {
       tween: Tween(begin: 0, end: value),
       duration: const Duration(milliseconds: 650),
       curve: Curves.easeOutCubic,
-      builder: (_, v, _) => Text(
-        f.money(v, signed: signed),
-        style: numStyle.copyWith(fontSize: size, color: color ?? context.c.ink, fontWeight: weight),
+      builder: (_, v, _) => FitNumber(
+        share: size > 24 ? 0.9 : 0.46,
+        child: Text(
+          f.money(v, signed: signed),
+          style: numStyle.copyWith(fontSize: size, color: color ?? context.c.ink, fontWeight: weight),
+        ),
       ),
     );
   }
@@ -311,9 +330,11 @@ class TxTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              fmtOf(context).money(v.shown, signed: v.signed),
-              style: numStyle.copyWith(color: color, fontSize: 14),
+            FitNumber(
+              child: Text(
+                fmtOf(context).money(v.shown, signed: v.signed),
+                style: numStyle.copyWith(color: color, fontSize: 14.5, fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),

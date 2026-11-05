@@ -153,7 +153,11 @@ class OpsScreen extends StatelessWidget {
                       Builder(
                         builder: (_) {
                           final net = e.value.fold<double>(0, (a, t) => a + s.flow(t));
-                          return net == 0 ? const SizedBox() : Text(f.money(net, signed: true), style: numStyle.copyWith(color: context.c.muted, fontSize: 13));
+                          return net == 0
+                              ? const SizedBox()
+                              : FitNumber(
+                                  child: Text(f.money(net, signed: true), style: numStyle.copyWith(color: context.c.muted, fontSize: 13)),
+                                );
                         },
                       ),
                     ],

@@ -148,7 +148,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
                       leading: IconBadge(icon: _look(s, s.scheduled[i]).icon, color: slot(_look(s, s.scheduled[i]).color)),
                       title: Text(_look(s, s.scheduled[i]).title, maxLines: 1, overflow: TextOverflow.ellipsis),
                       subtitle: Text('${repeatName(l, s.scheduled[i].repeat)} · ${longDate(s.scheduled[i].next)}'),
-                      trailing: Text(f.money(s.scheduled[i].amount), style: numStyle),
+                      trailing: FitNumber(share: 0.36, child: Text(f.money(s.scheduled[i].amount), style: numStyle)),
                       onTap: () => openScheduledSheet(context, x: s.scheduled[i]),
                     ),
                   ],
@@ -263,7 +263,10 @@ class _ScheduledTile extends StatelessWidget {
       leading: IconBadge(icon: look.icon, color: slot(look.color)),
       title: Text(look.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(due ? longDate(date) : l.agendaPlanned),
-      trailing: Text(fmtOf(context).money(sign, signed: x.type != TxType.transfer), style: numStyle),
+      trailing: FitNumber(
+        share: 0.36,
+        child: Text(fmtOf(context).money(sign, signed: x.type != TxType.transfer), style: numStyle),
+      ),
       // Only the next occurrence can be confirmed: later ones wait their turn.
       onTap: () => date == x.next && date.compareTo(todayIso()) <= 0 ? openConfirmSheet(context, x) : openScheduledSheet(context, x: x),
     );

@@ -438,7 +438,7 @@
   "exportColShare": "Part",
   "exportColTarget": "Cible",
   "exportColTargetDate": "Date visée",
-  "exportCredits": "Total crédits",
+  "exportCredits": "Entrées",
   "exportCsvSubject": "Export my-nkap",
   "exportCurrency": "Devise : {currency}",
   "@exportCurrency": {
@@ -448,7 +448,7 @@
       }
     }
   },
-  "exportDebits": "Total débits",
+  "exportDebits": "Sorties",
   "exportDebtsLoans": "Dettes et prêts",
   "exportEmpty": "Aucune opération sur cette période.",
   "exportFileName": "releve-{from}-au-{to}",
@@ -482,6 +482,7 @@
       }
     }
   },
+  "exportJournal": "Journal des opérations",
   "exportOpening": "Solde d'ouverture",
   "exportOwedToMe": "On me doit",
   "exportPage": "Page {page} / {pages}",
@@ -1675,7 +1676,7 @@
   "statsTabAnalyses": "Analyses",
   "statsTabFigures": "Chiffres",
   "statsTopExpenses": "Plus grosses dépenses",
-  "statsVsPrevMonth": "dépenses vs période précédente",
+  "statsVsPrevMonth": "vs période précédente",
   "statsWhereEmpty": "Les dépenses de la période apparaîtront ici, réparties par catégorie.",
   "statsWhereMoneyGoes": "Où part l'argent",
   "sumAccountOnly": "Toutes tes dépenses passent par {account}.",

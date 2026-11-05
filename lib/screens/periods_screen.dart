@@ -114,7 +114,9 @@ class PeriodsScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(f.money(history[i].closing), style: numStyle.copyWith(fontWeight: FontWeight.w600)),
+                        FitNumber(
+                          child: Text(f.money(history[i].closing), style: numStyle.copyWith(fontWeight: FontWeight.w600)),
+                        ),
                         Text(l.periodLeft, style: TextStyle(color: context.c.muted, fontSize: 11.5)),
                       ],
                     ),
@@ -224,9 +226,11 @@ Widget _line(BuildContext context, String label, double value, {bool signed = fa
       Expanded(
         child: Text(label, style: TextStyle(fontWeight: strong ? FontWeight.w600 : FontWeight.w400)),
       ),
-      Text(
-        fmtOf(context).money(value, signed: signed),
-        style: numStyle.copyWith(fontWeight: strong ? FontWeight.w600 : FontWeight.w500),
+      FitNumber(
+        child: Text(
+          fmtOf(context).money(value, signed: signed),
+          style: numStyle.copyWith(fontWeight: strong ? FontWeight.w600 : FontWeight.w500),
+        ),
       ),
     ],
   ),

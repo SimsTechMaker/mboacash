@@ -1313,7 +1313,7 @@ abstract class AppLocalizations {
   /// No description provided for @exportCredits.
   ///
   /// In fr, this message translates to:
-  /// **'Total crédits'**
+  /// **'Entrées'**
   String get exportCredits;
 
   /// No description provided for @exportCsvSubject.
@@ -1331,7 +1331,7 @@ abstract class AppLocalizations {
   /// No description provided for @exportDebits.
   ///
   /// In fr, this message translates to:
-  /// **'Total débits'**
+  /// **'Sorties'**
   String get exportDebits;
 
   /// No description provided for @exportDebtsLoans.
@@ -1369,6 +1369,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Édité le {date}'**
   String exportIssued(String date);
+
+  /// No description provided for @exportJournal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Journal des opérations'**
+  String get exportJournal;
 
   /// No description provided for @exportOpening.
   ///
@@ -4265,7 +4271,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsVsPrevMonth.
   ///
   /// In fr, this message translates to:
-  /// **'dépenses vs période précédente'**
+  /// **'vs période précédente'**
   String get statsVsPrevMonth;
 
   /// No description provided for @statsWhereEmpty.

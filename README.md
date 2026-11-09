@@ -13,6 +13,9 @@ internet n'est utilisé que lorsque l'utilisateur lance une synchronisation Goog
   et le résumé de chaque période fermée est gardé
 - Agenda : dépenses et revenus programmés, confirmés à la date prévue
 - Résumé intelligent : quand je dépense le plus, habitudes, petites dépenses, comparaison entre périodes…
+- Logique de trésorerie : les dépenses ne comptent que la consommation ; l'épargne, les prêts et les
+  dettes sont des déplacements d'argent, montrés à part. Disponible = début de période + revenus
+  − dépenses ± épargne ± prêts et dettes ± corrections
 - Comptes d'épargne et suivi des dettes (« je dois » / « on me doit ») ; l'épargne et les dettes
   comptent comme revenus ou dépenses selon le sens, hors budget
 - Assistant local : catégorie devinée d'après la note, opérations récurrentes, conseils mensuels,

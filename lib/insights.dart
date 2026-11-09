@@ -466,8 +466,16 @@ class Insights {
       }
     }
     // Savings habit.
-    final saved = s.periodTxs(p).where((t) => t.type == TxType.save).fold(0.0, (a, t) => a - t.dir * t.amount);
-    final avgSaved = avg['save'] ?? 0;
+    double savedIn(Period q) => s.periodTxs(q).where((t) => t.type == TxType.save).fold(0.0, (a, t) => a - t.dir * t.amount);
+    final saved = savedIn(p);
+    var past = p, sum = 0.0, n = 0;
+    for (var k = 0; k < 3; k++) {
+      past = s.previousPeriod(past);
+      if (s.periodTxs(past).isEmpty) continue;
+      sum += savedIn(past);
+      n++;
+    }
+    final avgSaved = n == 0 ? 0.0 : sum / n;
     if (s.goals.isNotEmpty && saved <= 0 && avgSaved > 0 && current && elapsed * 3 >= days) {
       out.add(Insight(Tone.info, 'piggy-bank', tr.insNoSavingTitle, tr.insNoSavingText(money(avgSaved)), cat: 'save', weight: avgSaved));
     }

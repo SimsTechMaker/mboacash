@@ -698,6 +698,30 @@ abstract class AppLocalizations {
   /// **'Annuler'**
   String get cancel;
 
+  /// No description provided for @cashCarried.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au début de la période'**
+  String get cashCarried;
+
+  /// No description provided for @cashDebts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prêts et dettes'**
+  String get cashDebts;
+
+  /// No description provided for @cashFromSavings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repris de l\'épargne'**
+  String get cashFromSavings;
+
+  /// No description provided for @cashSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mis de côté (épargne)'**
+  String get cashSaved;
+
   /// No description provided for @catsByCategory.
   ///
   /// In fr, this message translates to:
@@ -2561,7 +2585,7 @@ abstract class AppLocalizations {
   /// No description provided for @opsForecastBalance.
   ///
   /// In fr, this message translates to:
-  /// **' · solde ≈ '**
+  /// **' · disponible ≈ '**
   String get opsForecastBalance;
 
   /// No description provided for @opsForecastDay.

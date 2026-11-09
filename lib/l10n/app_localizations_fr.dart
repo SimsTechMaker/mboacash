@@ -363,6 +363,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cancel => 'Annuler';
 
   @override
+  String get cashCarried => 'Au début de la période';
+
+  @override
+  String get cashDebts => 'Prêts et dettes';
+
+  @override
+  String get cashFromSavings => 'Repris de l\'épargne';
+
+  @override
+  String get cashSaved => 'Mis de côté (épargne)';
+
+  @override
   String get catsByCategory => 'Par catégorie';
 
   @override
@@ -1545,7 +1557,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get opsFilterAll => 'Tout';
 
   @override
-  String get opsForecastBalance => ' · solde ≈ ';
+  String get opsForecastBalance => ' · disponible ≈ ';
 
   @override
   String opsForecastDay(int day, int days) {

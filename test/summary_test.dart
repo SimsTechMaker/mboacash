@@ -47,7 +47,7 @@ SmartSummary _sum(AppState s, {Period range = _october, Period? previous, String
 void main() {
   setUpAll(() => initializeDateFormatting());
 
-  test('savings, transfers and adjustments are not spending', () {
+  test('savings, debts, transfers and adjustments are not spending', () {
     final s = _state([
       _out(10000, '2026-10-05'),
       _tx(TxType.save, 50000, '2026-10-06', dir: -1, note: 'tontine'),
@@ -58,10 +58,10 @@ void main() {
       _tx(TxType.debt, 4000, '2026-10-11', dir: -1),
     ]);
     final x = _sum(s);
-    expect(x.spent, 14000);
-    expect(x.categories.map((c) => c.key), ['alim', 'debt']);
-    expect(x.byWeekday.reduce((a, b) => a + b), 14000);
-    expect(x.biggest.map((t) => t.amount), [10000, 4000]);
+    expect(x.spent, 10000);
+    expect(x.categories.map((c) => c.key), ['alim']);
+    expect(x.byWeekday.reduce((a, b) => a + b), 10000);
+    expect(x.biggest.map((t) => t.amount), [10000]);
     expect(x.habits, isEmpty);
   });
 
@@ -239,7 +239,7 @@ void main() {
       ]),
     );
     expect(x.netSaved, 30000);
-    expect(x.savingsRate, closeTo(80000 / 110000, 1e-9));
+    expect(x.savingsRate, closeTo(80000 / 100000, 1e-9)); // income not consumed
     expect(_sum(_state([_out(1000, '2026-10-02')])).savingsRate, isNull);
   });
 

@@ -152,7 +152,8 @@ class OpsScreen extends StatelessWidget {
                       const Spacer(),
                       Builder(
                         builder: (_) {
-                          final net = e.value.fold<double>(0, (a, t) => a + s.flow(t));
+                          // What the day did to the money available, every kind of movement included.
+                          final net = e.value.fold<double>(0, (a, t) => a + s.effects(t).fold(0.0, (b, x) => b + x.delta));
                           return net == 0
                               ? const SizedBox()
                               : FitNumber(
@@ -173,6 +174,49 @@ class OpsScreen extends StatelessWidget {
             ],
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// Carried over, income, expenses and money moved: the lines that take the
+/// period's start to the money available. Moves only show when there are some.
+class _CashLines extends StatelessWidget {
+  final double carried, income, expense;
+  final ({double savings, double debts, double adjust}) moves;
+  final Color color, soft;
+  const _CashLines({required this.carried, required this.income, required this.expense, required this.moves, required this.color, required this.soft});
+
+  @override
+  Widget build(BuildContext context) {
+    final f = fmtOf(context);
+    final l = context.l;
+    Widget line(String icon, String label, double v, {bool signed = true}) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.5),
+      child: Row(
+        children: [
+          Icon(appIcon(icon), size: 15, color: soft),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(label, style: TextStyle(color: soft, fontSize: 13)),
+          ),
+          FitNumber(
+            child: Text(
+              f.money(v, signed: signed),
+              style: numStyle.copyWith(color: color, fontSize: 13.5, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+    return Column(
+      children: [
+        line('history', l.cashCarried, carried, signed: false),
+        line('arrow-down-left', l.totalsIncome, income),
+        line('arrow-up-right', l.totalsExpenses, -expense),
+        if (moves.savings != 0) line('piggy-bank', moves.savings < 0 ? l.cashSaved : l.cashFromSavings, moves.savings),
+        if (moves.debts != 0) line('handshake', l.cashDebts, moves.debts),
+        if (moves.adjust != 0) line('sliders-horizontal', l.periodAdjust, moves.adjust),
       ],
     );
   }
@@ -250,7 +294,6 @@ class _Hero extends StatelessWidget {
     final s = context.watch<AppState>();
     final f = fmtOf(context);
     final sum = s.sums(month);
-    final bal = sum.income - sum.expense;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final top = dark ? const Color(0xFF1F5E4D) : const Color(0xFF1D6A56);
     final bottom = dark ? const Color(0xFF123B30) : const Color(0xFF124A3C);
@@ -260,32 +303,6 @@ class _Hero extends StatelessWidget {
     final spent = s.budgetSpent(month);
     final pct = b > 0 ? spent / b : 0.0;
     final l = context.l;
-
-    Widget total(String label, String icon, double v) => Expanded(
-      child: Row(
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(9)),
-            child: Icon(appIcon(icon), size: 16, color: white),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: TextStyle(color: soft, fontSize: 12)),
-                FittedBox(
-                  alignment: Alignment.centerLeft,
-                  child: AnimatedMoney(v, size: 15, color: white),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
 
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -303,34 +320,18 @@ class _Hero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Like a cash-flow statement: one figure, and how it came about.
           Text(
-            l.opsHeroBalance,
+            l.periodAvailable.toUpperCase(),
             style: TextStyle(color: soft, fontSize: 11, letterSpacing: 1, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           FittedBox(
             alignment: Alignment.centerLeft,
-            child: AnimatedMoney(bal, signed: true, size: 30, color: white, weight: FontWeight.w600),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [total(l.totalsIncome, 'arrow-down-left', sum.income), const SizedBox(width: 10), total(l.totalsExpenses, 'arrow-up-right', sum.expense)],
+            child: AnimatedMoney(s.spendableAt(s.view.end), size: 30, color: white, weight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
-          // What the previous period left is never lost from sight.
-          Row(
-            children: [
-              total(l.periodCarried, 'history', s.carriedInto(s.view)),
-              const SizedBox(width: 10),
-              total(l.periodAvailable, 'wallet', s.spendableAt(s.view.end)),
-            ],
-          ),
-          // Corrections of a balance move the money available without being
-          // income or expenses: shown so the card always adds up.
-          if (s.otherMoves(s.view) != 0) ...[
-            const SizedBox(height: 8),
-            Text(l.periodAdjustLine(f.money(s.otherMoves(s.view), signed: true)), style: TextStyle(color: soft, fontSize: 12)),
-          ],
+          _CashLines(carried: s.carriedInto(s.view), income: sum.income, expense: sum.expense, moves: s.movesIn(s.view), color: white, soft: soft),
           const SizedBox(height: 16),
           if (b > 0) ...[
             Row(
@@ -410,7 +411,9 @@ class _ForecastCard extends StatelessWidget {
     final fc = forecast;
     final b = s.settings.budget;
     final over = b > 0 && fc.budgetProjected > b;
-    final bal = fc.projectedBalance;
+    // The money available at the end of the period: today's figure, plus the
+    // income still expected, minus the spending still expected.
+    final bal = s.spendableAt(s.openPeriod.end) + (fc.projectedIncome - fc.income) - (fc.projectedExpense - fc.spent);
     final l = context.l;
     return Panel(
       padding: const EdgeInsets.all(14),
@@ -434,7 +437,7 @@ class _ForecastCard extends StatelessWidget {
                       ),
                       TextSpan(text: l.opsForecastBalance),
                       TextSpan(
-                        text: f.money(bal, signed: true),
+                        text: f.money(bal),
                         style: numStyle.copyWith(fontWeight: FontWeight.w600, color: bal < 0 ? context.c.expense : context.c.income),
                       ),
                     ],

@@ -207,6 +207,10 @@
   },
   "backupWrongCode": "Code incorrect pour cette sauvegarde. Il faut le code qui était actif au moment où elle a été faite.",
   "cancel": "Annuler",
+  "cashCarried": "Au début de la période",
+  "cashDebts": "Prêts et dettes",
+  "cashFromSavings": "Repris de l'épargne",
+  "cashSaved": "Mis de côté (épargne)",
   "catsByCategory": "Par catégorie",
   "catsCap": "plafond {amount}",
   "@catsCap": {
@@ -1068,7 +1072,7 @@
     }
   },
   "opsFilterAll": "Tout",
-  "opsForecastBalance": " · solde ≈ ",
+  "opsForecastBalance": " · disponible ≈ ",
   "opsForecastDay": "Jour {day} sur {days}, d'après ton rythme et tes habitudes.",
   "@opsForecastDay": {
     "placeholders": {

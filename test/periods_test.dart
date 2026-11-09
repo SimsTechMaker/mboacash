@@ -50,15 +50,16 @@ void main() {
     expect(s.carriedInto(next), s.spendableAt(s.view.end));
   });
 
-  test('savings leave the money you can use and count as an expense', () {
+  test('savings leave the money you can use without being an expense', () {
     final s = _state([_tx(TxType.income, 100000, '2026-10-26', cat: 'salaire'), _tx(TxType.save, 30000, '2026-10-27', dir: -1, goal: 'g1')]);
     s.goals = [Goal(id: 'g1', name: 'Urgence')];
     expect(s.spendable, 70000);
     expect(s.goalSaved(s.goals.first), 30000);
-    expect(s.sums(s.txs).expense, 30000);
+    expect(s.sums(s.txs).expense, 0);
+    expect(s.movesIn(const Period('2026-10-27', '2026-10-27')).savings, -30000);
     s.txs = [...s.txs, _tx(TxType.save, 10000, '2026-10-28', dir: 1, goal: 'g1')];
     expect(s.spendableAt('2026-10-28'), 80000);
-    expect(s.sums(s.periodTxs(const Period('2026-10-28', '2026-10-28'))).income, 10000);
+    expect(s.movesIn(const Period('2026-10-28', '2026-10-28')).savings, 10000);
   });
 
   test('the summary of a period holds its figures', () {
@@ -69,7 +70,7 @@ void main() {
       _tx(TxType.save, 10000, '2026-11-03', dir: -1, goal: 'g'),
     ]);
     final c = s.summarize(s.openPeriod);
-    expect((c.opening, c.income, c.expense, c.saved, c.closing, c.count), (50000.0, 80000.0, 30000.0, 10000.0, 100000.0, 3));
+    expect((c.opening, c.income, c.expense, c.saved, c.closing, c.count), (50000.0, 80000.0, 20000.0, 10000.0, 100000.0, 3));
     expect(c.top, contains('20000'));
   });
 

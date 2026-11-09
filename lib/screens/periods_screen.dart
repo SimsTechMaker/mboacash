@@ -246,21 +246,22 @@ class _Summary extends StatelessWidget {
     final l = context.l;
     final f = fmtOf(context);
     final top = (jsonDecode(c.top) as List).cast<List>();
+    // Kept up to date with the movements (see AppState._refreshClosed).
+    final m = context.watch<AppState>().movesIn(c.period);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Panel(
           child: Column(
             children: [
-              _line(context, l.periodCarried, c.opening),
+              _line(context, l.cashCarried, c.opening),
               _line(context, l.totalsIncome, c.income, signed: true),
               _line(context, l.totalsExpenses, -c.expense, signed: true),
-              // Whatever is left once the above is counted: balance corrections.
-              if ((c.closing - c.opening - c.income + c.expense).abs() > 0.5)
-                _line(context, l.periodAdjust, c.closing - c.opening - c.income + c.expense, signed: true),
+              if (m.savings != 0) _line(context, m.savings < 0 ? l.cashSaved : l.cashFromSavings, m.savings, signed: true),
+              if (m.debts != 0) _line(context, l.cashDebts, m.debts, signed: true),
+              if (m.adjust != 0) _line(context, l.periodAdjust, m.adjust, signed: true),
               const Divider(),
               _line(context, l.periodLeft, c.closing, strong: true),
-              if (c.saved != 0) _line(context, l.periodSaved2, c.saved),
               if (c.budget > 0) _line(context, l.periodBudgetSpent(f.money(c.budget)), c.spent),
             ],
           ),

@@ -64,6 +64,8 @@ class AppState extends ChangeNotifier {
     debts = await store.loadDebts();
     scheduled = await store.loadScheduled();
     closed = await store.loadPeriods();
+    // Summaries stored under earlier counting rules are brought up to date.
+    await _refreshClosed('');
     view = openPeriod;
     ready = true;
     _changed();
@@ -90,17 +92,36 @@ class AppState extends ChangeNotifier {
 
   List<Tx> periodTxs(Period p) => _periodCache[p.key] ??= List.unmodifiable(txs.where((t) => p.contains(t.date)));
 
-  /// What a movement adds to the period's income (> 0) or expenses (< 0).
-  /// Savings and debts count by direction when real money moves: putting
-  /// aside or lending is an expense, taking back, borrowing or being repaid is
-  /// income. Transfers, adjustments and debts kept "outside my accounts" don't.
+  /// What a movement adds to income (> 0) or expenses (< 0): only what is
+  /// really earned or consumed. Money moved to savings, lent, borrowed or
+  /// repaid is not spent or earned, only moved: see [movesIn].
   double flow(Tx t) => switch (t.type) {
     TxType.income => t.amount,
     TxType.expense => -t.amount,
-    TxType.save => t.dir * t.amount,
-    TxType.debt => accountOf(t).isEmpty ? 0 : t.dir * t.amount,
     _ => 0,
   };
+
+  /// What a movement does to the money available, by kind.
+  double _cash(Tx t) => effects(t).fold(0.0, (a, e) => a + e.delta);
+
+  /// The money moved in [p] without being earned or spent, as it changed the
+  /// money available: savings (< 0 when put aside), loans and debts, and
+  /// balance corrections. Transfers between accounts change nothing.
+  ({double savings, double debts, double adjust}) movesIn(Period p) {
+    double sv = 0, db = 0, ad = 0;
+    for (final t in periodTxs(p)) {
+      switch (t.type) {
+        case TxType.save:
+          sv += _cash(t);
+        case TxType.debt:
+          db += _cash(t);
+        case TxType.adjust:
+          ad += _cash(t);
+        default:
+      }
+    }
+    return (savings: sv, debts: db, adjust: ad);
+  }
 
   /// Grouping key for per-category totals: the category id, or 'save'/'debt'.
   String flowKey(Tx t) => t.type == TxType.income || t.type == TxType.expense ? t.cat : typeCode(t.type);
@@ -177,9 +198,12 @@ class AppState extends ChangeNotifier {
   /// The money a period starts with: what the previous one left.
   double carriedInto(Period p) => spendableAt(shiftDays(p.start, -1));
 
-  /// Balance corrections in [p]: neither income nor expense, but they move
-  /// the money available, so they get their own line wherever totals add up.
-  double otherMoves(Period p) => periodTxs(p).where((t) => t.type == TxType.adjust).fold(0.0, (a, t) => a + effects(t).fold(0.0, (b, e) => b + e.delta));
+  /// Everything in [movesIn] together: with income and expenses, it takes
+  /// the money carried over to the money available.
+  double otherMoves(Period p) {
+    final m = movesIn(p);
+    return m.savings + m.debts + m.adjust;
+  }
 
   /// What [acc] would hold after a change of [delta], [replacing] an existing
   /// movement when it is being edited.
@@ -309,7 +333,7 @@ class AppState extends ChangeNotifier {
     final sum = sums(list);
     final by = <String, double>{};
     for (final t in list) {
-      if (flow(t) < 0 && t.type != TxType.save) by[flowKey(t)] = (by[flowKey(t)] ?? 0) - flow(t);
+      if (flow(t) < 0) by[flowKey(t)] = (by[flowKey(t)] ?? 0) - flow(t);
     }
     final top = by.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return ClosedPeriod(

@@ -32,10 +32,8 @@ class _StatsScreenState extends State<StatsScreen> {
     final sum = s.sums(list);
     final today = todayIso();
     final days = s.view.contains(today) ? Period(s.view.start, today).days : s.view.days;
-    // Money put into savings counts as an expense in the totals, but it is
-    // still saved: add it back for the savings rate.
-    final savedNet = list.where((t) => t.type == TxType.save).fold<double>(0, (a, t) => a - t.dir * t.amount);
-    final rate = sum.income > 0 ? (sum.income - sum.expense + savedNet) / sum.income : null;
+    // The share of income not consumed: kept on the accounts or put aside.
+    final rate = sum.income > 0 ? (sum.income - sum.expense) / sum.income : null;
 
     final out = list.where((t) => s.flow(t) < 0).toList();
     final by = <String, double>{};

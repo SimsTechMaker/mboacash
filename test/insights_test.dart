@@ -16,7 +16,7 @@ Tx _tx(TxType type, double amount, String date, {String cat = '', int dir = 1, S
     Tx(id: newId(), type: type, amount: amount, cat: cat.isEmpty ? typeCode(type) : cat, account: account, dir: dir, date: date, note: note);
 
 void main() {
-  test('savings and debts count as income or expense, outside the budget', () {
+  test('only what is earned or consumed counts as income or expense', () {
     final s = _state([
       _tx(TxType.income, 100000, '2026-10-01', cat: 'salaire'),
       _tx(TxType.expense, 20000, '2026-10-02', cat: 'alim'),
@@ -27,9 +27,12 @@ void main() {
       _tx(TxType.transfer, 50000, '2026-10-07'),
     ]);
     final sum = s.sums(s.txs);
-    expect(sum.income, 105000);
-    expect(sum.expense, 60000);
+    expect(sum.income, 100000);
+    expect(sum.expense, 20000);
     expect(s.budgetSpent(s.txs), 20000);
+    // Savings and the debt moved money without being earned or spent.
+    final m = s.movesIn(const Period('2026-10-01', '2026-10-31'));
+    expect((m.savings, m.debts, m.adjust), (-25000.0, -10000.0, 0.0));
   });
 
   test('CSV round trip: parse quotes and both separators', () {

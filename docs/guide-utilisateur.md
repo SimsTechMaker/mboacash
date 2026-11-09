@@ -18,16 +18,15 @@ d'autre n'y a accès, pas même la personne qui t'a donné l'application.
 - **Plus › Paramètres** : tes catégories et leurs icônes, tes comptes, ta devise, ton budget mensuel,
   le mode nuit et la langue (français ou anglais ; par défaut, celle du téléphone).
 - **Plus › Épargne** et **Plus › Dettes** : tes objectifs, et l'argent prêté ou emprunté. Mettre de
-  côté, prêter ou rembourser compte comme une dépense ; retirer de l'épargne, emprunter ou être
-  remboursé compte comme un revenu. Ces mouvements ne comptent pas dans le budget.
+  côté, prêter ou rembourser n'est pas une dépense : c'est de l'argent déplacé. Sur l'accueil, il
+  apparaît sur sa propre ligne, entre tes dépenses et ce qui te reste. Il ne compte pas dans le budget.
 - **Plus › Périodes budgétaires** : choisis ton rythme (2 semaines, mois, trimestre, semestre ou dates
   libres) et le jour où ta période commence, par exemple le jour de ta paie. À la fin, l'app te prévient :
   vois ton bilan et ferme la période. L'argent restant est reporté sur la suivante et le résumé reste
   dans l'historique.
 - **Agenda** (icône calendrier sur l'accueil) : programme une dépense ou un revenu, une fois ou de façon
   répétée. Le jour venu, tu confirmes : rien n'est compté avant ta confirmation.
-- **Comptes d'épargne** : mettre de l'argent en épargne compte comme une dépense, et l'**argent utilisable**
-  n'inclut pas l'épargne. Pour dépenser cet argent, transfère-le d'abord vers un compte normal.
+- **Comptes d'épargne** : l'**argent utilisable** n'inclut pas l'épargne. Pour dépenser cet argent, transfère-le d'abord vers un compte normal.
 - **Résumé** : choisis une analyse (moments où tu dépenses le plus, habitudes, petites dépenses…) et
   la durée à étudier.
 - **Justificatif** : dans une opération, touche **Ajouter un justificatif** pour joindre la photo d'un

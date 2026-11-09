@@ -397,10 +397,10 @@ class SmartSummary {
   /// Money put aside for the goals, minus what was taken back.
   late final double netSaved = txs.where((t) => t.type == TxType.save).fold(0.0, (a, t) => a - t.dir * t.amount);
 
-  /// Income left after real spending, savings being still money kept.
+  /// Income not consumed: kept on the accounts or put aside.
   double get _kept {
     final sum = s.sums(txs);
-    return sum.income - sum.expense + netSaved;
+    return sum.income - sum.expense;
   }
 
   /// Same figure as on the Statistics screen; null without income.

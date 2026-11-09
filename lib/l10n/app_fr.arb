@@ -480,6 +480,18 @@
   "defCatTelephone": "Téléphone et internet",
   "defCatTransport": "Transport",
   "delete": "Supprimer",
+  "deliverSave": "Enregistrer sur le téléphone",
+  "deliverSaveSub": "Choisis le dossier : Téléchargements, Documents…",
+  "deliverSaved": "{name} enregistré",
+  "@deliverSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deliverShare": "Partager",
+  "deliverShareSub": "WhatsApp, e-mail, Drive…",
   "dupText": "Une opération identique existe le {date} ({amount}, {category}). L'enregistrer quand même ?",
   "@dupText": {
     "placeholders": {

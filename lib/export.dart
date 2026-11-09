@@ -8,14 +8,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import 'format.dart';
 import 'i18n.dart';
 import 'models.dart';
-import 'security.dart';
 import 'state.dart';
 import 'widgets/common.dart';
+import 'widgets/deliver.dart';
 
 // ---------------------------------------------------------------------------
 // CSV
@@ -23,7 +22,6 @@ import 'widgets/common.dart';
 
 Future<void> exportCsv(BuildContext context) async {
   final s = context.read<AppState>();
-  final lock = context.read<LockService>();
   final f = Fmt(s.settings.currency);
   const types = {
     TxType.income: 'revenu',
@@ -68,17 +66,8 @@ Future<void> exportCsv(BuildContext context) async {
   }
   String cell(String v) => RegExp(r'[";\n]').hasMatch(v) ? '"${v.replaceAll('"', '""')}"' : v;
   final csv = '﻿${rows.map((r) => r.map(cell).join(';')).join('\n')}';
-  final dir = await getTemporaryDirectory();
-  final file = File('${dir.path}/my-nkap-${todayIso()}.csv');
-  await file.writeAsString(csv, encoding: utf8);
-  await lock.withoutLock(
-    () => SharePlus.instance.share(
-      ShareParams(
-        files: [XFile(file.path, mimeType: 'text/csv')],
-        subject: tr.exportCsvSubject,
-      ),
-    ),
-  );
+  if (!context.mounted) return;
+  await deliverFile(context, bytes: utf8.encode(csv), name: 'my-nkap-${todayIso()}.csv', mime: 'text/csv', subject: tr.exportCsvSubject);
 }
 
 /// Exports and shared PDFs are written in plain text to the app's cache so the

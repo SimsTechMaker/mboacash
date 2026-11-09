@@ -1292,6 +1292,36 @@ abstract class AppLocalizations {
   /// **'Supprimer'**
   String get delete;
 
+  /// No description provided for @deliverSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer sur le téléphone'**
+  String get deliverSave;
+
+  /// No description provided for @deliverSaveSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis le dossier : Téléchargements, Documents…'**
+  String get deliverSaveSub;
+
+  /// No description provided for @deliverSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} enregistré'**
+  String deliverSaved(String name);
+
+  /// No description provided for @deliverShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager'**
+  String get deliverShare;
+
+  /// No description provided for @deliverShareSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'WhatsApp, e-mail, Drive…'**
+  String get deliverShareSub;
+
   /// No description provided for @dupText.
   ///
   /// In fr, this message translates to:

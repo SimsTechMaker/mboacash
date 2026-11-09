@@ -11,6 +11,7 @@ import '../security.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/deliver.dart';
 
 enum _Period { current, previous, year, custom }
 
@@ -73,13 +74,11 @@ class _StatementScreenState extends State<StatementScreen> {
     try {
       final bytes = await buildStatement(s, o);
       final name = statementFileName(s, o);
-      await lock.withoutLock(() async {
-        if (print) {
-          await Printing.layoutPdf(onLayout: (_) async => bytes, name: name);
-        } else {
-          await Printing.sharePdf(bytes: bytes, filename: name);
-        }
-      });
+      if (print) {
+        await lock.withoutLock(() => Printing.layoutPdf(onLayout: (_) async => bytes, name: name));
+      } else if (mounted) {
+        await deliverFile(context, bytes: bytes, name: name, mime: 'application/pdf', subject: tr.exportPdfDocTitle);
+      }
     } catch (e) {
       if (mounted) toast(context, context.l.statementPdfFailed);
     } finally {

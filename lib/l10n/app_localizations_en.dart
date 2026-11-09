@@ -729,6 +729,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String get deliverSave => 'Save on the phone';
+
+  @override
+  String get deliverSaveSub => 'Pick the folder: Downloads, Documents…';
+
+  @override
+  String deliverSaved(String name) {
+    return '$name saved';
+  }
+
+  @override
+  String get deliverShare => 'Share';
+
+  @override
+  String get deliverShareSub => 'WhatsApp, email, Drive…';
+
+  @override
   String dupText(String date, String amount, String category) {
     return 'An identical transaction exists on $date ($amount, $category). Save it anyway?';
   }

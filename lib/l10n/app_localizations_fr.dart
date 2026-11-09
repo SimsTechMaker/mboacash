@@ -731,6 +731,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get delete => 'Supprimer';
 
   @override
+  String get deliverSave => 'Enregistrer sur le téléphone';
+
+  @override
+  String get deliverSaveSub =>
+      'Choisis le dossier : Téléchargements, Documents…';
+
+  @override
+  String deliverSaved(String name) {
+    return '$name enregistré';
+  }
+
+  @override
+  String get deliverShare => 'Partager';
+
+  @override
+  String get deliverShareSub => 'WhatsApp, e-mail, Drive…';
+
+  @override
   String dupText(String date, String amount, String category) {
     return 'Une opération identique existe le $date ($amount, $category). L\'enregistrer quand même ?';
   }

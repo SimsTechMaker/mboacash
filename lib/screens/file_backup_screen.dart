@@ -1,11 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../backup.dart';
 import '../i18n.dart';
@@ -15,6 +12,7 @@ import '../security.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/deliver.dart';
 
 /// A complete backup in one password-protected file (everything, proof photos
 /// included), saved or sent wherever the user likes. No Google account and no
@@ -46,20 +44,10 @@ class _FileBackupScreenState extends State<FileBackupScreen> {
     final password = await _askPassword(context, confirm: true);
     if (password == null || !mounted) return;
     final s = context.read<AppState>();
-    final lock = context.read<LockService>();
     await _busy(() async {
       final bytes = await DriveBackup.sealWithPassword(utf8.encode(jsonEncode(await s.fullSnapshot())), password);
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/my-nkap-${todayIso()}.nkap');
-      await file.writeAsBytes(bytes, flush: true);
-      await lock.withoutLock(
-        () => SharePlus.instance.share(
-          ShareParams(
-            files: [XFile(file.path, mimeType: 'application/octet-stream')],
-            subject: tr.fileBackupSubject,
-          ),
-        ),
-      );
+      if (!mounted) return;
+      await deliverFile(context, bytes: bytes, name: 'my-nkap-${todayIso()}.nkap', mime: 'application/octet-stream', subject: tr.fileBackupSubject);
     });
   }
 

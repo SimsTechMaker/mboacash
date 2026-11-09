@@ -121,7 +121,7 @@ ThemeData buildTheme(Brightness b) {
       labelTextStyle: WidgetStateProperty.resolveWith(
         (s) => TextStyle(
           fontFamily: 'IBMPlexSans',
-          fontSize: 11.5,
+          fontSize: 12,
           fontWeight: s.contains(WidgetState.selected) ? FontWeight.w600 : FontWeight.w500,
           color: s.contains(WidgetState.selected) ? c.accent : c.muted,
         ),

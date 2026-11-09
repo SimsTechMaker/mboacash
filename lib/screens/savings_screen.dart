@@ -136,7 +136,7 @@ class _GoalCard extends StatelessWidget {
                           const SizedBox(width: 6),
                           Text(
                             context.l.savingsSampleTag,
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: context.c.warn),
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: context.c.warn),
                           ),
                         ],
                       ],

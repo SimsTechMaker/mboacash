@@ -224,7 +224,7 @@ class _MonthGrid extends StatelessWidget {
                 child: Text(
                   names.format(DateTime(2026, 1, 5 + i)),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: context.c.muted, fontSize: 11.5),
+                  style: TextStyle(color: context.c.muted, fontSize: 12),
                 ),
               ),
           ],

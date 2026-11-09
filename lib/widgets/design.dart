@@ -6,22 +6,16 @@ import '../icons.dart';
 import '../theme.dart';
 import 'common.dart';
 
-/// Shared visual building blocks so every page follows the home screen's look:
-/// a gradient summary card on top, titled sections, soft cards below.
+/// Shared visual building blocks so every page follows the same look: a flat
+/// summary card in the brand colour on top, titled sections, soft cards below.
 
 enum HeroTone { green, blue, amber, plum }
 
-List<Color> heroColors(BuildContext context, HeroTone tone) {
-  final dark = Theme.of(context).brightness == Brightness.dark;
-  return switch (tone) {
-    HeroTone.green => dark ? const [Color(0xFF1F5E4D), Color(0xFF123B30)] : const [Color(0xFF1D6A56), Color(0xFF124A3C)],
-    HeroTone.blue => dark ? const [Color(0xFF2C5C8A), Color(0xFF1A3A5C)] : const [Color(0xFF3A78B5), Color(0xFF224E7D)],
-    HeroTone.amber => dark ? const [Color(0xFF8A5A1E), Color(0xFF5C3A12)] : const [Color(0xFFC07A24), Color(0xFF8A5216)],
-    HeroTone.plum => dark ? const [Color(0xFF5C467F), Color(0xFF3A2C52)] : const [Color(0xFF7A5BB0), Color(0xFF51397D)],
-  };
-}
+/// The summary cards all share the brand colour: a colour per page carried no
+/// meaning and made the app noisy. [HeroTone] stays for callers' intent.
+Color heroColor(BuildContext context, HeroTone tone) => Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1C5747) : const Color(0xFF1D6A56);
 
-/// Gradient card with white content, used at the top of a page.
+/// Flat card in the brand colour with white content, used at the top of a page.
 class GradientCard extends StatelessWidget {
   final Widget child;
   final HeroTone tone;
@@ -30,15 +24,9 @@ class GradientCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = heroColors(context, tone);
-    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: padding,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: c),
-        boxShadow: dark ? null : [BoxShadow(color: c.first.withValues(alpha: 0.25), blurRadius: 18, offset: const Offset(0, 8))],
-      ),
+      decoration: BoxDecoration(color: heroColor(context, tone), borderRadius: BorderRadius.circular(18)),
       child: DefaultTextStyle.merge(
         style: const TextStyle(color: Colors.white),
         child: child,
@@ -47,7 +35,7 @@ class GradientCard extends StatelessWidget {
   }
 }
 
-const heroSoft = Color(0xB8FFFFFF);
+const heroSoft = Color(0xD9FFFFFF); // 85 % white: readable at 12 px on the brand colour
 
 class HeroLabel extends StatelessWidget {
   final String text;
@@ -55,7 +43,7 @@ class HeroLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     text.toUpperCase(),
-    style: const TextStyle(color: heroSoft, fontSize: 11, letterSpacing: 1, fontWeight: FontWeight.w600),
+    style: const TextStyle(color: heroSoft, fontSize: 12, letterSpacing: 0.8, fontWeight: FontWeight.w600),
   );
 }
 

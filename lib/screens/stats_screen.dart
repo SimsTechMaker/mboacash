@@ -13,15 +13,17 @@ import '../widgets/design.dart';
 import 'summary_view.dart';
 import '../widgets/sheets.dart';
 
-/// The Summary tab: smart analyses, and the period's figures one tap away.
+/// Smart analyses, or the period's figures when [figures] is set. The
+/// Budget tab chooses which one to show.
 class StatsScreen extends StatefulWidget {
-  const StatsScreen({super.key});
+  final bool figures;
+  const StatsScreen({super.key, this.figures = false});
   @override
   State<StatsScreen> createState() => _StatsScreenState();
 }
 
 class _StatsScreenState extends State<StatsScreen> {
-  bool figures = false;
+  bool get figures => widget.figures;
 
   @override
   Widget build(BuildContext context) {
@@ -72,25 +74,15 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
             ),
             const SizedBox(height: 2),
-            Text(label, maxLines: 2, style: TextStyle(color: context.c.muted, fontSize: 11.5)),
+            Text(label, maxLines: 2, style: TextStyle(color: context.c.muted, fontSize: 12)),
           ],
         ),
       ),
     );
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
       children: [
-        SegmentedButton<bool>(
-          showSelectedIcon: false,
-          segments: [
-            ButtonSegment(value: false, label: Text(l.statsTabAnalyses)),
-            ButtonSegment(value: true, label: Text(l.statsTabFigures)),
-          ],
-          selected: {figures},
-          onSelectionChanged: (v) => setState(() => figures = v.first),
-        ),
-        const SizedBox(height: 14),
         if (!figures) const SmartSummaryView(),
         if (figures) ...[
           const Center(child: MonthNav()),
@@ -122,7 +114,7 @@ class _StatsScreenState extends State<StatsScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(l.statsSavingsRate, style: const TextStyle(color: heroSoft, fontSize: 11.5)),
+                    Text(l.statsSavingsRate, style: const TextStyle(color: heroSoft, fontSize: 12)),
                   ],
                 ),
               ],

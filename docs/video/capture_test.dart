@@ -10,8 +10,11 @@ import 'package:carnet237/icons.dart';
 import 'package:carnet237/models.dart';
 import 'package:carnet237/screens/accounts_screen.dart';
 import 'package:carnet237/screens/agenda_screen.dart';
+import 'package:carnet237/screens/categories_screen.dart';
+import 'package:carnet237/screens/debts_screen.dart';
 import 'package:carnet237/screens/ops_screen.dart';
 import 'package:carnet237/screens/periods_screen.dart';
+import 'package:carnet237/screens/savings_screen.dart';
 import 'package:carnet237/screens/stats_screen.dart';
 import 'package:carnet237/state.dart';
 import 'package:carnet237/theme.dart';
@@ -166,7 +169,7 @@ void main() {
           key: key,
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
-            theme: buildTheme(Brightness.light),
+            theme: buildTheme(Platform.environment['CAPTURE_DARK'] == '1' ? Brightness.dark : Brightness.light),
             locale: const Locale('fr'),
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -206,6 +209,13 @@ void main() {
   testWidgets('summary', (t) => shot(t, 'summary', tab('Résumé', const StatsScreen()), height: 1300, tap: '3 mois'));
   testWidgets('agenda', (t) => shot(t, 'agenda', const AgendaScreen(), height: 1100));
   testWidgets('periods', (t) => shot(t, 'periods', const PeriodsScreen(), height: 780));
+  // Phone-sized first screens, for design reviews.
+  testWidgets('home-new', (t) => shot(t, 'home-new', tab('Bonjour', HomeScreen(onShowJournal: () {}), agenda: true), height: 1400));
+  testWidgets('journal', (t) => shot(t, 'journal', tab('Journal', const OpsScreen()), height: 1100));
+  testWidgets('categories', (t) => shot(t, 'categories', tab('Catégories', CategoriesScreen(onShowOps: () {})), height: 1300));
+  testWidgets('savings', (t) => shot(t, 'savings', const SavingsScreen(), height: 1100));
+  testWidgets('debts', (t) => shot(t, 'debts', const DebtsScreen(), height: 900));
+  testWidgets('home-phone', (t) => shot(t, 'home-phone', tab('Bonjour', const OpsScreen(), agenda: true), height: 780));
 
   testWidgets('statement', (t) async {
     final s = demo();

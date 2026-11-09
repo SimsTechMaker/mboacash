@@ -12,12 +12,11 @@ import 'icons.dart';
 import 'notify.dart';
 import 'screens/accounts_screen.dart';
 import 'screens/agenda_screen.dart';
-import 'screens/categories_screen.dart';
+import 'screens/budget_screen.dart';
 import 'screens/lock_screen.dart';
 import 'screens/more_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/ops_screen.dart';
-import 'screens/stats_screen.dart';
 import 'security.dart';
 import 'state.dart';
 import 'theme.dart';
@@ -176,13 +175,8 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     _fade.forward(from: 0);
   }
 
-  List<(String, String)> _tabs(AppLocalizations l) => [
-    ('list', l.tabOps),
-    ('wallet', l.tabAccounts),
-    ('tags', l.tabCategories),
-    ('chart-pie', l.tabStats),
-    ('layout-grid', l.tabMore),
-  ];
+  // Pages of the bottom bar; the "+" in its middle is an action, not a page.
+  List<(String, String)> _tabs(AppLocalizations l) => [('house', l.tabHome), ('list', l.tabJournal), ('chart-pie', l.tabBudget), ('wallet', l.tabAccounts)];
 
   @override
   void initState() {
@@ -192,7 +186,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     lock.readPref('onboarded').then((v) => mounted ? setState(() => onboarded = v == '1' || lock.hasPin) : null);
   }
 
-  void showOps() => _select(0);
+  void showOps() => _select(1);
 
   String _title(AppLocalizations l) {
     if (index != 0) return _tabs(l)[index].$2;
@@ -214,7 +208,8 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
         },
       );
     }
-    final pages = [const OpsScreen(), AccountsScreen(onShowOps: showOps), CategoriesScreen(onShowOps: showOps), const StatsScreen(), const MoreScreen()];
+    final pages = [HomeScreen(onShowJournal: showOps), const OpsScreen(), BudgetScreen(onShowOps: showOps), AccountsScreen(onShowOps: showOps)];
+    final tabs = _tabs(l);
     return Scaffold(
       appBar: AppBar(
         title: AnimatedSwitcher(
@@ -228,6 +223,21 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
               icon: Icon(appIcon('calendar')),
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AgendaScreen())),
             ),
+          // Savings, debts, periods, data, security and settings.
+          IconButton(
+            tooltip: l.tabMore,
+            icon: Icon(appIcon('layout-grid')),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (ctx) => Scaffold(
+                  appBar: AppBar(title: Text(ctx.l.tabMore)),
+                  body: const MoreScreen(),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
         ],
       ),
       body: ready
@@ -241,14 +251,25 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
               ),
             )
           : const Center(child: CircularProgressIndicator()),
-      floatingActionButton: ready && index != 4
-          ? FloatingActionButton(tooltip: l.newOperation, onPressed: () => openTxSheet(context), child: Icon(appIcon('plus'), size: 26))
-          : null,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
+        selectedIndex: index < 2 ? index : index + 1,
         animationDuration: const Duration(milliseconds: 350),
-        onDestinationSelected: _select,
-        destinations: [for (final t in _tabs(l)) NavigationDestination(icon: Icon(appIcon(t.$1)), label: t.$2)],
+        onDestinationSelected: (i) => i == 2 ? (ready ? openTxSheet(context) : null) : _select(i < 2 ? i : i - 1),
+        destinations: [
+          for (final t in tabs.take(2)) NavigationDestination(icon: Icon(appIcon(t.$1)), label: t.$2),
+          // Adding a movement, always one tap away in the middle of the bar.
+          NavigationDestination(
+            icon: Container(
+              width: 48,
+              height: 40,
+              decoration: BoxDecoration(color: context.c.accent, borderRadius: BorderRadius.circular(14)),
+              child: Icon(appIcon('plus'), color: context.c.accentInk, size: 24),
+            ),
+            label: l.add,
+            tooltip: l.newOperation,
+          ),
+          for (final t in tabs.skip(2)) NavigationDestination(icon: Icon(appIcon(t.$1)), label: t.$2),
+        ],
       ),
     );
   }

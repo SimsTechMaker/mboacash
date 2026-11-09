@@ -13,7 +13,12 @@ d'autre n'y a accès, pas même la personne qui t'a donné l'application.
 
 ## Premiers pas
 
-- Touche **+** pour noter une dépense, un revenu ou un transfert entre comptes.
+- En bas : **Accueil** (ton argent disponible et l'essentiel), **Journal** (toutes tes opérations,
+  avec recherche), le bouton **+** au centre pour noter une opération, **Budget** (catégories,
+  analyses et chiffres) et **Comptes** (comptes, épargne, prêts et dettes).
+- **Plus** : l'icône carrée en haut à droite de l'accueil (épargne, dettes, périodes, relevé PDF,
+  sauvegardes, sécurité, paramètres).
+- Le bouton **+** note une dépense, un revenu ou un transfert entre comptes.
 - **Comptes** : Espèces, Banque, Mobile Money. Touche **Ajuster le solde** pour corriger un montant.
 - **Plus › Paramètres** : tes catégories et leurs icônes, tes comptes, ta devise, ton budget mensuel,
   le mode nuit et la langue (français ou anglais ; par défaut, celle du téléphone).

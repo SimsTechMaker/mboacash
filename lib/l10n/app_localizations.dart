@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'Ajuster le solde'**
   String get accountsAdjust;
 
+  /// No description provided for @accountsDebtsSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prêts et dettes'**
+  String get accountsDebtsSection;
+
   /// No description provided for @accountsDefault.
   ///
   /// In fr, this message translates to:
@@ -164,6 +170,12 @@ abstract class AppLocalizations {
   /// **'Cet argent est mis à part : pour l\'utiliser, transfère-le vers un compte normal.'**
   String get accountsSavingsHelp;
 
+  /// No description provided for @accountsSavingsSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épargne · {amount}'**
+  String accountsSavingsSection(String amount);
+
   /// No description provided for @accountsShare.
   ///
   /// In fr, this message translates to:
@@ -175,6 +187,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Argent utilisable'**
   String get accountsSpendable;
+
+  /// No description provided for @accountsSpendableSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utilisable · {amount}'**
+  String accountsSpendableSection(String amount);
+
+  /// No description provided for @accountsWorth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon patrimoine'**
+  String get accountsWorth;
+
+  /// No description provided for @accountsWorthHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comptes + épargne + ce qu\'on te doit − ce que tu dois'**
+  String get accountsWorthHelp;
 
   /// No description provided for @add.
   ///
@@ -692,6 +722,12 @@ abstract class AppLocalizations {
   /// **'Code incorrect pour cette sauvegarde. Il faut le code qui était actif au moment où elle a été faite.'**
   String get backupWrongCode;
 
+  /// No description provided for @budgetAnalyses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Analyses'**
+  String get budgetAnalyses;
+
   /// No description provided for @cancel.
   ///
   /// In fr, this message translates to:
@@ -1010,6 +1046,30 @@ abstract class AppLocalizations {
   /// **'Changer la devise ?'**
   String get currencyChangeTitle;
 
+  /// No description provided for @debtDueOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avant le {date}'**
+  String debtDueOn(String date);
+
+  /// No description provided for @debtIOweTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je dois à {person}'**
+  String debtIOweTo(String person);
+
+  /// No description provided for @debtOwesMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'{person} me doit'**
+  String debtOwesMe(String person);
+
+  /// No description provided for @debtsAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un prêt ou une dette'**
+  String get debtsAdd;
+
   /// No description provided for @debtsAddDebt.
   ///
   /// In fr, this message translates to:
@@ -1027,6 +1087,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Solde des dettes'**
   String get debtsBalance;
+
+  /// No description provided for @debtsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note l\'argent que tu as prêté ou emprunté, et suis les remboursements.'**
+  String get debtsEmpty;
 
   /// No description provided for @debtsEmptyLent.
   ///
@@ -1652,6 +1718,42 @@ abstract class AppLocalizations {
   /// **'Bonsoir'**
   String get greetingEvening;
 
+  /// No description provided for @homeBudgetLeft.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} restants'**
+  String homeBudgetLeft(String amount);
+
+  /// No description provided for @homeBudgetSpent.
+  ///
+  /// In fr, this message translates to:
+  /// **'{spent} sur {budget}'**
+  String homeBudgetSpent(String spent, String budget);
+
+  /// No description provided for @homeForecast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin de période ≈ {amount}'**
+  String homeForecast(String amount);
+
+  /// No description provided for @homePerDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} / jour'**
+  String homePerDay(String amount);
+
+  /// No description provided for @homeRecent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernières opérations'**
+  String get homeRecent;
+
+  /// No description provided for @homeSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout voir'**
+  String get homeSeeAll;
+
   /// No description provided for @importBadLines.
   ///
   /// In fr, this message translates to:
@@ -1843,6 +1945,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'+{pct} % en {name}'**
   String insWarnTitle(int pct, String name);
+
+  /// No description provided for @journalNoMatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune opération ne correspond à ta recherche.'**
+  String get journalNoMatch;
+
+  /// No description provided for @journalSearch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher une opération'**
+  String get journalSearch;
 
   /// No description provided for @language.
   ///
@@ -4886,11 +5000,29 @@ abstract class AppLocalizations {
   /// **'Comptes'**
   String get tabAccounts;
 
+  /// No description provided for @tabBudget.
+  ///
+  /// In fr, this message translates to:
+  /// **'Budget'**
+  String get tabBudget;
+
   /// No description provided for @tabCategories.
   ///
   /// In fr, this message translates to:
   /// **'Catégories'**
   String get tabCategories;
+
+  /// No description provided for @tabHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accueil'**
+  String get tabHome;
+
+  /// No description provided for @tabJournal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Journal'**
+  String get tabJournal;
 
   /// No description provided for @tabMore.
   ///

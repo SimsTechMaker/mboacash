@@ -18,12 +18,12 @@ class DebtsScreen extends StatefulWidget {
 }
 
 class _DebtsScreenState extends State<DebtsScreen> {
-  bool owe = true;
-
+  // One list for both directions: a tab could open empty while the other
+  // side holds a debt.
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
-    final list = s.debts.where((d) => d.owe == owe).toList()
+    final list = [...s.debts]
       ..sort((a, b) {
         final open = (s.debtLeft(b) > 0 ? 1 : 0) - (s.debtLeft(a) > 0 ? 1 : 0);
         if (open != 0) return open;
@@ -36,9 +36,9 @@ class _DebtsScreenState extends State<DebtsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(context.l.debtsTitle)),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => openDebtSheet(context, owe: owe),
+        onPressed: () => openDebtSheet(context),
         icon: Icon(appIcon('plus')),
-        label: Text(owe ? context.l.debtsAddDebt : context.l.debtsAddLoan),
+        label: Text(context.l.debtsAdd),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
@@ -72,19 +72,9 @@ class _DebtsScreenState extends State<DebtsScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          SegmentedButton<bool>(
-            showSelectedIcon: false,
-            segments: [
-              ButtonSegment(value: true, label: Text(context.l.debtsIOwe)),
-              ButtonSegment(value: false, label: Text(context.l.debtsOwedToMe)),
-            ],
-            selected: {owe},
-            onSelectionChanged: (v) => setState(() => owe = v.first),
-          ),
-          const SizedBox(height: 14),
           if (list.isEmpty)
             Panel(
-              child: EmptyState(icon: 'handshake', text: owe ? context.l.debtsEmptyOwe : context.l.debtsEmptyLent),
+              child: EmptyState(icon: 'handshake', text: context.l.debtsEmpty),
             ),
           for (var i = 0; i < list.length; i++) ...[
             FadeIn(
@@ -146,7 +136,7 @@ class _DebtCard extends StatelessWidget {
                             const SizedBox(width: 6),
                             Text(
                               context.l.savingsSampleTag,
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: context.c.warn),
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: context.c.warn),
                             ),
                           ],
                         ],

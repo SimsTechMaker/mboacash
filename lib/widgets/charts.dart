@@ -97,7 +97,7 @@ class _BarsPainter extends CustomPainter {
     final tp = TextPainter(
       text: TextSpan(
         text: s,
-        style: TextStyle(fontSize: 11, color: color ?? c.muted, fontWeight: bold ? FontWeight.w600 : FontWeight.w400),
+        style: TextStyle(fontSize: 12, color: color ?? c.muted, fontWeight: bold ? FontWeight.w600 : FontWeight.w400),
       ),
       textDirection: TextDirection.ltr,
     )..layout();

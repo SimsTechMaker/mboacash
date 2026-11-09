@@ -79,7 +79,7 @@ class Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     text.toUpperCase(),
-    style: TextStyle(fontSize: 11, letterSpacing: 0.9, fontWeight: FontWeight.w600, color: context.c.muted),
+    style: TextStyle(fontSize: 12, letterSpacing: 0.9, fontWeight: FontWeight.w600, color: context.c.muted),
   );
 }
 
@@ -315,7 +315,7 @@ class TxTile extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           context.l.commonSample,
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: context.c.warn),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: context.c.warn),
                         ),
                       ],
                     ],

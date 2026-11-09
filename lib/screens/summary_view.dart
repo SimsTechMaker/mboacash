@@ -291,7 +291,7 @@ class _Tile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(label, maxLines: 2, style: TextStyle(color: context.c.muted, fontSize: 11.5)),
+          Text(label, maxLines: 2, style: TextStyle(color: context.c.muted, fontSize: 12)),
         ],
       ),
     ),

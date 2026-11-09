@@ -103,6 +103,7 @@ const _icons = <String, IconData>{
   'repeat': LucideIcons.repeat,
   'scale': LucideIcons.scale,
   'scissors': LucideIcons.scissors,
+  'search': LucideIcons.search,
   'settings': LucideIcons.settings,
   'share-2': LucideIcons.share2,
   'shield': LucideIcons.shield,

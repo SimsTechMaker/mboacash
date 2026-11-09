@@ -117,7 +117,7 @@ class PeriodsScreen extends StatelessWidget {
                         FitNumber(
                           child: Text(f.money(history[i].closing), style: numStyle.copyWith(fontWeight: FontWeight.w600)),
                         ),
-                        Text(l.periodLeft, style: TextStyle(color: context.c.muted, fontSize: 11.5)),
+                        Text(l.periodLeft, style: TextStyle(color: context.c.muted, fontSize: 12)),
                       ],
                     ),
                   ],

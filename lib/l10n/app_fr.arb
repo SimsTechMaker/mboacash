@@ -1,6 +1,7 @@
 {
   "@@locale": "fr",
   "accountsAdjust": "Ajuster le solde",
+  "accountsDebtsSection": "Prêts et dettes",
   "accountsDefault": "par défaut",
   "accountsIOwe": "Je dois",
   "accountsMine": "Mes comptes",
@@ -11,6 +12,14 @@
   "accountsSavings": "Comptes d'épargne",
   "accountsSavingsBack": "Transférer vers un compte",
   "accountsSavingsHelp": "Cet argent est mis à part : pour l'utiliser, transfère-le vers un compte normal.",
+  "accountsSavingsSection": "Épargne · {amount}",
+  "@accountsSavingsSection": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "accountsShare": "{pct} % de ton argent disponible",
   "@accountsShare": {
     "placeholders": {
@@ -20,6 +29,16 @@
     }
   },
   "accountsSpendable": "Argent utilisable",
+  "accountsSpendableSection": "Utilisable · {amount}",
+  "@accountsSpendableSection": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "accountsWorth": "Mon patrimoine",
+  "accountsWorthHelp": "Comptes + épargne + ce qu'on te doit − ce que tu dois",
   "add": "Ajouter",
   "agendaAll": "Tout ce qui est programmé",
   "agendaConfirmHelp": "Corrige le montant ou la date si besoin. Rien n'est compté avant ta confirmation.",
@@ -206,6 +225,7 @@
     }
   },
   "backupWrongCode": "Code incorrect pour cette sauvegarde. Il faut le code qui était actif au moment où elle a été faite.",
+  "budgetAnalyses": "Analyses",
   "cancel": "Annuler",
   "cashCarried": "Au début de la période",
   "cashDebts": "Prêts et dettes",
@@ -374,9 +394,35 @@
     }
   },
   "currencyChangeTitle": "Changer la devise ?",
+  "debtDueOn": "Avant le {date}",
+  "@debtDueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "debtIOweTo": "Je dois à {person}",
+  "@debtIOweTo": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtOwesMe": "{person} me doit",
+  "@debtOwesMe": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "debtsAdd": "Ajouter un prêt ou une dette",
   "debtsAddDebt": "Ajouter une dette",
   "debtsAddLoan": "Ajouter un prêt",
   "debtsBalance": "Solde des dettes",
+  "debtsEmpty": "Note l'argent que tu as prêté ou emprunté, et suis les remboursements.",
   "debtsEmptyLent": "Note l'argent que tu as prêté et suis ce qu'on te rembourse.",
   "debtsEmptyOwe": "Note l'argent que tu as emprunté et suis tes remboursements.",
   "debtsIOwe": "Je dois",
@@ -579,6 +625,43 @@
   "fileBackupWarning": "Restaurer remplace toutes les données de ce téléphone par celles du fichier. Si tu oublies le mot de passe, le fichier ne peut plus être ouvert.",
   "greetingDay": "Bonjour",
   "greetingEvening": "Bonsoir",
+  "homeBudgetLeft": "{amount} restants",
+  "@homeBudgetLeft": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeBudgetSpent": "{spent} sur {budget}",
+  "@homeBudgetSpent": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "homeForecast": "Fin de période ≈ {amount}",
+  "@homeForecast": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homePerDay": "{amount} / jour",
+  "@homePerDay": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRecent": "Dernières opérations",
+  "homeSeeAll": "Tout voir",
   "importBadLines": "{count, plural, one{{count} ligne illisible} other{{count} lignes illisibles}}",
   "@importBadLines": {
     "placeholders": {
@@ -772,6 +855,8 @@
       }
     }
   },
+  "journalNoMatch": "Aucune opération ne correspond à ta recherche.",
+  "journalSearch": "Rechercher une opération",
   "language": "Langue",
   "languageAuto": "Automatique",
   "languageAutoDesc": "Suit la langue du téléphone",
@@ -2070,7 +2155,10 @@
   "sumWhenNight": "la nuit",
   "sumWhenStart": "en début de mois",
   "tabAccounts": "Comptes",
+  "tabBudget": "Budget",
   "tabCategories": "Catégories",
+  "tabHome": "Accueil",
+  "tabJournal": "Journal",
   "tabMore": "Plus",
   "tabOps": "Opérations",
   "tabStats": "Résumé",

@@ -13,6 +13,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountsAdjust => 'Adjust balance';
 
   @override
+  String get accountsDebtsSection => 'Loans and debts';
+
+  @override
   String get accountsDefault => 'default';
 
   @override
@@ -44,12 +47,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'This money is set apart: to use it, move it to a normal account.';
 
   @override
+  String accountsSavingsSection(String amount) {
+    return 'Savings · $amount';
+  }
+
+  @override
   String accountsShare(int pct) {
     return '$pct% of your available money';
   }
 
   @override
   String get accountsSpendable => 'Money you can use';
+
+  @override
+  String accountsSpendableSection(String amount) {
+    return 'Spendable · $amount';
+  }
+
+  @override
+  String get accountsWorth => 'My net worth';
+
+  @override
+  String get accountsWorthHelp =>
+      'Accounts + savings + owed to you − what you owe';
 
   @override
   String get add => 'Add';
@@ -358,6 +378,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Wrong code for this backup. You need the code that was active when it was made.';
 
   @override
+  String get budgetAnalyses => 'Analyses';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -562,6 +585,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currencyChangeTitle => 'Change the currency?';
 
   @override
+  String debtDueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String debtIOweTo(String person) {
+    return 'I owe $person';
+  }
+
+  @override
+  String debtOwesMe(String person) {
+    return '$person owes me';
+  }
+
+  @override
+  String get debtsAdd => 'Add a loan or a debt';
+
+  @override
   String get debtsAddDebt => 'Add a debt';
 
   @override
@@ -569,6 +610,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get debtsBalance => 'Debt balance';
+
+  @override
+  String get debtsEmpty =>
+      'Record money you lent or borrowed, and follow the repayments.';
 
   @override
   String get debtsEmptyLent =>
@@ -920,6 +965,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get greetingEvening => 'Good evening';
 
   @override
+  String homeBudgetLeft(String amount) {
+    return '$amount left';
+  }
+
+  @override
+  String homeBudgetSpent(String spent, String budget) {
+    return '$spent of $budget';
+  }
+
+  @override
+  String homeForecast(String amount) {
+    return 'End of period ≈ $amount';
+  }
+
+  @override
+  String homePerDay(String amount) {
+    return '$amount a day';
+  }
+
+  @override
+  String get homeRecent => 'Latest transactions';
+
+  @override
+  String get homeSeeAll => 'See all';
+
+  @override
   String importBadLines(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1092,6 +1163,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String insWarnTitle(int pct, String name) {
     return '+$pct% on $name';
   }
+
+  @override
+  String get journalNoMatch => 'No transaction matches your search.';
+
+  @override
+  String get journalSearch => 'Search transactions';
 
   @override
   String get language => 'Language';
@@ -2967,7 +3044,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabAccounts => 'Accounts';
 
   @override
+  String get tabBudget => 'Budget';
+
+  @override
   String get tabCategories => 'Categories';
+
+  @override
+  String get tabHome => 'Home';
+
+  @override
+  String get tabJournal => 'Journal';
 
   @override
   String get tabMore => 'More';

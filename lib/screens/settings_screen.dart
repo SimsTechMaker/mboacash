@@ -45,6 +45,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() => used ? cat.archived = true : draft.cats.remove(cat));
     } else if (acc != null) {
       if (draft.accounts.where((a) => !a.archived).length <= 1) return toast(context, context.l.settingsKeepOneAccount);
+      final bal = s.balances()[acc.id] ?? 0;
+      if (bal.abs() > 0.004) return toast(context, context.l.settingsAccountNotEmpty(fmtOf(context).money(bal)));
       final used = s.txs.any((t) => t.account == acc.id || t.to == acc.id);
       setState(() {
         used ? acc.archived = true : draft.accounts.remove(acc);
@@ -347,15 +349,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Amounts are stored as plain numbers: a new currency only changes their
+  /// label. With data already entered, say so before it happens.
+  Future<void> _setCurrency(String code) async {
+    final s = context.read<AppState>();
+    if (code == draft.currency) return;
+    if (s.txs.isNotEmpty) {
+      final f = Fmt(draft.currency), g = Fmt(code);
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(ctx.l.currencyChangeTitle),
+          content: Text(ctx.l.currencyChangeText(f.money(10000), g.money(10000))),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l.cancel)),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l.currencyChangeConfirm)),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      if (ok != true) return setState(() {}); // back to the current currency
+    }
+    setState(() => draft.currency = code);
+  }
+
   Widget _money() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         DropdownButtonFormField<String>(
+          // Rebuilt from the draft, so a change the user backs out of is undone.
+          key: ValueKey(draft.currency),
           initialValue: draft.currency,
           decoration: InputDecoration(labelText: context.l.settingsCurrency),
           items: [for (final e in currencies.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
-          onChanged: (v) => setState(() => draft.currency = v!),
+          onChanged: (v) => _setCurrency(v!),
         ),
         const SizedBox(height: 14),
         TextFormField(

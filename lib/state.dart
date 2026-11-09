@@ -158,12 +158,13 @@ class AppState extends ChangeNotifier {
   double debtLeft(Debt d) => (d.amount - debtPaid(d)).clamp(0, double.infinity).toDouble();
 
   /// Money that can really be spent: every account, savings excluded.
-  double get spendable => activeAccounts.fold(0.0, (a, x) => a + (balances()[x.id] ?? 0));
+  /// Archived accounts count too: money never leaves the totals unseen.
+  double get spendable => settings.accounts.fold(0.0, (a, x) => a + (balances()[x.id] ?? 0));
 
   /// [spendable] as it stood at the end of [iso].
   double spendableAt(String iso) {
-    final ids = {for (final a in activeAccounts) a.id};
-    var total = activeAccounts.fold(0.0, (a, x) => a + x.initial);
+    final ids = {for (final a in settings.accounts) a.id};
+    var total = settings.accounts.fold(0.0, (a, x) => a + x.initial);
     for (final t in txs) {
       if (t.date.compareTo(iso) > 0) continue;
       for (final e in effects(t)) {
@@ -175,6 +176,36 @@ class AppState extends ChangeNotifier {
 
   /// The money a period starts with: what the previous one left.
   double carriedInto(Period p) => spendableAt(shiftDays(p.start, -1));
+
+  /// Balance corrections in [p]: neither income nor expense, but they move
+  /// the money available, so they get their own line wherever totals add up.
+  double otherMoves(Period p) => periodTxs(p).where((t) => t.type == TxType.adjust).fold(0.0, (a, t) => a + effects(t).fold(0.0, (b, e) => b + e.delta));
+
+  /// What [acc] would hold after a change of [delta], [replacing] an existing
+  /// movement when it is being edited.
+  double balanceWith(String acc, double delta, {Tx? replacing}) {
+    var b = balances()[acc] ?? 0;
+    for (final e in replacing == null ? const <Effect>[] : effects(replacing)) {
+      if (e.account == acc) b -= e.delta;
+    }
+    return b + delta;
+  }
+
+  /// [date] falls in a period already closed.
+  bool isClosedDate(String date) => closed.any((c) => c.period.contains(date));
+
+  /// Accounts below zero: before closing, each balance should match reality.
+  List<Account> get negativeAccounts => settings.accounts.where((a) => (balances()[a.id] ?? 0) < -0.004).toList();
+
+  /// The movement recording the money lent or borrowed when [d] was created.
+  Tx? loanFor(Debt d) => txs.where((t) => t.type == TxType.debt && t.debt == d.id && t.init).firstOrNull;
+
+  /// A debt cannot be smaller than what was already repaid.
+  double minDebtAmount(Debt d) => debtPaid(d);
+
+  /// A debt can be deleted when nothing is left to settle, or when it never
+  /// moved money on the accounts.
+  bool canDeleteDebt(Debt d) => debtLeft(d) <= 0 || !txs.any((t) => t.type == TxType.debt && t.debt == d.id && t.account.isNotEmpty);
 
   double get totalSaved => goals.fold(0.0, (s, g) => s + goalSaved(g));
   double get totalOwed => debts.where((d) => d.owe).fold(0.0, (s, d) => s + debtLeft(d));
@@ -265,6 +296,8 @@ class AppState extends ChangeNotifier {
     s.normalize();
     await store.saveSettings(s);
     settings = s;
+    // An account's starting balance may have changed: it moves every total.
+    await _refreshClosed('');
     _changed();
   }
 
@@ -302,6 +335,7 @@ class AppState extends ChangeNotifier {
   /// Keeps the stored summaries true when a movement dated in a closed period
   /// is added, changed or removed. Everything after it moves too: what one
   /// period leaves is what the next one starts with.
+  /// An empty [date] refreshes them all.
   Future<void> _refreshClosed(String date) async {
     if (closed.isEmpty || date.compareTo(closed.last.end) > 0) return;
     _balances = null;
@@ -413,10 +447,13 @@ class AppState extends ChangeNotifier {
     _changed();
   }
 
+  /// Only an empty savings account can go (see [goalSaved]); its past
+  /// movements stay, so earlier periods keep their figures.
   Future<void> deleteGoal(String id) async {
+    final g = goalById(id);
+    if (g != null && goalSaved(g).abs() > 0.004) throw StateError('savings account not empty');
     await store.deleteGoal(id);
     goals.removeWhere((g) => g.id == id);
-    txs.removeWhere((t) => t.type == TxType.save && t.goal == id);
     _changed();
   }
 
@@ -431,10 +468,16 @@ class AppState extends ChangeNotifier {
     _changed();
   }
 
+  /// See [canDeleteDebt]. Movements that touched the accounts stay in the
+  /// history; a debt kept outside the accounts goes with its records.
   Future<void> deleteDebt(String id) async {
-    await store.deleteDebt(id);
+    final d = debtById(id);
+    if (d == null) return;
+    if (!canDeleteDebt(d)) throw StateError('debt not settled');
+    final keep = txs.any((t) => t.type == TxType.debt && t.debt == id && t.account.isNotEmpty);
+    await store.deleteDebt(id, keepTxs: keep);
     debts.removeWhere((d) => d.id == id);
-    txs.removeWhere((t) => t.type == TxType.debt && t.debt == id);
+    if (!keep) txs.removeWhere((t) => t.type == TxType.debt && t.debt == id);
     _changed();
   }
 
@@ -454,6 +497,7 @@ class AppState extends ChangeNotifier {
     txs.removeWhere((t) => t.sample);
     goals.removeWhere((g) => g.sample);
     debts.removeWhere((d) => d.sample);
+    await _refreshClosed('');
     _changed();
   }
 
@@ -486,6 +530,7 @@ class AppState extends ChangeNotifier {
     this.txs = [...this.txs, ...txs];
     this.goals = [...this.goals, ...goals];
     this.debts = [...this.debts, ...debts];
+    await _refreshClosed('');
     _changed();
   }
 

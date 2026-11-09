@@ -14,6 +14,43 @@ import '../theme.dart';
 import 'common.dart';
 import 'proof.dart';
 
+/// A closed period works like a locked ledger: changing it is allowed, but
+/// only knowingly, since its stored summary will change.
+Future<bool> confirmClosedPeriod(BuildContext context, AppState s, List<String> dates) async {
+  if (!dates.any(s.isClosedDate)) return true;
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(ctx.l.closedEditTitle),
+      content: Text(ctx.l.closedEditText),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l.cancel)),
+        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l.closedEditConfirm)),
+      ],
+    ),
+  );
+  return ok == true;
+}
+
+/// Asks before a movement leaves [acc] below zero: usually a movement that
+/// was not entered. Money can still be recorded as it really happened.
+Future<bool> confirmOverdraft(BuildContext context, AppState s, String acc, double after) async {
+  if (after >= -0.004) return true;
+  final name = s.accById(acc)?.name ?? '';
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(ctx.l.overdraftTitle),
+      content: Text(ctx.l.overdraftText(name, fmtOf(context).money(after))),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l.cancel)),
+        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l.overdraftSave)),
+      ],
+    ),
+  );
+  return ok == true;
+}
+
 // ---------------------------------------------------------------------------
 // Income / expense / transfer
 // ---------------------------------------------------------------------------
@@ -61,8 +98,9 @@ class _TxFormState extends State<_TxForm> {
     final other = s.activeAccounts.where((a) => a.id != account).firstOrNull;
     to = t?.to.isNotEmpty == true ? t!.to : (other?.id ?? account);
     cat = t?.cat ?? r?.cat ?? s.activeCats(false).first.id;
-    final today = todayIso();
-    date = t?.date ?? (r != null || s.view.contains(today) ? today : s.view.start);
+    // Today, even when an earlier period is on screen: a movement dated by
+    // default in another period is the classic cut-off error.
+    date = t?.date ?? todayIso();
     if (t != null || r != null) {
       amount.text = Fmt(s.settings.currency).number(t?.amount ?? r!.amount);
       note.text = t?.note ?? r!.note;
@@ -108,6 +146,12 @@ class _TxFormState extends State<_TxForm> {
     if (type == TxType.transfer && to == account) return toast(context, context.l.sheetsTransferSameAccount);
     if (type == TxType.transfer && (account.startsWith('goal:') || to.startsWith('goal:'))) return _saveSavingsTransfer(v);
     final t = widget.tx;
+    if (!await confirmClosedPeriod(context, s, [date, ?t?.date])) return;
+    if (!mounted) return;
+    if (type == TxType.expense || type == TxType.transfer) {
+      if (!await confirmOverdraft(context, s, account, s.balanceWith(account, -v, replacing: t))) return;
+      if (!mounted) return;
+    }
     final id = t?.id ?? newId();
     if (newProof != null) proof = await Proofs.save(id, newProof!);
     final tx = Tx(
@@ -455,6 +499,8 @@ Future<void> openGoalSheet(BuildContext context, {Goal? goal}) {
                   ConfirmDeleteButton(
                     label: ctx.l.delete,
                     onConfirm: () async {
+                      final left = s.goalSaved(goal);
+                      if (left.abs() > 0.004) return toast(ctx, ctx.l.sheetsGoalNotEmpty(f.money(left)));
                       await s.deleteGoal(goal.id);
                       if (ctx.mounted) {
                         Navigator.pop(ctx);
@@ -528,6 +574,8 @@ Future<void> openGoalMoveSheet(BuildContext context, Goal g, int dir) {
                 final v = parseAmount(amount.text);
                 if (v == null || v <= 0) return toast(ctx, ctx.l.sheetsAmountPositive);
                 if (dir > 0 && v > saved + 0.001) return toast(ctx, ctx.l.sheetsGoalWithdrawMax(f.money(saved)));
+                if (dir < 0 && !await confirmOverdraft(ctx, s, account, s.balanceWith(account, -v))) return;
+                if (!ctx.mounted) return;
                 await s.saveTx(
                   Tx(id: newId(), type: TxType.save, amount: v, cat: 'save', account: account, dir: dir, goal: g.id, date: date, note: note.text.trim()),
                 );
@@ -623,6 +671,7 @@ Future<void> openDebtSheet(BuildContext context, {Debt? debt, bool owe = true}) 
                   ConfirmDeleteButton(
                     label: ctx.l.delete,
                     onConfirm: () async {
+                      if (!s.canDeleteDebt(debt)) return toast(ctx, ctx.l.sheetsDebtNotSettled(f.money(s.debtLeft(debt))));
                       await s.deleteDebt(debt.id);
                       if (ctx.mounted) {
                         Navigator.pop(ctx);
@@ -638,6 +687,7 @@ Future<void> openDebtSheet(BuildContext context, {Debt? debt, bool owe = true}) 
                       final v = parseAmount(amount.text);
                       if (person.text.trim().isEmpty) return toast(ctx, ctx.l.sheetsDebtPersonMissing);
                       if (v == null || v <= 0) return toast(ctx, ctx.l.sheetsAmountPositive);
+                      if (debt != null && v < s.minDebtAmount(debt) - 0.004) return toast(ctx, ctx.l.sheetsDebtBelowPaid(f.money(s.minDebtAmount(debt))));
                       final d = debt ?? Debt(id: newId('d-'), owe: kindOwe, person: '', amount: 0, date: date);
                       d
                         ..person = person.text.trim()

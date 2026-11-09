@@ -74,12 +74,10 @@ class Store {
   Future<void> saveDebt(Debt d) => _db.insert('debts', d.toRow(), conflictAlgorithm: ConflictAlgorithm.replace);
 
   Future<void> deleteTx(String id) => _db.delete('txs', where: 'id = ?', whereArgs: [id]);
-  Future<void> deleteGoal(String id) => _db.transaction((t) async {
-    await t.delete('txs', where: "type = 'save' AND goal = ?", whereArgs: [id]);
-    await t.delete('goals', where: 'id = ?', whereArgs: [id]);
-  });
-  Future<void> deleteDebt(String id) => _db.transaction((t) async {
-    await t.delete('txs', where: "type = 'debt' AND debt = ?", whereArgs: [id]);
+  // Past movements stay: deleting must not rewrite earlier periods.
+  Future<void> deleteGoal(String id) => _db.delete('goals', where: 'id = ?', whereArgs: [id]);
+  Future<void> deleteDebt(String id, {required bool keepTxs}) => _db.transaction((t) async {
+    if (!keepTxs) await t.delete('txs', where: "type = 'debt' AND debt = ?", whereArgs: [id]);
     await t.delete('debts', where: 'id = ?', whereArgs: [id]);
   });
 

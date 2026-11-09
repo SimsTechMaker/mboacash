@@ -28,7 +28,9 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: Row(children: [FitNumber(child: Text('2 500 FCFA', style: TextStyle(fontSize: 14)))]),
+          body: Row(
+            children: [FitNumber(child: Text('2 500 FCFA', style: TextStyle(fontSize: 14)))],
+          ),
         ),
       ),
     );

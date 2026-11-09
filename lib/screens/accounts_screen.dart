@@ -20,7 +20,7 @@ class AccountsScreen extends StatelessWidget {
     final s = context.watch<AppState>();
     final b = s.balances();
     final list = s.activeAccounts;
-    final onAccounts = list.fold<double>(0, (a, x) => a + (b[x.id] ?? 0));
+    final onAccounts = s.spendable;
     final net = onAccounts + s.totalSaved + s.totalLent - s.totalOwed;
     final positive = list.fold<double>(0, (a, x) => a + ((b[x.id] ?? 0) > 0 ? b[x.id]! : 0));
     final l = context.l;

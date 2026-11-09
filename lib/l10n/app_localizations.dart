@@ -776,6 +776,24 @@ abstract class AppLocalizations {
   /// **'Fermer'**
   String get close;
 
+  /// No description provided for @closedEditConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier quand même'**
+  String get closedEditConfirm;
+
+  /// No description provided for @closedEditText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette opération touche une période déjà fermée. Son bilan sera recalculé, ainsi que le report des périodes suivantes.'**
+  String get closedEditText;
+
+  /// No description provided for @closedEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Période fermée'**
+  String get closedEditTitle;
+
   /// No description provided for @commonBorrowFrom.
   ///
   /// In fr, this message translates to:
@@ -949,6 +967,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Franc CFA (XOF)'**
   String get curXOF;
+
+  /// No description provided for @currencyChangeConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer seulement l\'unité'**
+  String get currencyChangeConfirm;
+
+  /// No description provided for @currencyChangeText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les montants ne sont pas convertis : seule l\'unité change. {before} deviendra {after}. À faire seulement pour corriger une devise mal choisie au départ.'**
+  String currencyChangeText(String before, String after);
+
+  /// No description provided for @currencyChangeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer la devise ?'**
+  String get currencyChangeTitle;
 
   /// No description provided for @debtsAddDebt.
   ///
@@ -2588,6 +2624,36 @@ abstract class AppLocalizations {
   /// **'Exemples chargés. Tu pourras les retirer dans Paramètres › Données.'**
   String get opsSamplesLoaded;
 
+  /// No description provided for @overdraftSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer quand même'**
+  String get overdraftSave;
+
+  /// No description provided for @overdraftText.
+  ///
+  /// In fr, this message translates to:
+  /// **'{account} passerait à {amount}. Il manque peut-être une rentrée d\'argent. Enregistrer quand même ?'**
+  String overdraftText(String account, String amount);
+
+  /// No description provided for @overdraftTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solde négatif'**
+  String get overdraftTitle;
+
+  /// No description provided for @periodAdjust.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajustements'**
+  String get periodAdjust;
+
+  /// No description provided for @periodAdjustLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajustements de solde : {amount}'**
+  String periodAdjustLine(String amount);
+
   /// No description provided for @periodAvailable.
   ///
   /// In fr, this message translates to:
@@ -2743,6 +2809,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Cet argent reste sur tes comptes et passe à la période suivante.'**
   String get periodLeftHelp;
+
+  /// No description provided for @periodNegativeWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'{account} est à {amount}. Vérifie qu\'il ne manque pas une opération avant de fermer.'**
+  String periodNegativeWarning(String account, String amount);
 
   /// No description provided for @periodNotEnded.
   ///
@@ -3140,6 +3212,12 @@ abstract class AppLocalizations {
   /// **'N\'importe qui ayant ton téléphone peut ouvrir l\'app.'**
   String get securityUnprotectedDesc;
 
+  /// No description provided for @settingsAccountNotEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte contient encore {amount}. Transfère d\'abord son solde vers un autre compte.'**
+  String settingsAccountNotEmpty(String amount);
+
   /// No description provided for @settingsAccountsHint.
   ///
   /// In fr, this message translates to:
@@ -3500,10 +3578,16 @@ abstract class AppLocalizations {
   /// **'Dette ajoutée'**
   String get sheetsDebtAdded;
 
+  /// No description provided for @sheetsDebtBelowPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le montant ne peut pas être inférieur à ce qui a déjà été remboursé ({amount}).'**
+  String sheetsDebtBelowPaid(String amount);
+
   /// No description provided for @sheetsDebtDeleteHint.
   ///
   /// In fr, this message translates to:
-  /// **'Supprimer la dette efface aussi ses remboursements enregistrés.'**
+  /// **'Une dette se supprime une fois soldée. Ses mouvements passés restent dans l\'historique.'**
   String get sheetsDebtDeleteHint;
 
   /// No description provided for @sheetsDebtDeleted.
@@ -3559,6 +3643,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nouvelle dette'**
   String get sheetsDebtNewTitle;
+
+  /// No description provided for @sheetsDebtNotSettled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il reste {amount} à régler. Solde d\'abord la dette pour pouvoir la supprimer.'**
+  String sheetsDebtNotSettled(String amount);
 
   /// No description provided for @sheetsDebtOwedToMe.
   ///
@@ -3689,7 +3779,7 @@ abstract class AppLocalizations {
   /// No description provided for @sheetsGoalDeleteHint.
   ///
   /// In fr, this message translates to:
-  /// **'Supprimer l\'objectif efface aussi ses mouvements : l\'argent revient sur les comptes d\'origine.'**
+  /// **'Seul un compte d\'épargne vide peut être supprimé. Ses mouvements passés restent dans l\'historique.'**
   String get sheetsGoalDeleteHint;
 
   /// No description provided for @sheetsGoalDeleted.
@@ -3727,6 +3817,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nouveau compte d\'épargne'**
   String get sheetsGoalNewTitle;
+
+  /// No description provided for @sheetsGoalNotEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte d\'épargne contient encore {amount}. Transfère d\'abord son solde vers un compte.'**
+  String sheetsGoalNotEmpty(String amount);
 
   /// No description provided for @sheetsGoalPutAside.
   ///

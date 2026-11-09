@@ -428,6 +428,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get close => 'Fermer';
 
   @override
+  String get closedEditConfirm => 'Modifier quand même';
+
+  @override
+  String get closedEditText =>
+      'Cette opération touche une période déjà fermée. Son bilan sera recalculé, ainsi que le report des périodes suivantes.';
+
+  @override
+  String get closedEditTitle => 'Période fermée';
+
+  @override
   String commonBorrowFrom(String who) {
     return 'Emprunt auprès de $who';
   }
@@ -529,6 +539,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get curXOF => 'Franc CFA (XOF)';
+
+  @override
+  String get currencyChangeConfirm => 'Changer seulement l\'unité';
+
+  @override
+  String currencyChangeText(String before, String after) {
+    return 'Les montants ne sont pas convertis : seule l\'unité change. $before deviendra $after. À faire seulement pour corriger une devise mal choisie au départ.';
+  }
+
+  @override
+  String get currencyChangeTitle => 'Changer la devise ?';
 
   @override
   String get debtsAddDebt => 'Ajouter une dette';
@@ -1566,6 +1587,25 @@ class AppLocalizationsFr extends AppLocalizations {
       'Exemples chargés. Tu pourras les retirer dans Paramètres › Données.';
 
   @override
+  String get overdraftSave => 'Enregistrer quand même';
+
+  @override
+  String overdraftText(String account, String amount) {
+    return '$account passerait à $amount. Il manque peut-être une rentrée d\'argent. Enregistrer quand même ?';
+  }
+
+  @override
+  String get overdraftTitle => 'Solde négatif';
+
+  @override
+  String get periodAdjust => 'Ajustements';
+
+  @override
+  String periodAdjustLine(String amount) {
+    return 'Ajustements de solde : $amount';
+  }
+
+  @override
   String get periodAvailable => 'Disponible';
 
   @override
@@ -1678,6 +1718,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get periodLeftHelp =>
       'Cet argent reste sur tes comptes et passe à la période suivante.';
+
+  @override
+  String periodNegativeWarning(String account, String amount) {
+    return '$account est à $amount. Vérifie qu\'il ne manque pas une opération avant de fermer.';
+  }
 
   @override
   String periodNotEnded(String date) {
@@ -1931,6 +1976,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'N\'importe qui ayant ton téléphone peut ouvrir l\'app.';
 
   @override
+  String settingsAccountNotEmpty(String amount) {
+    return 'Ce compte contient encore $amount. Transfère d\'abord son solde vers un autre compte.';
+  }
+
+  @override
   String get settingsAccountsHint =>
       'Le solde de départ est l\'argent présent sur le compte avant ta première saisie. Pour corriger un solde plus tard, utilise « Ajuster le solde » dans l\'onglet Comptes.';
 
@@ -2136,8 +2186,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sheetsDebtAdded => 'Dette ajoutée';
 
   @override
+  String sheetsDebtBelowPaid(String amount) {
+    return 'Le montant ne peut pas être inférieur à ce qui a déjà été remboursé ($amount).';
+  }
+
+  @override
   String get sheetsDebtDeleteHint =>
-      'Supprimer la dette efface aussi ses remboursements enregistrés.';
+      'Une dette se supprime une fois soldée. Ses mouvements passés restent dans l\'historique.';
 
   @override
   String get sheetsDebtDeleted => 'Dette supprimée';
@@ -2171,6 +2226,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sheetsDebtNewTitle => 'Nouvelle dette';
+
+  @override
+  String sheetsDebtNotSettled(String amount) {
+    return 'Il reste $amount à régler. Solde d\'abord la dette pour pouvoir la supprimer.';
+  }
 
   @override
   String get sheetsDebtOwedToMe => 'On me doit';
@@ -2242,7 +2302,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sheetsGoalDeleteHint =>
-      'Supprimer l\'objectif efface aussi ses mouvements : l\'argent revient sur les comptes d\'origine.';
+      'Seul un compte d\'épargne vide peut être supprimé. Ses mouvements passés restent dans l\'historique.';
 
   @override
   String get sheetsGoalDeleted => 'Compte d\'épargne supprimé';
@@ -2261,6 +2321,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sheetsGoalNewTitle => 'Nouveau compte d\'épargne';
+
+  @override
+  String sheetsGoalNotEmpty(String amount) {
+    return 'Ce compte d\'épargne contient encore $amount. Transfère d\'abord son solde vers un compte.';
+  }
 
   @override
   String get sheetsGoalPutAside => 'Mettre de côté';

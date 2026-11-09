@@ -269,6 +269,9 @@
   },
   "catsUnused": "Sans opération sur cette période",
   "close": "Fermer",
+  "closedEditConfirm": "Modifier quand même",
+  "closedEditText": "Cette opération touche une période déjà fermée. Son bilan sera recalculé, ainsi que le report des périodes suivantes.",
+  "closedEditTitle": "Période fermée",
   "commonBorrowFrom": "Emprunt auprès de {who}",
   "@commonBorrowFrom": {
     "placeholders": {
@@ -354,6 +357,19 @@
   "curUSD": "Dollar US (USD)",
   "curXAF": "Franc CFA (XAF)",
   "curXOF": "Franc CFA (XOF)",
+  "currencyChangeConfirm": "Changer seulement l'unité",
+  "currencyChangeText": "Les montants ne sont pas convertis : seule l'unité change. {before} deviendra {after}. À faire seulement pour corriger une devise mal choisie au départ.",
+  "@currencyChangeText": {
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyChangeTitle": "Changer la devise ?",
   "debtsAddDebt": "Ajouter une dette",
   "debtsAddLoan": "Ajouter un prêt",
   "debtsBalance": "Solde des dettes",
@@ -1094,6 +1110,28 @@
     }
   },
   "opsSamplesLoaded": "Exemples chargés. Tu pourras les retirer dans Paramètres › Données.",
+  "overdraftSave": "Enregistrer quand même",
+  "overdraftText": "{account} passerait à {amount}. Il manque peut-être une rentrée d'argent. Enregistrer quand même ?",
+  "@overdraftText": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "overdraftTitle": "Solde négatif",
+  "periodAdjust": "Ajustements",
+  "periodAdjustLine": "Ajustements de solde : {amount}",
+  "@periodAdjustLine": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "periodAvailable": "Disponible",
   "periodBudgetSpent": "Dépensé sur un budget de {budget}",
   "@periodBudgetSpent": {
@@ -1175,6 +1213,17 @@
   "periodKindSemester": "Semestriel",
   "periodLeft": "Restant",
   "periodLeftHelp": "Cet argent reste sur tes comptes et passe à la période suivante.",
+  "periodNegativeWarning": "{account} est à {amount}. Vérifie qu'il ne manque pas une opération avant de fermer.",
+  "@periodNegativeWarning": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "periodNotEnded": "Cette période se termine le {date}. Tu pourras la fermer à partir de cette date.",
   "@periodNotEnded": {
     "placeholders": {
@@ -1325,6 +1374,14 @@
   "securityTitle": "Sécurité",
   "securityUnprotected": "App non protégée",
   "securityUnprotectedDesc": "N'importe qui ayant ton téléphone peut ouvrir l'app.",
+  "settingsAccountNotEmpty": "Ce compte contient encore {amount}. Transfère d'abord son solde vers un autre compte.",
+  "@settingsAccountNotEmpty": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "settingsAccountsHint": "Le solde de départ est l'argent présent sur le compte avant ta première saisie. Pour corriger un solde plus tard, utilise « Ajuster le solde » dans l'onglet Comptes.",
   "settingsAppearanceNote": "La langue et le thème changent après « Enregistrer ».",
   "settingsCap": "Plafond",
@@ -1413,7 +1470,15 @@
   "sheetsDate": "Date",
   "sheetsDebtAccountHint": "Choisis un compte pour que l'argent reçu ou prêté apparaisse dans son solde, ou « Ne pas toucher à mes comptes » pour une dette ancienne.",
   "sheetsDebtAdded": "Dette ajoutée",
-  "sheetsDebtDeleteHint": "Supprimer la dette efface aussi ses remboursements enregistrés.",
+  "sheetsDebtBelowPaid": "Le montant ne peut pas être inférieur à ce qui a déjà été remboursé ({amount}).",
+  "@sheetsDebtBelowPaid": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetsDebtDeleteHint": "Une dette se supprime une fois soldée. Ses mouvements passés restent dans l'historique.",
   "sheetsDebtDeleted": "Dette supprimée",
   "sheetsDebtDue": "Échéance",
   "sheetsDebtEditTitle": "Modifier la dette",
@@ -1450,6 +1515,14 @@
     }
   },
   "sheetsDebtNewTitle": "Nouvelle dette",
+  "sheetsDebtNotSettled": "Il reste {amount} à régler. Solde d'abord la dette pour pouvoir la supprimer.",
+  "@sheetsDebtNotSettled": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "sheetsDebtOwedToMe": "On me doit",
   "sheetsDebtPaidFrom": "Payé depuis",
   "sheetsDebtPaidOutOf": "L'argent est sorti de",
@@ -1485,13 +1558,21 @@
   "sheetsGoalCreate": "Créer le compte",
   "sheetsGoalCreated": "Compte d'épargne créé",
   "sheetsGoalDeadline": "Date visée (facultatif)",
-  "sheetsGoalDeleteHint": "Supprimer l'objectif efface aussi ses mouvements : l'argent revient sur les comptes d'origine.",
+  "sheetsGoalDeleteHint": "Seul un compte d'épargne vide peut être supprimé. Ses mouvements passés restent dans l'historique.",
   "sheetsGoalDeleted": "Compte d'épargne supprimé",
   "sheetsGoalEditTitle": "Modifier le compte d'épargne",
   "sheetsGoalInitial": "Déjà mis de côté (facultatif)",
   "sheetsGoalNameHint": "Fonds d'urgence, voyage, voiture…",
   "sheetsGoalNameMissing": "Donne un nom au compte d'épargne.",
   "sheetsGoalNewTitle": "Nouveau compte d'épargne",
+  "sheetsGoalNotEmpty": "Ce compte d'épargne contient encore {amount}. Transfère d'abord son solde vers un compte.",
+  "@sheetsGoalNotEmpty": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "sheetsGoalPutAside": "Mettre de côté",
   "sheetsGoalPutAsideDone": "{amount} mis de côté",
   "@sheetsGoalPutAsideDone": {

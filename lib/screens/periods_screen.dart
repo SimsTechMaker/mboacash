@@ -255,6 +255,9 @@ class _Summary extends StatelessWidget {
               _line(context, l.periodCarried, c.opening),
               _line(context, l.totalsIncome, c.income, signed: true),
               _line(context, l.totalsExpenses, -c.expense, signed: true),
+              // Whatever is left once the above is counted: balance corrections.
+              if ((c.closing - c.opening - c.income + c.expense).abs() > 0.5)
+                _line(context, l.periodAdjust, c.closing - c.opening - c.income + c.expense, signed: true),
               const Divider(),
               _line(context, l.periodLeft, c.closing, strong: true),
               if (c.saved != 0) _line(context, l.periodSaved2, c.saved),
@@ -334,6 +337,19 @@ class ClosePeriodScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          // Before closing, as an accountant would: every balance real, nothing pending.
+          for (final a in s.negativeAccounts) ...[
+            SoftCard(
+              child: Row(
+                children: [
+                  IconBadge(icon: 'triangle-alert', color: context.c.expense),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(l.periodNegativeWarning(a.name, f.money(s.balances()[a.id] ?? 0)))),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           if (due > 0) ...[
             SoftCard(
               child: Row(

@@ -109,6 +109,21 @@ class StatementOptions {
   const StatementOptions({required this.from, required this.to, this.account = '', this.categories = true, this.plans = true});
 }
 
+/// Opening and closing balance of a statement: the accounts in its scope
+/// (savings excluded), before [o].from and at the end of [o].to.
+({double opening, double closing}) statementBalances(AppState s, StatementOptions o) {
+  final scope = o.account.isNotEmpty ? {o.account} : s.settings.accounts.map((a) => a.id).toSet();
+  var opening = scope.fold<double>(0, (a, id) => a + (s.accById(id)?.initial ?? 0));
+  var closing = opening;
+  for (final t in s.txs) {
+    if (t.date.compareTo(o.to) > 0) continue;
+    final e = s.effects(t).where((e) => scope.contains(e.account)).fold(0.0, (a, e) => a + e.delta);
+    closing += e;
+    if (t.date.compareTo(o.from) < 0) opening += e;
+  }
+  return (opening: opening, closing: closing);
+}
+
 Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
   final f = Fmt(s.settings.currency);
   final regular = pw.Font.ttf(await rootBundle.load('assets/fonts/IBMPlexSans-Regular.ttf'));
@@ -119,10 +134,7 @@ Future<Uint8List> buildStatement(AppState s, StatementOptions o) async {
   double effectOn(Tx t) => s.effects(t).where((e) => scope.contains(e.account)).fold(0.0, (a, e) => a + e.delta);
   final txs = [...s.txs]..sort((a, b) => a.date.compareTo(b.date) != 0 ? a.date.compareTo(b.date) : a.created.compareTo(b.created));
 
-  var opening = scope.fold<double>(0, (a, id) => a + (s.accById(id)?.initial ?? 0));
-  for (final t in txs) {
-    if (t.date.compareTo(o.from) < 0) opening += effectOn(t);
-  }
+  final opening = statementBalances(s, o).opening;
   var run = opening, debit = 0.0, credit = 0.0;
   final rows = <_Row>[];
   for (final t in txs) {

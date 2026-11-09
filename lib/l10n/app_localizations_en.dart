@@ -426,6 +426,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get close => 'Close';
 
   @override
+  String get closedEditConfirm => 'Change anyway';
+
+  @override
+  String get closedEditText =>
+      'This transaction touches a period that is already closed. Its review will be recalculated, along with what later periods carried over.';
+
+  @override
+  String get closedEditTitle => 'Closed period';
+
+  @override
   String commonBorrowFrom(String who) {
     return 'Borrowed from $who';
   }
@@ -527,6 +537,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get curXOF => 'CFA franc (XOF)';
+
+  @override
+  String get currencyChangeConfirm => 'Change the unit only';
+
+  @override
+  String currencyChangeText(String before, String after) {
+    return 'Amounts are not converted: only the unit changes. $before will become $after. Only do this to fix a currency chosen by mistake at the start.';
+  }
+
+  @override
+  String get currencyChangeTitle => 'Change the currency?';
 
   @override
   String get debtsAddDebt => 'Add a debt';
@@ -1558,6 +1579,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Examples loaded. You can remove them in Settings › Data.';
 
   @override
+  String get overdraftSave => 'Save anyway';
+
+  @override
+  String overdraftText(String account, String amount) {
+    return '$account would go down to $amount. Maybe some money in wasn\'t entered. Save anyway?';
+  }
+
+  @override
+  String get overdraftTitle => 'Negative balance';
+
+  @override
+  String get periodAdjust => 'Adjustments';
+
+  @override
+  String periodAdjustLine(String amount) {
+    return 'Balance adjustments: $amount';
+  }
+
+  @override
   String get periodAvailable => 'Available';
 
   @override
@@ -1670,6 +1710,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get periodLeftHelp =>
       'This money stays in your accounts and moves on to the next period.';
+
+  @override
+  String periodNegativeWarning(String account, String amount) {
+    return '$account is at $amount. Check that no transaction is missing before closing.';
+  }
 
   @override
   String periodNotEnded(String date) {
@@ -1922,6 +1967,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Anyone with your phone can open the app.';
 
   @override
+  String settingsAccountNotEmpty(String amount) {
+    return 'This account still holds $amount. Move its balance to another account first.';
+  }
+
+  @override
   String get settingsAccountsHint =>
       'The starting balance is the money in the account before your first entry. To correct a balance later, use \"Adjust balance\" in the Accounts tab.';
 
@@ -2126,8 +2176,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sheetsDebtAdded => 'Debt added';
 
   @override
+  String sheetsDebtBelowPaid(String amount) {
+    return 'The amount can\'t be lower than what was already repaid ($amount).';
+  }
+
+  @override
   String get sheetsDebtDeleteHint =>
-      'Deleting the debt also deletes its recorded repayments.';
+      'A debt can be deleted once settled. Its past entries stay in the history.';
 
   @override
   String get sheetsDebtDeleted => 'Debt deleted';
@@ -2161,6 +2216,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sheetsDebtNewTitle => 'New debt';
+
+  @override
+  String sheetsDebtNotSettled(String amount) {
+    return '$amount is still due. Settle the debt first to delete it.';
+  }
 
   @override
   String get sheetsDebtOwedToMe => 'Owed to me';
@@ -2232,7 +2292,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sheetsGoalDeleteHint =>
-      'Deleting the goal also deletes its entries: the money goes back to the original accounts.';
+      'Only an empty savings account can be deleted. Its past entries stay in the history.';
 
   @override
   String get sheetsGoalDeleted => 'Savings account deleted';
@@ -2251,6 +2311,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sheetsGoalNewTitle => 'New savings account';
+
+  @override
+  String sheetsGoalNotEmpty(String amount) {
+    return 'This savings account still holds $amount. Move its balance to an account first.';
+  }
 
   @override
   String get sheetsGoalPutAside => 'Set aside';

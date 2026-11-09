@@ -325,6 +325,12 @@ class _Hero extends StatelessWidget {
               total(l.periodAvailable, 'wallet', s.spendableAt(s.view.end)),
             ],
           ),
+          // Corrections of a balance move the money available without being
+          // income or expenses: shown so the card always adds up.
+          if (s.otherMoves(s.view) != 0) ...[
+            const SizedBox(height: 8),
+            Text(l.periodAdjustLine(f.money(s.otherMoves(s.view), signed: true)), style: TextStyle(color: soft, fontSize: 12)),
+          ],
           const SizedBox(height: 16),
           if (b > 0) ...[
             Row(

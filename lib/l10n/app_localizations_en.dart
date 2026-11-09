@@ -729,6 +729,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String dupText(String date, String amount, String category) {
+    return 'An identical transaction exists on $date ($amount, $category). Save it anyway?';
+  }
+
+  @override
+  String get dupTitle => 'Already recorded?';
+
+  @override
   String get edit => 'Edit';
 
   @override
@@ -1877,6 +1885,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get proofTitle => 'Proof';
+
+  @override
+  String get quickBar => 'Log an expense: \"taxi 1500\"';
+
+  @override
+  String get quickHelp =>
+      'Type the expense, its amount and, if you like, the account. Start with + for income.';
+
+  @override
+  String get quickHint => 'taxi 1500 momo';
+
+  @override
+  String get quickMore => 'More details';
+
+  @override
+  String get quickNoAmount => 'Add the amount';
+
+  @override
+  String quickSaved(String amount, String note) {
+    return '$amount · $note saved';
+  }
+
+  @override
+  String get quickTitle => 'Quick entry';
 
   @override
   String get save => 'Save';

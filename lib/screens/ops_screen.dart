@@ -10,6 +10,7 @@ import '../state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/design.dart';
+import '../widgets/quick_sheet.dart';
 import '../widgets/sheets.dart';
 import 'agenda_screen.dart';
 import 'budget_assistant_screen.dart';
@@ -64,6 +65,31 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         const SizedBox(height: 14),
+        // One phrase is enough to record a movement.
+        Material(
+          color: context.c.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(color: context.c.line),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => openQuickEntry(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+              child: Row(
+                children: [
+                  Icon(appIcon('zap'), size: 20, color: context.c.accent),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(l.quickBar, style: TextStyle(color: context.c.muted)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
         Panel(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
           child: _CashLines(

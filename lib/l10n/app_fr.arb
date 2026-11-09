@@ -480,6 +480,21 @@
   "defCatTelephone": "Téléphone et internet",
   "defCatTransport": "Transport",
   "delete": "Supprimer",
+  "dupText": "Une opération identique existe le {date} ({amount}, {category}). L'enregistrer quand même ?",
+  "@dupText": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "dupTitle": "Déjà enregistrée ?",
   "edit": "Modifier",
   "exportAllAccounts": "Tous les comptes",
   "exportByCategory": "Dépenses par catégorie",
@@ -1356,6 +1371,23 @@
   "proofReplace": "Remplacer",
   "proofTapToView": "Touche l'image pour l'agrandir",
   "proofTitle": "Justificatif",
+  "quickBar": "Note une dépense : « taxi 1500 »",
+  "quickHelp": "Écris la dépense, son montant et, si tu veux, le compte. Commence par + pour un revenu.",
+  "quickHint": "taxi 1500 momo",
+  "quickMore": "Plus de détails",
+  "quickNoAmount": "Ajoute le montant",
+  "quickSaved": "{amount} · {note} enregistré",
+  "@quickSaved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "quickTitle": "Saisie rapide",
   "save": "Enregistrer",
   "savingsBefore": "avant le {date}",
   "@savingsBefore": {

@@ -18,6 +18,8 @@ internet n'est utilisé que lorsque l'utilisateur lance une synchronisation Goog
   − dépenses ± épargne ± prêts et dettes ± corrections
 - Comptes d'épargne et suivi des dettes (« je dois » / « on me doit ») ; l'épargne et les dettes
   comptent comme revenus ou dépenses selon le sens, hors budget
+- Saisie rapide en une phrase (« taxi 1500 momo »), habitudes de saisie retenues, alerte de doublon
+- Widget écran d'accueil (disponible + saisie rapide) et raccourci sur l'icône
 - Assistant local : catégorie devinée d'après la note, opérations récurrentes, conseils mensuels,
   prévision de fin de mois, assistant budget (50/30/20, 70/20/10 ou d'après l'historique)
 - Justificatif photo (reçu, facture) sur une opération, pris à l'appareil photo ou dans la galerie

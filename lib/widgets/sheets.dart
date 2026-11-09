@@ -9,6 +9,7 @@ import '../icons.dart';
 import '../insights.dart';
 import '../models.dart';
 import '../proofs.dart';
+import '../quick_entry.dart';
 import '../state.dart';
 import '../theme.dart';
 import 'common.dart';
@@ -26,6 +27,24 @@ Future<bool> confirmClosedPeriod(BuildContext context, AppState s, List<String> 
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l.cancel)),
         FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l.closedEditConfirm)),
+      ],
+    ),
+  );
+  return ok == true;
+}
+
+/// Asks before saving a movement that looks like one already recorded.
+Future<bool> confirmDuplicate(BuildContext context, AppState s, Tx t) async {
+  final twin = similarTx(s, t);
+  if (twin == null) return true;
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(ctx.l.dupTitle),
+      content: Text(ctx.l.dupText(longDate(twin.date), fmtOf(context).money(twin.amount), s.group(s.flowKey(twin)).name)),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l.cancel)),
+        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l.overdraftSave)),
       ],
     ),
   );
@@ -148,6 +167,11 @@ class _TxFormState extends State<_TxForm> {
     final t = widget.tx;
     if (!await confirmClosedPeriod(context, s, [date, ?t?.date])) return;
     if (!mounted) return;
+    if (t == null && type != TxType.transfer) {
+      final draft = Tx(id: '', type: type, amount: v, cat: cat, account: account, date: date);
+      if (!await confirmDuplicate(context, s, draft)) return;
+      if (!mounted) return;
+    }
     if (type == TxType.expense || type == TxType.transfer) {
       if (!await confirmOverdraft(context, s, account, s.balanceWith(account, -v, replacing: t))) return;
       if (!mounted) return;
@@ -261,8 +285,38 @@ class _TxFormState extends State<_TxForm> {
           controller: note,
           maxLength: 120,
           textCapitalization: TextCapitalization.sentences,
+          onChanged: (_) => setState(() {}),
           decoration: InputDecoration(labelText: context.l.sheetsNote, hintText: context.l.sheetsTxNoteHint, counterText: ''),
         ),
+        // Notes used before, with their usual amount, category and account.
+        if (widget.tx == null && !isT && note.text.trim().length >= 2)
+          Builder(
+            builder: (context) {
+              final habits = noteHabits(s, note.text).where((h) => h.type == type).toList();
+              if (habits.isEmpty) return const SizedBox();
+              return Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final h in habits)
+                      ActionChip(
+                        avatar: Icon(appIcon(s.group(h.cat).icon), size: 16, color: slot(s.group(h.cat).color)),
+                        label: Text('${h.note} · ${fmtOf(context).money(h.amount)}'),
+                        onPressed: () => setState(() {
+                          note.text = h.note;
+                          cat = h.cat;
+                          catChosen = true;
+                          if (s.accById(h.account) != null) account = h.account;
+                          if (parseAmount(amount.text) == null) amount.text = Fmt(s.settings.currency).number(h.amount);
+                        }),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
         const SizedBox(height: 12),
         ProofField(
           saved: proof,

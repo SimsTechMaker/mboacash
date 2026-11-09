@@ -1292,6 +1292,18 @@ abstract class AppLocalizations {
   /// **'Supprimer'**
   String get delete;
 
+  /// No description provided for @dupText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une opération identique existe le {date} ({amount}, {category}). L\'enregistrer quand même ?'**
+  String dupText(String date, String amount, String category);
+
+  /// No description provided for @dupTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjà enregistrée ?'**
+  String get dupTitle;
+
   /// No description provided for @edit.
   ///
   /// In fr, this message translates to:
@@ -3085,6 +3097,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Justificatif'**
   String get proofTitle;
+
+  /// No description provided for @quickBar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note une dépense : « taxi 1500 »'**
+  String get quickBar;
+
+  /// No description provided for @quickHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écris la dépense, son montant et, si tu veux, le compte. Commence par + pour un revenu.'**
+  String get quickHelp;
+
+  /// No description provided for @quickHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'taxi 1500 momo'**
+  String get quickHint;
+
+  /// No description provided for @quickMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus de détails'**
+  String get quickMore;
+
+  /// No description provided for @quickNoAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoute le montant'**
+  String get quickNoAmount;
+
+  /// No description provided for @quickSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'{amount} · {note} enregistré'**
+  String quickSaved(String amount, String note);
+
+  /// No description provided for @quickTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisie rapide'**
+  String get quickTitle;
 
   /// No description provided for @save.
   ///

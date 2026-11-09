@@ -18,8 +18,10 @@ import 'screens/more_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/ops_screen.dart';
 import 'security.dart';
+import 'shortcuts.dart';
 import 'state.dart';
 import 'theme.dart';
+import 'widgets/quick_sheet.dart';
 import 'widgets/sheets.dart';
 
 Future<void> main() async {
@@ -33,6 +35,7 @@ Future<void> main() async {
   final state = AppState(Store());
   final backup = DriveBackup(state, lock);
   final notifier = Notifier(state, backup, lock);
+  final shortcuts = AppShortcuts(state, lock);
   runApp(
     MultiProvider(
       providers: [
@@ -40,6 +43,7 @@ Future<void> main() async {
         ChangeNotifierProvider.value(value: lock),
         ChangeNotifierProvider.value(value: backup),
         ChangeNotifierProvider.value(value: notifier),
+        Provider.value(value: shortcuts),
       ],
       child: const CarnetApp(),
     ),
@@ -54,6 +58,7 @@ Future<void> main() async {
   } catch (e, st) {
     debugPrint('carnet237 notifications disabled: $e\n$st');
   }
+  unawaited(shortcuts.init());
   unawaited(cleanExportFiles());
 }
 
@@ -165,6 +170,9 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
 
   @override
   void dispose() {
+    _shortcut?.cancel();
+    _lock.removeListener(_openPending);
+    _state.removeListener(_openPending);
     _fade.dispose();
     super.dispose();
   }
@@ -178,12 +186,35 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
   // Pages of the bottom bar; the "+" in its middle is an action, not a page.
   List<(String, String)> _tabs(AppLocalizations l) => [('house', l.tabHome), ('list', l.tabJournal), ('chart-pie', l.tabBudget), ('wallet', l.tabAccounts)];
 
+  StreamSubscription<String>? _shortcut;
+  late final LockService _lock = context.read<LockService>();
+  late final AppState _state = context.read<AppState>();
+
+  /// Quick entry asked for from the launcher shortcut or the widget: opened
+  /// once the app is ready, onboarded and unlocked.
+  void _openPending() {
+    final shortcuts = context.read<AppShortcuts>();
+    if (shortcuts.waiting == null || _lock.locked || onboarded != true || !_state.ready) return;
+    shortcuts.take();
+    _select(0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) openQuickEntry(context);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     final lock = context.read<LockService>();
+    _shortcut = context.read<AppShortcuts>().pending.stream.listen((_) => _openPending());
+    _lock.addListener(_openPending);
+    _state.addListener(_openPending);
     // Someone who already set a code has used the app before.
-    lock.readPref('onboarded').then((v) => mounted ? setState(() => onboarded = v == '1' || lock.hasPin) : null);
+    lock.readPref('onboarded').then((v) {
+      if (!mounted) return;
+      setState(() => onboarded = v == '1' || lock.hasPin);
+      _openPending();
+    });
   }
 
   void showOps() => _select(1);

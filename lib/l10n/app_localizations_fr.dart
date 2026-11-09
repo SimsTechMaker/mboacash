@@ -731,6 +731,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get delete => 'Supprimer';
 
   @override
+  String dupText(String date, String amount, String category) {
+    return 'Une opération identique existe le $date ($amount, $category). L\'enregistrer quand même ?';
+  }
+
+  @override
+  String get dupTitle => 'Déjà enregistrée ?';
+
+  @override
   String get edit => 'Modifier';
 
   @override
@@ -1885,6 +1893,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get proofTitle => 'Justificatif';
+
+  @override
+  String get quickBar => 'Note une dépense : « taxi 1500 »';
+
+  @override
+  String get quickHelp =>
+      'Écris la dépense, son montant et, si tu veux, le compte. Commence par + pour un revenu.';
+
+  @override
+  String get quickHint => 'taxi 1500 momo';
+
+  @override
+  String get quickMore => 'Plus de détails';
+
+  @override
+  String get quickNoAmount => 'Ajoute le montant';
+
+  @override
+  String quickSaved(String amount, String note) {
+    return '$amount · $note enregistré';
+  }
+
+  @override
+  String get quickTitle => 'Saisie rapide';
 
   @override
   String get save => 'Enregistrer';
